@@ -133,6 +133,9 @@ export class AuthService {
     });
 
     if (user) {
+      ////////////////////////////////////////
+      await user.save();
+
       if (socialEmail && !userByEmail) {
         user.email = socialEmail;
       }
@@ -241,6 +244,7 @@ export class AuthService {
     user.status = plainToClass(Status, {
       id: StatusEnum.active,
     });
+    ////////////////////
     await user.save();
   }
 
@@ -305,6 +309,7 @@ export class AuthService {
         id: user.id,
       },
     });
+    ////////////////////
     await user.save();
     await this.forgotService.softDelete(forgot.id);
   }
