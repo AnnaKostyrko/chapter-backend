@@ -14,7 +14,6 @@ import appleConfig from './config/apple.config';
 import path from 'path';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthAppleModule } from './auth-apple/auth-apple.module';
 import { AuthFacebookModule } from './auth-facebook/auth-facebook.module';
 import { AuthGoogleModule } from './auth-google/auth-google.module';
 import { AuthTwitterModule } from './auth-twitter/auth-twitter.module';
@@ -81,7 +80,6 @@ import { MailerModule } from './mailer/mailer.module';
     AuthFacebookModule,
     AuthGoogleModule,
     AuthTwitterModule,
-    AuthAppleModule,
     ForgotModule,
     SessionModule,
     MailModule,
