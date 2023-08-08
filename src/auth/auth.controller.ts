@@ -10,6 +10,9 @@ import {
   Patch,
   Delete,
   SerializeOptions,
+  Param,
+  HttpException,
+  
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -67,6 +70,10 @@ export class AuthController {
   ): Promise<void> {
     return this.service.confirmEmail(confirmEmailDto.hash);
   }
+  // @Get('email/confirm:hash')
+  // async getEmailConfirmation(@Param('hash') hash: string): Promise<any> {
+  //   const user = await this.service.confirmEmail(hash);
+  // }
 
   @Post('forgot/password')
   @HttpCode(HttpStatus.NO_CONTENT)

@@ -58,6 +58,6 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     message: 'statusNotExists',
   })
   status?: Status;
-
+  
   hash?: string | null;
 }

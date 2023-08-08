@@ -10,7 +10,6 @@ import {
   UpdateDateColumn,
   BeforeInsert,
   BeforeUpdate,
-  In,
 } from 'typeorm';
 import { Role } from '../../roles/entities/role.entity';
 import { Status } from '../../statuses/entities/status.entity';
@@ -43,7 +42,7 @@ export class User extends EntityHelper {
   public loadPreviousPassword(): void {
     this.previousPassword = this.password;
   }
-
+  
   @BeforeInsert()
   @BeforeUpdate()
   async setPassword() {

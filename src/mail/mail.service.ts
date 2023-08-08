@@ -5,6 +5,7 @@ import { MailData } from './interfaces/mail-data.interface';
 import { AllConfigType } from 'src/config/config.type';
 import { MaybeType } from '../utils/types/maybe.type';
 import { MailerService } from 'src/mailer/mailer.service';
+import md5 from 'md5'; // новая библиоткеа 
 import path from 'path';
 
 @Injectable()
@@ -29,8 +30,12 @@ export class MailService {
         i18n.t('confirm-email.text3'),
       ]);
     }
-
+    const email = 'chapter.social.network@gmail.com'; //  адрес электронной почты
+    const currentTime = new Date().getTime(); // Получение текущего времени в миллисекундах
+    const randomValue = Math.random(); // Генерация случайного числа
+    const uniqueToken = md5(`${email}${currentTime}${randomValue}`).slice(-6); // Замените "xxx" на реальные значения
     await this.mailerService.sendMail({
+      
       to: mailData.to,
       subject: emailConfirmTitle,
       text: `${this.configService.get('app.frontendDomain', {
@@ -50,7 +55,7 @@ export class MailService {
         url: `${this.configService.get('app.frontendDomain', {
           infer: true,
         })}/confirm-email/${mailData.data.hash}`,
-        actionTitle: emailConfirmTitle,
+        actionTitle: uniqueToken,
         app_name: this.configService.get('app.name', { infer: true }),
         text1,
         text2,
