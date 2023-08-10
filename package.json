@@ -6,7 +6,8 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-   "migration:generate": "npm run typeorm -- --dataSource=src/database/data-source.ts migration:generate",
+    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "migration:generate": "npm run typeorm -- --dataSource=src/database/data-source.ts migration:generate",
     "migration:create": "npm run typeorm -- migration:create",
     "migration:run": "npm run typeorm -- --dataSource=src/database/data-source.ts migration:run",
     "migration:revert": "npm run typeorm -- --dataSource=src/database/data-source.ts migration:revert",
@@ -25,7 +26,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-     "prepare": "is-ci || husky install"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "prepare": "is-ci || husky install"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.360.0",
