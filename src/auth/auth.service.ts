@@ -31,8 +31,6 @@ import { SessionService } from 'src/session/session.service';
 import { JwtRefreshPayloadType } from './strategies/types/jwt-refresh-payload.type';
 import { Session } from 'src/session/entities/session.entity';
 import { JwtPayloadType } from './strategies/types/jwt-payload.type';
-import md5 from 'md5';
-
 
 @Injectable()
 export class AuthService {
@@ -202,11 +200,11 @@ export class AuthService {
   }
 
   async register(dto: AuthRegisterLoginDto): Promise<void> {
-    
     const hash = crypto
       .createHash('sha256')
       .update(randomStringGenerator())
-      .digest('hex');
+      .digest('hex')
+      .slice(-6)
 
     await this.usersService.create({
       ...dto,
@@ -227,34 +225,31 @@ export class AuthService {
       },
     });
   }
-  
+
   async confirmEmail(hash: string): Promise<void> {
-    const email = 'chapter.social.network@gmail.com'; // Замените на реальный адрес электронной почты
-    const currentTime = new Date().getTime(); // Получение текущего времени в миллисекундах
-    const randomValue = Math.random(); // Генерация случайного числа
-    const uniqueToken = md5(`${email}${currentTime}${randomValue}`); // Замените "xxx" на реальные значения
-
+    
     const user = await this.usersService.findOne({
-      hash,
+      hash:hash,
     });
-
+  
     if (!user) {
-        throw new HttpException(
-            {
-                status: HttpStatus.NOT_FOUND,
-                error: 'notFound',
-            },
-            HttpStatus.NOT_FOUND,
-        );
-    }
-
-    user.hash = null;
-    user.status = plainToClass(Status, {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: `notFound`,
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    } 
+    
+      
+      user.status = plainToClass(Status, {
         id: StatusEnum.active,
-    });
-
-    await user.save();
-}
+      });
+      
+      await user.save();
+      
+  }
 
   async forgotPassword(email: string): Promise<void> {
     const user = await this.usersService.findOne({
@@ -277,7 +272,7 @@ export class AuthService {
       .createHash('sha256')
       .update(randomStringGenerator())
       .digest('hex');
-    
+
     await this.forgotService.create({
       hash,
       user,
@@ -473,8 +468,5 @@ export class AuthService {
       refreshToken,
       tokenExpires,
     };
-    
   }
-
-  
 }

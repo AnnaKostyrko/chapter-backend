@@ -58,6 +58,6 @@ export class CreateUserDto {
     message: 'statusNotExists',
   })
   status?: Status;
- 
+
   hash?: string | null;
 }

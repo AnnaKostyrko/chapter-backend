@@ -42,7 +42,7 @@ export class User extends EntityHelper {
   public loadPreviousPassword(): void {
     this.previousPassword = this.password;
   }
-  
+
   @BeforeInsert()
   @BeforeUpdate()
   async setPassword() {
@@ -82,6 +82,7 @@ export class User extends EntityHelper {
   @ManyToOne(() => Status, {
     eager: true,
   })
+  
   status?: Status;
 
   @Column({ type: String, nullable: true })

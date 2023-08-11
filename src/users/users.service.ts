@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
@@ -13,7 +13,7 @@ export class UsersService {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
   ) {}
- 
+
   create(createProfileDto: CreateUserDto): Promise<User> {
     return this.usersRepository.save(
       this.usersRepository.create(createProfileDto),

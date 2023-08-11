@@ -13,8 +13,6 @@ import {
   HttpStatus,
   HttpCode,
   SerializeOptions,
-  NotFoundException,
-  InternalServerErrorException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -28,7 +26,6 @@ import { infinityPagination } from 'src/utils/infinity-pagination';
 import { User } from './entities/user.entity';
 import { InfinityPaginationResultType } from '../utils/types/infinity-pagination-result.type';
 import { NullableType } from '../utils/types/nullable.type';
-import { StatusEnum } from 'src/statuses/statuses.enum';
 
 @ApiBearerAuth()
 @Roles(RoleEnum.admin)
@@ -80,7 +77,7 @@ export class UsersController {
   findOne(@Param('id') id: string): Promise<NullableType<User>> {
     return this.usersService.findOne({ id: +id });
   }
-  
+
   @SerializeOptions({
     groups: ['admin'],
   })
@@ -98,6 +95,4 @@ export class UsersController {
   remove(@Param('id') id: number): Promise<void> {
     return this.usersService.softDelete(id);
   }
-  
-  
 }

@@ -11,8 +11,6 @@ import {
   Delete,
   SerializeOptions,
   Param,
-  HttpException,
-  
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -26,6 +24,8 @@ import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { LoginResponseType } from './types/login-response.type';
 import { User } from '../users/entities/user.entity';
 import { NullableType } from '../utils/types/nullable.type';
+import { StatusEnum } from 'src/statuses/statuses.enum';
+import { UsersService } from 'src/users/users.service';
 
 @ApiTags('Auth')
 @Controller({
@@ -33,7 +33,9 @@ import { NullableType } from '../utils/types/nullable.type';
   version: '1',
 })
 export class AuthController {
-  constructor(private readonly service: AuthService) {}
+  constructor(private readonly service: AuthService,
+    private readonly usersService: UsersService
+    ) {}
 
   @SerializeOptions({
     groups: ['me'],
@@ -68,12 +70,22 @@ export class AuthController {
   async confirmEmail(
     @Body() confirmEmailDto: AuthConfirmEmailDto,
   ): Promise<void> {
+    console.log('Confirming email for hash:', confirmEmailDto.hash);
     return this.service.confirmEmail(confirmEmailDto.hash);
+    
   }
-  // @Get('email/confirm:hash')
-  // async getEmailConfirmation(@Param('hash') hash: string): Promise<any> {
-  //   const user = await this.service.confirmEmail(hash);
-  // }
+  
+  @Get('confirm-email/:hash')
+  async confirmEmailGet(@Param('hash') hash: string): Promise<string> {
+    const user = await this.usersService.findOne({
+      hash,
+    });
+    if (user && user.status && user.status.id === StatusEnum.active) {
+      return 'active';
+    } else {
+      return 'notActive';
+    }
+  }
 
   @Post('forgot/password')
   @HttpCode(HttpStatus.NO_CONTENT)
