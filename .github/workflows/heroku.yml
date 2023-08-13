@@ -1,5 +1,11 @@
 # Your workflow name.
 name: Deploy to heroku.
+env:
+  # Setting an environment variable with the value of a configuration variable
+  DATABASE_HOST: ${{ vars.DATABASE_HOST }}
+  DATABASE_USERNAME: ${{ vars.DATABASE_USERNAME }}
+  DATABASE_PASSWORD: ${{ vars.DATABASE_PASSWORD }}
+  DATABASE_NAME: ${{ vars.DATABASE_NAME }}
 
 # Run workflow on every push / pull request to the main branch.
 on:
