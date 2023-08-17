@@ -35,4 +35,4 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - ${APP_PORT}:${APP_PORT}
+      - ${PORT}:${PORT}
