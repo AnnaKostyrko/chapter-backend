@@ -19,7 +19,7 @@ import { Status } from 'src/statuses/entities/status.entity';
 import { Role } from 'src/roles/entities/role.entity';
 import { AuthProvidersEnum } from './auth-providers.enum';
 import { SocialInterface } from 'src/social/interfaces/social.interface';
-import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
+// import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UsersService } from 'src/users/users.service';
 import { ForgotService } from 'src/forgot/forgot.service';
 import { MailService } from 'src/mail/mail.service';
@@ -31,6 +31,9 @@ import { SessionService } from 'src/session/session.service';
 import { JwtRefreshPayloadType } from './strategies/types/jwt-refresh-payload.type';
 import { Session } from 'src/session/entities/session.entity';
 import { JwtPayloadType } from './strategies/types/jwt-payload.type';
+// import { session } from 'passport';
+import { EmailDto } from 'src/users/dto/create-email.dot';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -198,40 +201,48 @@ export class AuthService {
       user,
     };
   }
-
-  async register(dto: AuthRegisterLoginDto): Promise<void> {
-    const hash = crypto
-      .createHash('sha256')
-      .update(randomStringGenerator())
-      .digest('hex')
-      .slice(-6)
-
-    await this.usersService.create({
-      ...dto,
+  //принципом "duck typing" (по сути, проверкой наличия необходимых свойств).
+  //
+  async registerEmail(dto: EmailDto): Promise<void> {
+    const partialUserDto: Partial<CreateUserDto> = {
       email: dto.email,
-      role: {
-        id: RoleEnum.user,
-      } as Role,
-      status: {
-        id: StatusEnum.inactive,
-      } as Status,
-      hash,
-    });
+    };
 
-    await this.mailService.userSignUp({
-      to: dto.email,
-      data: {
-        hash,
-      },
-    });
+    await this.usersService.create(partialUserDto as CreateUserDto);
   }
 
-  async confirmEmail(hash: string): Promise<void> {
-    
+  // Maybe here there is an error
+  // async register(dto: AuthRegisterLoginDto): Promise<void> {
+  //   const hash = crypto
+  //     .createHash('sha256')
+  //     .update(randomStringGenerator())
+  //     .digest('hex')
+  //     .slice(-6);
+
+  //   await this.usersService.create({
+  //     ...dto,
+  //     role: {
+  //       id: RoleEnum.user,
+  //     } as Role,
+  //     status: {
+  //       id: StatusEnum.inactive,
+  //     } as Status,
+  //     hash,
+  //   });
+
+  //   await this.mailService.userSignUp({
+  //     to: dto.email,
+  //     data: {
+  //       hash,
+  //     },
+  //   });
+  // }
+
+  async confirmEmail(uniqueToken: string): Promise<void> {
     const user = await this.usersService.findOne({
-      hash:hash,
+      hash: uniqueToken,
     });
-  
+
     if (!user) {
       throw new HttpException(
         {
@@ -240,15 +251,13 @@ export class AuthService {
         },
         HttpStatus.NOT_FOUND,
       );
-    } 
-    
-      
-      user.status = plainToClass(Status, {
-        id: StatusEnum.active,
-      });
-      
-      await user.save();
-      
+    }
+
+    user.status = plainToClass(Status, {
+      id: StatusEnum.active,
+    });
+
+    await user.save();
   }
 
   async forgotPassword(email: string): Promise<void> {
@@ -419,6 +428,8 @@ export class AuthService {
     await this.usersService.softDelete(user.id);
   }
 
+  // LOGOUT
+
   async logout(data: Pick<JwtRefreshPayloadType, 'sessionId'>) {
     return this.sessionService.softDelete({
       id: data.sessionId,
@@ -448,6 +459,7 @@ export class AuthService {
           expiresIn: tokenExpiresIn,
         },
       ),
+
       await this.jwtService.signAsync(
         {
           sessionId: data.sessionId,

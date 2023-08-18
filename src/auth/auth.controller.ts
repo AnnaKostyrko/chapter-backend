@@ -10,7 +10,7 @@ import {
   Patch,
   Delete,
   SerializeOptions,
-  Param,
+  // Param,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -20,22 +20,25 @@ import { AuthConfirmEmailDto } from './dto/auth-confirm-email.dto';
 import { AuthResetPasswordDto } from './dto/auth-reset-password.dto';
 import { AuthUpdateDto } from './dto/auth-update.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
+// import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { LoginResponseType } from './types/login-response.type';
 import { User } from '../users/entities/user.entity';
 import { NullableType } from '../utils/types/nullable.type';
-import { StatusEnum } from 'src/statuses/statuses.enum';
+// import { StatusEnum } from 'src/statuses/statuses.enum';
 import { UsersService } from 'src/users/users.service';
-
+import { EmailDto } from 'src/users/dto/create-email.dot';
+//временный тип без поля email
+// type RegisterDtoWithoutEmail = Omit<AuthRegisterLoginDto, 'email'>;
 @ApiTags('Auth')
 @Controller({
   path: 'auth',
   version: '1',
 })
 export class AuthController {
-  constructor(private readonly service: AuthService,
-    private readonly usersService: UsersService
-    ) {}
+  constructor(
+    private readonly service: AuthService,
+    private readonly usersService: UsersService,
+  ) {}
 
   @SerializeOptions({
     groups: ['me'],
@@ -61,30 +64,23 @@ export class AuthController {
 
   @Post('email/register')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async register(@Body() createUserDto: AuthRegisterLoginDto): Promise<void> {
-    return this.service.register(createUserDto);
+  async registerEmail(@Body() emailDto: EmailDto): Promise<void> {
+    await this.service.registerEmail(emailDto);
   }
+  // at Tomorrow
+  // @Post('email/register/user')
+  // @HttpCode(HttpStatus.NO_CONTENT)
+  // async register(@Body() createUserDto: RegisterDtoWithoutEmail): Promise<void> {
+  //   return this.service.register(createUserDto);
+  // }
 
   @Post('email/confirm')
   @HttpCode(HttpStatus.NO_CONTENT)
   async confirmEmail(
     @Body() confirmEmailDto: AuthConfirmEmailDto,
   ): Promise<void> {
-    console.log('Confirming email for hash:', confirmEmailDto.hash);
+    console.log('Confirming email for uniqueToken:', confirmEmailDto.hash);
     return this.service.confirmEmail(confirmEmailDto.hash);
-    
-  }
-  
-  @Get('confirm-email/:hash')
-  async confirmEmailGet(@Param('hash') hash: string): Promise<string> {
-    const user = await this.usersService.findOne({
-      hash,
-    });
-    if (user && user.status && user.status.id === StatusEnum.active) {
-      return 'active';
-    } else {
-      return 'notActive';
-    }
   }
 
   @Post('forgot/password')

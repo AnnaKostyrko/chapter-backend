@@ -82,7 +82,6 @@ export class User extends EntityHelper {
   @ManyToOne(() => Status, {
     eager: true,
   })
-  
   status?: Status;
 
   @Column({ type: String, nullable: true })
