@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class CreatePost1692217928342 implements MigrationInterface {
-  name = 'CreatePost1692217928342';
+export class CreateUser1688161010537 implements MigrationInterface {
+  name = 'CreateUser1688161010537';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
@@ -12,9 +12,6 @@ export class CreatePost1692217928342 implements MigrationInterface {
     );
     await queryRunner.query(
       `CREATE TABLE "status" ("id" integer NOT NULL, "name" character varying NOT NULL, CONSTRAINT "PK_e12743a7086ec826733f54e1d95" PRIMARY KEY ("id"))`,
-    );
-    await queryRunner.query(
-      `CREATE TABLE "post" ("id" SERIAL NOT NULL, "imgUrl" character varying, "caption" character varying, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "authorId" integer NOT NULL, CONSTRAINT "PK_be5fda3aac270b134ff9c21cdee" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
       `CREATE TABLE "user" ("id" SERIAL NOT NULL, "email" character varying, "password" character varying, "provider" character varying NOT NULL DEFAULT 'email', "socialId" character varying, "firstName" character varying, "lastName" character varying, "hash" character varying, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "deletedAt" TIMESTAMP, "photoId" uuid, "roleId" integer, "statusId" integer, CONSTRAINT "UQ_e12875dfb3b1d92d7d7c5377e22" UNIQUE ("email"), CONSTRAINT "PK_cace4a159ff9f2512dd42373760" PRIMARY KEY ("id"))`,
@@ -42,9 +39,6 @@ export class CreatePost1692217928342 implements MigrationInterface {
     );
     await queryRunner.query(
       `CREATE INDEX "IDX_df507d27b0fb20cd5f7bef9b9a" ON "forgot" ("hash") `,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "post" ADD CONSTRAINT "FK_c6fb082a3114f35d0cc27c518e0" FOREIGN KEY ("authorId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
     );
     await queryRunner.query(
       `ALTER TABLE "user" ADD CONSTRAINT "FK_75e2be4ce11d447ef43be0e374f" FOREIGN KEY ("photoId") REFERENCES "file"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`,
@@ -80,9 +74,6 @@ export class CreatePost1692217928342 implements MigrationInterface {
       `ALTER TABLE "user" DROP CONSTRAINT "FK_75e2be4ce11d447ef43be0e374f"`,
     );
     await queryRunner.query(
-      `ALTER TABLE "post" DROP CONSTRAINT "FK_c6fb082a3114f35d0cc27c518e0"`,
-    );
-    await queryRunner.query(
       `DROP INDEX "public"."IDX_df507d27b0fb20cd5f7bef9b9a"`,
     );
     await queryRunner.query(`DROP TABLE "forgot"`);
@@ -103,7 +94,6 @@ export class CreatePost1692217928342 implements MigrationInterface {
       `DROP INDEX "public"."IDX_9bd2fe7a8e694dedc4ec2f666f"`,
     );
     await queryRunner.query(`DROP TABLE "user"`);
-    await queryRunner.query(`DROP TABLE "post"`);
     await queryRunner.query(`DROP TABLE "status"`);
     await queryRunner.query(`DROP TABLE "role"`);
     await queryRunner.query(`DROP TABLE "file"`);
