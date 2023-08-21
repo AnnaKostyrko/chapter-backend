@@ -95,7 +95,7 @@ export class User extends EntityHelper {
   @Column({ type: String, nullable: true })
   @Index()
   @Exclude({ toPlainOnly: true })
-  hash: string;
+  hash: string | null;
 
   @CreateDateColumn()
   createdAt: Date;
