@@ -22,23 +22,32 @@ export class CreateUserDto {
     message: 'emailAlreadyExists',
   })
   @IsEmail()
-  email: string | null;
+  email?: string | null ;
+
+
+  // @ApiProperty({ example: '@John212' })
+  // @IsNotEmpty()
+  // nickName?:string;
 
   @ApiProperty()
   @MinLength(6)
   password?: string;
 
+
+
   provider?: string;
 
   socialId?: string | null;
 
+ 
+
   @ApiProperty({ example: 'John' })
   @IsNotEmpty()
-  firstName: string | null;
+  firstName?: string | null;
 
   @ApiProperty({ example: 'Doe' })
   @IsNotEmpty()
-  lastName: string | null;
+  lastName?: string | null;
 
   @ApiProperty({ type: () => FileEntity })
   @IsOptional()
@@ -61,3 +70,4 @@ export class CreateUserDto {
 
   hash?: string | null;
 }
+

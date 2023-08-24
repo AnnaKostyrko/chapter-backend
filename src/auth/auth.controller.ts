@@ -13,7 +13,7 @@ import {
   // Param,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags,ApiBody } from '@nestjs/swagger';
 import { AuthEmailLoginDto } from './dto/auth-email-login.dto';
 import { AuthForgotPasswordDto } from './dto/auth-forgot-password.dto';
 import { AuthConfirmEmailDto } from './dto/auth-confirm-email.dto';
@@ -26,7 +26,9 @@ import { User } from '../users/entities/user.entity';
 import { NullableType } from '../utils/types/nullable.type';
 // import { StatusEnum } from 'src/statuses/statuses.enum';
 import { UsersService } from 'src/users/users.service';
-import { EmailDto } from 'src/users/dto/create-email.dot';
+import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { MailService } from 'src/mail/mail.service';
 //временный тип без поля email
 // type RegisterDtoWithoutEmail = Omit<AuthRegisterLoginDto, 'email'>;
 @ApiTags('Auth')
@@ -38,6 +40,7 @@ export class AuthController {
   constructor(
     private readonly service: AuthService,
     private readonly usersService: UsersService,
+    private readonly mailService:MailService,
   ) {}
 
   @SerializeOptions({
@@ -62,18 +65,22 @@ export class AuthController {
     return this.service.validateLogin(loginDTO, true);
   }
 
-  @Post('email/register')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async registerEmail(@Body() emailDto: EmailDto): Promise<void> {
-    await this.service.registerEmail(emailDto);
-  }
-  // at Tomorrow
-  // @Post('email/register/user')
-  // @HttpCode(HttpStatus.NO_CONTENT)
-  // async register(@Body() createUserDto: RegisterDtoWithoutEmail): Promise<void> {
-  //   return this.service.register(createUserDto);
-  // }
+  
+    @Post('email/register')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    async register(@Body() createUserDto: AuthRegisterLoginDto): Promise<void> {
+      return this.service.register(createUserDto);
+    }
 
+    @Post('email/register/finaly')
+    @HttpCode(HttpStatus.NO_CONTENT)
+    async completeRegistration(@Body() completeDto: AuthUpdateDto): Promise<void> {
+      return this.service.completeRegistration(completeDto);
+    }
+
+    
+    
+  ///////////////
   @Post('email/confirm')
   @HttpCode(HttpStatus.NO_CONTENT)
   async confirmEmail(

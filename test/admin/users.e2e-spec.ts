@@ -25,9 +25,6 @@ describe('Users admin (e2e)', () => {
       .post('/api/v1/auth/email/register')
       .send({
         email: newUserEmailFirst,
-        password: newUserPasswordFirst,
-        firstName: `First${Date.now()}`,
-        lastName: 'E2E',
       });
 
     await request(app)
