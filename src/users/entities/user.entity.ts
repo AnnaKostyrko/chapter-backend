@@ -31,9 +31,6 @@ export class User extends EntityHelper {
   @Expose({ groups: ['me', 'admin'] })
   email: string | null;
 
-
-
- 
   @Column({ nullable: true })
   @Exclude({ toPlainOnly: true })
   password: string;
@@ -63,10 +60,6 @@ export class User extends EntityHelper {
   @Column({ type: String, nullable: true })
   @Expose({ groups: ['me', 'admin'] })
   socialId: string | null;
-  
-  // @Index()
-  // @Column({ type: String, nullable: true })
-  // nickname?:string;
 
   @Index()
   @Column({ type: String, nullable: true })

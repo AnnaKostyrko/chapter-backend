@@ -32,6 +32,8 @@ import { Session } from 'src/session/entities/session.entity';
 import { JwtPayloadType } from './strategies/types/jwt-payload.type';
 // import { session } from 'passport';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
+import { UpdateUserDto } from 'src/users/dto/update-user.dto';
+import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
 
 @Injectable()
 export class AuthService {
@@ -155,7 +157,6 @@ export class AuthService {
         email: socialEmail ?? null,
         firstName: socialData.firstName ?? null,
         lastName: socialData.lastName ?? null,
-        // nickName: socialData.nickName ?? null,
         socialId: socialData.id,
         provider: authProvider,
         role,
@@ -204,37 +205,29 @@ export class AuthService {
   //
 
   async register(dto: AuthRegisterLoginDto): Promise<void> {
-    
     const hash = crypto
-    .createHash('sha256')
-    .update(randomStringGenerator())
-    .digest('hex')
-    .slice(-6);
+      .createHash('sha256')
+      .update(randomStringGenerator())
+      .digest('hex')
+      .slice(-6);
 
-  await this.usersService.create({
-    ...dto,
-    email: dto.email,
-    role: {
-      id: RoleEnum.user,
-    } as Role,
-    status: {
-      id: StatusEnum.inactive,
-    } as Status,
-    hash,
-  });
- 
+    await this.usersService.create({
+      ...dto,
+      email: dto.email,
+      role: {
+        id: RoleEnum.user,
+      } as Role,
+      status: {
+        id: StatusEnum.inactive,
+      } as Status,
+      hash,
+    });
+
     await this.mailService.userSignUp({
       to: dto.email,
       data: {
         hash,
       },
-    });
-  }
-  
-  async completeRegistration(dto: AuthUpdateDto): Promise<void> {
-    await this.usersService.create({
-      ...dto,
-
     });
   }
 
@@ -260,7 +253,18 @@ export class AuthService {
 
     await user.save();
   }
+  async completeRegistration(dto: UpdateUserRegisterDto): Promise<void> {
+    await this.usersService.findOne(dto.email);
+    await this.usersService.update(dto.id, {
+        ...dto,
+      firstName:dto.firstName,
+      lastName:dto.lastName,
+      password:dto.password
+    });
+}
 
+  
+  
   async forgotPassword(email: string): Promise<void> {
     const user = await this.usersService.findOne({
       email,

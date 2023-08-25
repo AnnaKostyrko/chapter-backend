@@ -13,6 +13,4 @@ export class Role extends EntityHelper {
   @ApiProperty({ example: 'Admin' })
   @Column()
   name?: string;
-
- 
 }

@@ -22,24 +22,15 @@ export class CreateUserDto {
     message: 'emailAlreadyExists',
   })
   @IsEmail()
-  email?: string | null ;
-
-
-  // @ApiProperty({ example: '@John212' })
-  // @IsNotEmpty()
-  // nickName?:string;
+  email?: string | null;
 
   @ApiProperty()
   @MinLength(6)
   password?: string;
 
-
-
   provider?: string;
 
   socialId?: string | null;
-
- 
 
   @ApiProperty({ example: 'John' })
   @IsNotEmpty()
@@ -70,4 +61,3 @@ export class CreateUserDto {
 
   hash?: string | null;
 }
-
