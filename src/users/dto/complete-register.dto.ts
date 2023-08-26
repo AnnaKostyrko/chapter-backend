@@ -1,13 +1,8 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateUserDto } from './create-user.dto';
-
 import { ApiProperty } from '@nestjs/swagger';
 
 import { IsOptional, MinLength } from 'class-validator';
 
 export class UpdateUserRegisterDto {
- 
-
   // @ApiProperty({ example: '@Jojo2323' })
   // @IsOptional()
   // nickName?: string;
@@ -23,5 +18,5 @@ export class UpdateUserRegisterDto {
 
   @ApiProperty({ example: 'Doe' })
   @IsOptional()
-  lastName?: string ;
+  lastName?: string;
 }

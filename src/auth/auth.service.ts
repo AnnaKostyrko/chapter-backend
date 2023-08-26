@@ -259,7 +259,7 @@ export class AuthService {
     const user = await this.usersService.findOne({
       id: userId,
     });
-  
+
     if (!user) {
       throw new HttpException(
         {
@@ -269,7 +269,7 @@ export class AuthService {
         HttpStatus.NOT_FOUND,
       );
     }
-  
+
     if (completeDto.firstName !== undefined) {
       user.firstName = completeDto.firstName;
     }
