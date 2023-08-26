@@ -32,7 +32,6 @@ import { Session } from 'src/session/entities/session.entity';
 import { JwtPayloadType } from './strategies/types/jwt-payload.type';
 // import { session } from 'passport';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
-import { UpdateUserDto } from 'src/users/dto/update-user.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
 
 @Injectable()
@@ -231,7 +230,6 @@ export class AuthService {
     });
   }
 
-
   async confirmEmail(uniqueToken: string): Promise<void> {
     const user = await this.usersService.findOne({
       hash: uniqueToken,
@@ -253,18 +251,37 @@ export class AuthService {
 
     await user.save();
   }
-  async completeRegistration(dto: UpdateUserRegisterDto): Promise<void> {
-    await this.usersService.findOne(dto.email);
-    await this.usersService.update(dto.id, {
-        ...dto,
-      firstName:dto.firstName,
-      lastName:dto.lastName,
-      password:dto.password
+  async completeRegistration(
+    userId: number,
+    completeDto: UpdateUserRegisterDto,
+  ): Promise<void> {
+    // Знайдіть користувача за його id, з фільтром на статус реєстрації
+    const user = await this.usersService.findOne({
+      id: userId,
     });
-}
+  
+    if (!user) {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: 'User not found or not active',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+  
+    if (completeDto.firstName !== undefined) {
+      user.firstName = completeDto.firstName;
+    }
+    if (completeDto.lastName !== undefined) {
+      user.lastName = completeDto.lastName;
+    }
+    if (completeDto.password !== undefined) {
+      user.password = completeDto.password;
+    }
+    await user.save();
+  }
 
-  
-  
   async forgotPassword(email: string): Promise<void> {
     const user = await this.usersService.findOne({
       email,

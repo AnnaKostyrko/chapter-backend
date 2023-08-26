@@ -5,11 +5,13 @@ import { ApiProperty } from '@nestjs/swagger';
 
 import { IsOptional, MinLength } from 'class-validator';
 
+export class UpdateUserRegisterDto {
+ 
 
-export class UpdateUserRegisterDto extends PartialType(CreateUserDto) {
+  // @ApiProperty({ example: '@Jojo2323' })
+  // @IsOptional()
+  // nickName?: string;
 
-  id:number;
-  
   @ApiProperty()
   @IsOptional()
   @MinLength(6)
@@ -17,11 +19,9 @@ export class UpdateUserRegisterDto extends PartialType(CreateUserDto) {
 
   @ApiProperty({ example: 'John' })
   @IsOptional()
-  firstName?: string | null;
+  firstName?: string;
 
   @ApiProperty({ example: 'Doe' })
   @IsOptional()
-  lastName?: string | null;
-
-
+  lastName?: string ;
 }

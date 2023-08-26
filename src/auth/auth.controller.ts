@@ -10,6 +10,7 @@ import {
   Patch,
   Delete,
   SerializeOptions,
+  Param,
   // Param,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -25,10 +26,9 @@ import { LoginResponseType } from './types/login-response.type';
 import { User } from '../users/entities/user.entity';
 import { NullableType } from '../utils/types/nullable.type';
 // import { StatusEnum } from 'src/statuses/statuses.enum';
-import { UsersService } from 'src/users/users.service';
+
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
-import { MailService } from 'src/mail/mail.service';
-import { UpdateUserDto } from 'src/users/dto/update-user.dto';
+
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
 //временный тип без поля email
 // type RegisterDtoWithoutEmail = Omit<AuthRegisterLoginDto, 'email'>;
@@ -78,17 +78,13 @@ export class AuthController {
     return this.service.confirmEmail(confirmEmailDto.hash);
   }
 
-  @Patch('email/register/finaly')
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @Patch('email/register/finaly/:id')
   async completeRegistration(
-    @Body() completeDto: UpdateUserRegisterDto
+    @Param('id') userId: number, // Отримуємо id з параметра маршруту
+    @Body() completeDto: UpdateUserRegisterDto,
   ): Promise<void> {
-    return this.service.completeRegistration(
-      completeDto,
-
-      );
+    await this.service.completeRegistration(userId, completeDto);
   }
-
   @Post('forgot/password')
   @HttpCode(HttpStatus.NO_CONTENT)
   async forgotPassword(
