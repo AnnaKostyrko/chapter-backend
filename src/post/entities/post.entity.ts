@@ -11,7 +11,7 @@ import { User } from '../../users/entities/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
-export class Post {
+export class PostEntity {
   @PrimaryGeneratedColumn()
   @ApiProperty()
   id: number;
