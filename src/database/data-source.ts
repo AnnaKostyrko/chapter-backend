@@ -17,6 +17,7 @@ export const AppDataSource = new DataSource({
   logging: process.env.NODE_ENV !== 'production',
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
+  migrationsRun: true,
   cli: {
     entitiesDir: 'src',
     migrationsDir: 'src/database/migrations',
