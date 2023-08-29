@@ -10,6 +10,7 @@ import {
   UpdateDateColumn,
   BeforeInsert,
   BeforeUpdate,
+  OneToMany,
 } from 'typeorm';
 import { Role } from '../../roles/entities/role.entity';
 import { Status } from '../../statuses/entities/status.entity';
@@ -18,6 +19,7 @@ import bcrypt from 'bcryptjs';
 import { EntityHelper } from 'src/utils/entity-helper';
 import { AuthProvidersEnum } from 'src/auth/auth-providers.enum';
 import { Exclude, Expose } from 'class-transformer';
+import { PostEntity } from '../../post/entities/post.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
@@ -69,6 +71,15 @@ export class User extends EntityHelper {
   @Column({ type: String, nullable: true })
   lastName: string | null;
 
+  @Column({ type: String, nullable: true })
+  nickName: string;
+
+  @Column({ type: String, nullable: true })
+  location: string;
+
+  @Column({ type: String, nullable: true })
+  avatarUrl: string | null;
+
   @ManyToOne(() => FileEntity, {
     eager: true,
   })
@@ -97,4 +108,7 @@ export class User extends EntityHelper {
 
   @DeleteDateColumn()
   deletedAt: Date;
+
+  @OneToMany(() => PostEntity, (post) => post.author)
+  posts: PostEntity[];
 }

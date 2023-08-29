@@ -60,4 +60,5 @@ export class CreateUserDto {
   status?: Status;
 
   hash?: string | null;
+  
 }
