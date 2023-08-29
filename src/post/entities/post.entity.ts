@@ -35,4 +35,8 @@ export class PostEntity {
   @ManyToOne(() => User, (user) => user.posts, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'authorId' })
   author: User;
+
+  @Column()
+  @ApiProperty()
+  authorId: number;
 }
