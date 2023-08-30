@@ -270,15 +270,14 @@ export class AuthService {
       );
     }
 
-    if (completeDto.firstName !== undefined) {
-      user.firstName = completeDto.firstName;
-    }
-    if (completeDto.lastName !== undefined) {
-      user.lastName = completeDto.lastName;
-    }
-    if (completeDto.password !== undefined) {
-      user.password = completeDto.password;
-    }
+    user.nickName = completeDto.nickName;
+
+    user.firstName = completeDto.firstName;
+
+    user.lastName = completeDto.lastName;
+
+    user.password = completeDto.password;
+
     await user.save();
   }
 
