@@ -30,6 +30,11 @@ export class AuthUpdateDto {
   @IsNotEmpty({ message: 'mustBeNotEmpty' })
   nickName?: string;
 
+  @ApiProperty({ example: 'some text' })
+  @IsOptional()
+  @IsNotEmpty({ message: 'mustBeNotEmpty' })
+  userStatus?: string;
+
   @ApiProperty({ example: 'Kyiv' })
   @IsOptional()
   @IsNotEmpty({ message: 'mustBeNotEmpty' })
