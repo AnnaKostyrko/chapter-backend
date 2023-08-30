@@ -11,6 +11,7 @@ import {
   Delete,
   SerializeOptions,
   Param,
+  BadRequestException,
   // Param,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -83,6 +84,9 @@ export class AuthController {
     @Param('id') userId: number, // Отримуємо id з параметра маршруту
     @Body() completeDto: UpdateUserRegisterDto,
   ): Promise<void> {
+    if (!completeDto.nickName.startsWith('@')) {
+      throw new BadRequestException('Nickname should start with "@"');
+    }
     await this.service.completeRegistration(userId, completeDto);
   }
   @Post('forgot/password')

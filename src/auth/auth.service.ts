@@ -269,6 +269,9 @@ export class AuthService {
         HttpStatus.NOT_FOUND,
       );
     }
+    if (completeDto.nickName !== undefined ) {
+      user.nickName = completeDto.nickName;
+    }
 
     if (completeDto.firstName !== undefined) {
       user.firstName = completeDto.firstName;

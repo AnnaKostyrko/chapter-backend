@@ -1,22 +1,27 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import { IsOptional, MinLength } from 'class-validator';
+import { IsNotEmpty, Matches, MinLength, Validate } from 'class-validator';
+import { IsNotExist } from 'src/utils/validators/is-not-exists.validator';
 
 export class UpdateUserRegisterDto {
-  // @ApiProperty({ example: '@Jojo2323' })
-  // @IsOptional()
-  // nickName?: string;
+
+  @ApiProperty({ example: 'Jojo2323' })
+  @IsNotEmpty()
+  @Validate(IsNotExist, ['User'], {
+    message: 'nickNameAlreadyExists',
+  })
+  @MinLength(3)
+  nickName: string;
 
   @ApiProperty()
-  @IsOptional()
   @MinLength(6)
-  password?: string;
+  password: string;
 
   @ApiProperty({ example: 'John' })
-  @IsOptional()
-  firstName?: string;
+  firstName: string;
 
   @ApiProperty({ example: 'Doe' })
-  @IsOptional()
-  lastName?: string;
+  lastName: string;
 }
+
+
