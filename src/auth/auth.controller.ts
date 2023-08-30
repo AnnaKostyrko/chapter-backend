@@ -138,7 +138,7 @@ export class AuthController {
   @SerializeOptions({
     groups: ['me'],
   })
-  @Patch('update-me')
+  @Patch('me/update')
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.OK)
   public update(
