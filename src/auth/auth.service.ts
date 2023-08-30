@@ -348,10 +348,20 @@ export class AuthService {
     await this.forgotService.softDelete(forgot.id);
   }
 
-  async me(userJwtPayload: JwtPayloadType): Promise<NullableType<User>> {
-    return this.usersService.findOne({
-      id: userJwtPayload.id,
-    });
+  async me(userJwtPayload: JwtPayloadType): Promise<Partial<User>> {
+    const user = await this.usersService.findOne({ id: userJwtPayload.id });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    return {
+      avatarUrl: user.avatarUrl,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      nickName: user.nickName,
+      location: user.location,
+    };
   }
 
   async update(
