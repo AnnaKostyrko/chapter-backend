@@ -361,6 +361,7 @@ export class AuthService {
       lastName: user.lastName,
       nickName: user.nickName,
       location: user.location,
+      userStatus: user.userStatus,
     };
   }
 
