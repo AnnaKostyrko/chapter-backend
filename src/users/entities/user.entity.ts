@@ -75,6 +75,9 @@ export class User extends EntityHelper {
   nickName: string;
 
   @Column({ type: String, nullable: true })
+  userStatus: string;
+
+  @Column({ type: String, nullable: true })
   location: string;
 
   @Column({ type: String, nullable: true })
