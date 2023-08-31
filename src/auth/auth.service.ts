@@ -200,9 +200,6 @@ export class AuthService {
       user,
     };
   }
-  //принципом "duck typing" (по сути, проверкой наличия необходимых свойств).
-  //
-
   async register(dto: AuthRegisterLoginDto): Promise<void> {
     const hash = crypto
       .createHash('sha256')
@@ -227,10 +224,11 @@ export class AuthService {
       data: {
         hash,
       },
+      
     });
   }
 
-  async confirmEmail(uniqueToken: string): Promise<void> {
+  async confirmEmail(uniqueToken: string): Promise<{id:number}> {
     const user = await this.usersService.findOne({
       hash: uniqueToken,
     });
@@ -248,9 +246,11 @@ export class AuthService {
     user.status = plainToClass(Status, {
       id: StatusEnum.active,
     });
-
+    user.hash = null; 
     await user.save();
+    return {id: user.id}
   }
+
   async completeRegistration(
     userId: number,
     completeDto: UpdateUserRegisterDto,
@@ -269,10 +269,10 @@ export class AuthService {
         HttpStatus.NOT_FOUND,
       );
     }
+    
     if (completeDto.nickName !== undefined ) {
       user.nickName = completeDto.nickName;
     }
-
     if (completeDto.firstName !== undefined) {
       user.firstName = completeDto.firstName;
     }
@@ -282,8 +282,10 @@ export class AuthService {
     if (completeDto.password !== undefined) {
       user.password = completeDto.password;
     }
+ 
     await user.save();
   }
+   
 
   async forgotPassword(email: string): Promise<void> {
     const user = await this.usersService.findOne({
