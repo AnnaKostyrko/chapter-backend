@@ -19,6 +19,6 @@ describe('Auth admin (e2e)', () => {
     return request(app)
       .post('/api/v1/auth/email/login')
       .send({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD })
-      .expect(422);
+      .expect(422);//----------------------------------------
   });
 });
