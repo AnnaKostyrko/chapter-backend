@@ -15,7 +15,7 @@ import {
   // Param,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiBearerAuth, ApiOkResponse, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthEmailLoginDto } from './dto/auth-email-login.dto';
 import { AuthForgotPasswordDto } from './dto/auth-forgot-password.dto';
 import { AuthConfirmEmailDto } from './dto/auth-confirm-email.dto';
@@ -31,6 +31,7 @@ import { NullableType } from '../utils/types/nullable.type';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
+import { GuestUserInfoResponse } from '../response-example/GuestUserInfoResponse';
 //временный тип без поля email
 // type RegisterDtoWithoutEmail = Omit<AuthRegisterLoginDto, 'email'>;
 @ApiTags('Auth')
@@ -72,7 +73,6 @@ export class AuthController {
   ///////////////
   @Post('email/confirm')
   @HttpCode(HttpStatus.OK)
-
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Ok',
@@ -80,21 +80,21 @@ export class AuthController {
   })
   async confirmEmail(
     @Body() confirmEmailDto: AuthConfirmEmailDto,
-  ): Promise<{id:number}> {
+  ): Promise<{ id: number }> {
     console.log('Confirming email for uniqueToken:', confirmEmailDto.hash);
     return await this.service.confirmEmail(confirmEmailDto.hash);
   }
 
-    @Patch('email/register/finaly/:id')
-    async completeRegistration(
-      @Param('id') userId: number, // Отримуємо id з параметра маршруту
-      @Body() completeDto: UpdateUserRegisterDto,
-    ): Promise<void> {
-      if (!completeDto.nickName.startsWith('@')) {
-        throw new BadRequestException('Nickname should start with "@"');
-      }
-    return await this.service.completeRegistration(userId, completeDto);
+  @Patch('email/register/finaly/:id')
+  async completeRegistration(
+    @Param('id') userId: number, // Отримуємо id з параметра маршруту
+    @Body() completeDto: UpdateUserRegisterDto,
+  ): Promise<void> {
+    if (!completeDto.nickName.startsWith('@')) {
+      throw new BadRequestException('Nickname should start with "@"');
     }
+    return await this.service.completeRegistration(userId, completeDto);
+  }
 
   @Post('forgot/password')
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -114,6 +114,18 @@ export class AuthController {
   }
 
   @ApiBearerAuth()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'User information',
+    type: GuestUserInfoResponse,
+  })
+  @UseGuards(AuthGuard('jwt'))
+  @Get('profile/:userId')
+  async getGuestUserInfo(@Param('userId') userId: number) {
+    return this.service.getGuestsUserInfo(userId);
+  }
+
+  @ApiBearerAuth()
   @SerializeOptions({
     groups: ['me'],
   })
@@ -124,7 +136,6 @@ export class AuthController {
     return this.service.me(request.user);
   }
 
-  
   @ApiBearerAuth()
   @SerializeOptions({
     groups: ['me'],
