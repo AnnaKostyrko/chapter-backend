@@ -255,7 +255,7 @@ export class AuthService {
     userId: number,
     completeDto: UpdateUserRegisterDto,
   ): Promise<void> {
-    // Знайдіть користувача за його id, з фільтром на статус реєстрації
+    /// Знайдіть користувача за його id, з фільтром на статус реєстрації
     const user = await this.usersService.findOne({
       id: userId,
     });
