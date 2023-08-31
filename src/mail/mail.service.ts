@@ -6,6 +6,7 @@ import { AllConfigType } from 'src/config/config.type';
 import { MaybeType } from '../utils/types/maybe.type';
 import { MailerService } from 'src/mailer/mailer.service';
 import path from 'path';
+// import md5 from 'md5';
 
 @Injectable()
 export class MailService {
@@ -29,13 +30,19 @@ export class MailService {
         i18n.t('confirm-email.text3'),
       ]);
     }
+    //Md5 coder
+    // const email = 'chapter.social.network@gmail.com'; //   Email addres
+    // const currentTime = new Date().getTime(); //  getting current time in ms
+    // const randomValue = Math.random(); // generate random number
+    // const uniqueToken = md5(`${email}${currentTime}${randomValue}`).slice(-6); // Chande "xxx" to real values
 
+    //method to sending message to mail
     await this.mailerService.sendMail({
-      to: mailData.to,
-      subject: emailConfirmTitle,
+      to: mailData.to, // whose to we send message
+      subject: emailConfirmTitle, // discribe
       text: `${this.configService.get('app.frontendDomain', {
         infer: true,
-      })}/confirm-email/${mailData.data.hash} ${emailConfirmTitle}`,
+      })}/confirm-email/${mailData.data.hash} ${emailConfirmTitle}`, // The path
       templatePath: path.join(
         this.configService.getOrThrow('app.workingDirectory', {
           infer: true,
@@ -46,11 +53,12 @@ export class MailService {
         'activation.hbs',
       ),
       context: {
+        //text message
         title: emailConfirmTitle,
         url: `${this.configService.get('app.frontendDomain', {
           infer: true,
         })}/confirm-email/${mailData.data.hash}`,
-        actionTitle: emailConfirmTitle,
+        actionTitle: mailData.data.hash,
         app_name: this.configService.get('app.name', { infer: true }),
         text1,
         text2,

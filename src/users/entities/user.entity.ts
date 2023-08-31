@@ -20,12 +20,13 @@ import { EntityHelper } from 'src/utils/entity-helper';
 import { AuthProvidersEnum } from 'src/auth/auth-providers.enum';
 import { Exclude, Expose } from 'class-transformer';
 import { PostEntity } from '../../post/entities/post.entity';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
 export class User extends EntityHelper {
+  @ApiProperty({ example: 1 })
   @PrimaryGeneratedColumn()
   id: number;
-
   // For "string | null" we need to use String type.
   // More info: https://github.com/typeorm/typeorm/issues/2567
   @Column({ type: String, unique: true, nullable: true })

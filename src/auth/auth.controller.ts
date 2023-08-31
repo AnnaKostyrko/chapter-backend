@@ -10,6 +10,9 @@ import {
   Patch,
   Delete,
   SerializeOptions,
+  Param,
+  BadRequestException,
+  // Param,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -19,11 +22,17 @@ import { AuthConfirmEmailDto } from './dto/auth-confirm-email.dto';
 import { AuthResetPasswordDto } from './dto/auth-reset-password.dto';
 import { AuthUpdateDto } from './dto/auth-update.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
+// import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { LoginResponseType } from './types/login-response.type';
 import { User } from '../users/entities/user.entity';
 import { NullableType } from '../utils/types/nullable.type';
+// import { StatusEnum } from 'src/statuses/statuses.enum';
 
+import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
+
+import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
+//временный тип без поля email
+// type RegisterDtoWithoutEmail = Omit<AuthRegisterLoginDto, 'email'>;
 @ApiTags('Auth')
 @Controller({
   path: 'auth',
@@ -60,14 +69,26 @@ export class AuthController {
     return this.service.register(createUserDto);
   }
 
+  ///////////////
   @Post('email/confirm')
   @HttpCode(HttpStatus.NO_CONTENT)
   async confirmEmail(
     @Body() confirmEmailDto: AuthConfirmEmailDto,
   ): Promise<void> {
+    console.log('Confirming email for uniqueToken:', confirmEmailDto.hash);
     return this.service.confirmEmail(confirmEmailDto.hash);
   }
 
+  @Patch('email/register/finaly/:id')
+  async completeRegistration(
+    @Param('id') userId: number, // Отримуємо id з параметра маршруту
+    @Body() completeDto: UpdateUserRegisterDto,
+  ): Promise<void> {
+    if (!completeDto.nickName.startsWith('@')) {
+      throw new BadRequestException('Nickname should start with "@"');
+    }
+    await this.service.completeRegistration(userId, completeDto);
+  }
   @Post('forgot/password')
   @HttpCode(HttpStatus.NO_CONTENT)
   async forgotPassword(

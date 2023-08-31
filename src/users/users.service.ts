@@ -47,4 +47,6 @@ export class UsersService {
   async softDelete(id: User['id']): Promise<void> {
     await this.usersRepository.softDelete(id);
   }
+  
+  
 }

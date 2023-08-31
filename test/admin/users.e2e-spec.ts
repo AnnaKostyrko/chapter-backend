@@ -21,14 +21,9 @@ describe('Users admin (e2e)', () => {
         apiToken = body.token;
       });
 
-    await request(app)
-      .post('/api/v1/auth/email/register')
-      .send({
-        email: newUserEmailFirst,
-        password: newUserPasswordFirst,
-        firstName: `First${Date.now()}`,
-        lastName: 'E2E',
-      });
+    await request(app).post('/api/v1/auth/email/register').send({
+      email: newUserEmailFirst,
+    });
 
     await request(app)
       .post('/api/v1/auth/email/login')

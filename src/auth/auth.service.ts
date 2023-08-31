@@ -19,7 +19,6 @@ import { Status } from 'src/statuses/entities/status.entity';
 import { Role } from 'src/roles/entities/role.entity';
 import { AuthProvidersEnum } from './auth-providers.enum';
 import { SocialInterface } from 'src/social/interfaces/social.interface';
-import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UsersService } from 'src/users/users.service';
 import { ForgotService } from 'src/forgot/forgot.service';
 import { MailService } from 'src/mail/mail.service';
@@ -31,6 +30,9 @@ import { SessionService } from 'src/session/session.service';
 import { JwtRefreshPayloadType } from './strategies/types/jwt-refresh-payload.type';
 import { Session } from 'src/session/entities/session.entity';
 import { JwtPayloadType } from './strategies/types/jwt-payload.type';
+// import { session } from 'passport';
+import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
+import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
 
 @Injectable()
 export class AuthService {
@@ -133,6 +135,9 @@ export class AuthService {
     });
 
     if (user) {
+      ////////////////////////////////////////
+      await user.save();
+
       if (socialEmail && !userByEmail) {
         user.email = socialEmail;
       }
@@ -195,12 +200,15 @@ export class AuthService {
       user,
     };
   }
+  //принципом "duck typing" (по сути, проверкой наличия необходимых свойств).
+  //
 
   async register(dto: AuthRegisterLoginDto): Promise<void> {
     const hash = crypto
       .createHash('sha256')
       .update(randomStringGenerator())
-      .digest('hex');
+      .digest('hex')
+      .slice(-6);
 
     await this.usersService.create({
       ...dto,
@@ -222,9 +230,9 @@ export class AuthService {
     });
   }
 
-  async confirmEmail(hash: string): Promise<void> {
+  async confirmEmail(uniqueToken: string): Promise<void> {
     const user = await this.usersService.findOne({
-      hash,
+      hash: uniqueToken,
     });
 
     if (!user) {
@@ -237,10 +245,43 @@ export class AuthService {
       );
     }
 
-    user.hash = null;
     user.status = plainToClass(Status, {
       id: StatusEnum.active,
     });
+
+    await user.save();
+  }
+  async completeRegistration(
+    userId: number,
+    completeDto: UpdateUserRegisterDto,
+  ): Promise<void> {
+    // Знайдіть користувача за його id, з фільтром на статус реєстрації
+    const user = await this.usersService.findOne({
+      id: userId,
+    });
+
+    if (!user) {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: 'User not found or not active',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    if (completeDto.nickName !== undefined ) {
+      user.nickName = completeDto.nickName;
+    }
+
+    if (completeDto.firstName !== undefined) {
+      user.firstName = completeDto.firstName;
+    }
+    if (completeDto.lastName !== undefined) {
+      user.lastName = completeDto.lastName;
+    }
+    if (completeDto.password !== undefined) {
+      user.password = completeDto.password;
+    }
     await user.save();
   }
 
@@ -265,6 +306,7 @@ export class AuthService {
       .createHash('sha256')
       .update(randomStringGenerator())
       .digest('hex');
+
     await this.forgotService.create({
       hash,
       user,
@@ -305,6 +347,7 @@ export class AuthService {
         id: user.id,
       },
     });
+    ////////////////////
     await user.save();
     await this.forgotService.softDelete(forgot.id);
   }
@@ -410,6 +453,8 @@ export class AuthService {
     await this.usersService.softDelete(user.id);
   }
 
+  // LOGOUT
+
   async logout(data: Pick<JwtRefreshPayloadType, 'sessionId'>) {
     return this.sessionService.softDelete({
       id: data.sessionId,
@@ -439,6 +484,7 @@ export class AuthService {
           expiresIn: tokenExpiresIn,
         },
       ),
+
       await this.jwtService.signAsync(
         {
           sessionId: data.sessionId,
