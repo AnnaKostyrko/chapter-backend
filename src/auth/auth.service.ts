@@ -270,7 +270,7 @@ export class AuthService {
       );
     }
 
-    user.nickName = completeDto.nickName;
+    // user.nickName = completeDto.nickName;
 
     user.firstName = completeDto.firstName;
 
