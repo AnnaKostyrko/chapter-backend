@@ -251,7 +251,7 @@ export class AuthService {
     return {id: user.id}
   }
 
-    async completeRegistration(
+  async completeRegistration(
     userId: number,
     completeDto: UpdateUserRegisterDto,
   ): Promise<void> {
@@ -269,6 +269,7 @@ export class AuthService {
         HttpStatus.NOT_FOUND,
       );
     }
+    
     if (completeDto.nickName !== undefined ) {
       user.nickName = completeDto.nickName;
     }
@@ -281,8 +282,10 @@ export class AuthService {
     if (completeDto.password !== undefined) {
       user.password = completeDto.password;
     }
+ 
     await user.save();
   }
+   
 
   async forgotPassword(email: string): Promise<void> {
     const user = await this.usersService.findOne({
