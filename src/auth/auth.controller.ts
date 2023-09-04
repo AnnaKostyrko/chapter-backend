@@ -158,9 +158,9 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   public update(
     @Request() request,
-    @Body() userDto: AuthUpdateDto,
+    @Body() userUpdateDto: AuthUpdateDto,
   ): Promise<NullableType<User>> {
-    return this.service.update(request.user, userDto);
+    return this.service.update(request.user, userUpdateDto);
   }
 
   @ApiBearerAuth()

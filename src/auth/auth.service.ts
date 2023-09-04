@@ -353,65 +353,90 @@ export class AuthService {
     });
   }
 
+  // async update(
+  //   userJwtPayload: JwtPayloadType,
+  //   userDto: AuthUpdateDto,
+  // ): Promise<NullableType<User>> {
+  //   if (userDto.password) {
+  //     if (userDto.oldPassword) {
+  //       const currentUser = await this.usersService.findOne({
+  //         id: userJwtPayload.id,
+  //       });
+
+  //       if (!currentUser) {
+  //         throw new HttpException(
+  //           {
+  //             status: HttpStatus.UNPROCESSABLE_ENTITY,
+  //             errors: {
+  //               user: 'userNotFound',
+  //             },
+  //           },
+  //           HttpStatus.UNPROCESSABLE_ENTITY,
+  //         );
+  //       }
+
+  //       const isValidOldPassword = await bcrypt.compare(
+  //         userDto.oldPassword,
+  //         currentUser.password,
+  //       );
+
+  //       if (!isValidOldPassword) {
+  //         throw new HttpException(
+  //           {
+  //             status: HttpStatus.UNPROCESSABLE_ENTITY,
+  //             errors: {
+  //               oldPassword: 'incorrectOldPassword',
+  //             },
+  //           },
+  //           HttpStatus.UNPROCESSABLE_ENTITY,
+  //         );
+  //       } else {
+  //         await this.sessionService.softDelete({
+  //           user: {
+  //             id: currentUser.id,
+  //           },
+  //           excludeId: userJwtPayload.sessionId,
+  //         });
+  //       }
+  //     } else {
+  //       throw new HttpException(
+  //         {
+  //           status: HttpStatus.UNPROCESSABLE_ENTITY,
+  //           errors: {
+  //             oldPassword: 'missingOldPassword',
+  //           },
+  //         },
+  //         HttpStatus.UNPROCESSABLE_ENTITY,
+  //       );
+  //     }
+  //   }
+
+  //   await this.usersService.update(userJwtPayload.id, userDto);
+
+  //   return this.usersService.findOne({
+  //     id: userJwtPayload.id,
+  //   });
+  // }
+
   async update(
     userJwtPayload: JwtPayloadType,
-    userDto: AuthUpdateDto,
+    userUpdateDto: AuthUpdateDto,
   ): Promise<NullableType<User>> {
-    if (userDto.password) {
-      if (userDto.oldPassword) {
-        const currentUser = await this.usersService.findOne({
-          id: userJwtPayload.id,
-        });
-
-        if (!currentUser) {
-          throw new HttpException(
-            {
-              status: HttpStatus.UNPROCESSABLE_ENTITY,
-              errors: {
-                user: 'userNotFound',
-              },
-            },
-            HttpStatus.UNPROCESSABLE_ENTITY,
-          );
-        }
-
-        const isValidOldPassword = await bcrypt.compare(
-          userDto.oldPassword,
-          currentUser.password,
-        );
-
-        if (!isValidOldPassword) {
-          throw new HttpException(
-            {
-              status: HttpStatus.UNPROCESSABLE_ENTITY,
-              errors: {
-                oldPassword: 'incorrectOldPassword',
-              },
-            },
-            HttpStatus.UNPROCESSABLE_ENTITY,
-          );
-        } else {
-          await this.sessionService.softDelete({
-            user: {
-              id: currentUser.id,
-            },
-            excludeId: userJwtPayload.sessionId,
-          });
-        }
-      } else {
-        throw new HttpException(
-          {
-            status: HttpStatus.UNPROCESSABLE_ENTITY,
-            errors: {
-              oldPassword: 'missingOldPassword',
-            },
+    const currentUser = await this.usersService.findOne({
+      id: userJwtPayload.id,
+    });
+    if (!currentUser) {
+      throw new HttpException(
+        {
+          status: HttpStatus.UNPROCESSABLE_ENTITY,
+          errors: {
+            user: 'userNotFound',
           },
-          HttpStatus.UNPROCESSABLE_ENTITY,
-        );
-      }
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
     }
-
-    await this.usersService.update(userJwtPayload.id, userDto);
+    await this.usersService.update(userJwtPayload.id, userUpdateDto);
 
     return this.usersService.findOne({
       id: userJwtPayload.id,
