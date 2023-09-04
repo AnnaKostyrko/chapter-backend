@@ -27,6 +27,7 @@ export class PostController {
     @Body() createPostDto: PostDto,
   ): Promise<PostEntity> {
     const currentUser: User = req.user;
+
     return await this.postService.create(currentUser, createPostDto);
   }
 
@@ -36,7 +37,7 @@ export class PostController {
   @UseGuards(AuthGuard('jwt'))
   async getPostsByAuthor(@Req() req: Request): Promise<PostEntity[]> {
     const currentUser: User = req.user as User;
-    console.log(currentUser);
+
     return await this.postService.getPostsByAuthor(currentUser);
   }
 }
