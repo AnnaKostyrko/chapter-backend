@@ -224,11 +224,10 @@ export class AuthService {
       data: {
         hash,
       },
-      
     });
   }
 
-  async confirmEmail(uniqueToken: string): Promise<{id:number}> {
+  async confirmEmail(uniqueToken: string): Promise<{ id: number }> {
     const user = await this.usersService.findOne({
       hash: uniqueToken,
     });
@@ -246,9 +245,9 @@ export class AuthService {
     user.status = plainToClass(Status, {
       id: StatusEnum.active,
     });
-    user.hash = null; 
+    user.hash = null;
     await user.save();
-    return {id: user.id}
+    return { id: user.id };
   }
 
   async completeRegistration(
@@ -269,23 +268,17 @@ export class AuthService {
         HttpStatus.NOT_FOUND,
       );
     }
-    
-    if (completeDto.nickName !== undefined ) {
-      user.nickName = completeDto.nickName;
-    }
-    if (completeDto.firstName !== undefined) {
-      user.firstName = completeDto.firstName;
-    }
-    if (completeDto.lastName !== undefined) {
-      user.lastName = completeDto.lastName;
-    }
-    if (completeDto.password !== undefined) {
-      user.password = completeDto.password;
-    }
- 
+
+    // user.nickName = completeDto.nickName;
+
+    user.firstName = completeDto.firstName;
+
+    user.lastName = completeDto.lastName;
+
+    user.password = completeDto.password;
+
     await user.save();
   }
-   
 
   async forgotPassword(email: string): Promise<void> {
     const user = await this.usersService.findOne({
