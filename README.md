@@ -92,7 +92,7 @@ If you want to automatically update dependencies, you can connect [Renovate](htt
 Generate migration
 
 ```bash
-npm run migration:generate -- src/database/migrations/CreateNameTable 
+npm run migration:generate -- src/database/migrations/CreateNameTable
 ```
 
 Run migration

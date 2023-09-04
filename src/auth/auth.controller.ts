@@ -11,10 +11,11 @@ import {
   Delete,
   SerializeOptions,
   Param,
+  BadRequestException,
   // Param,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthEmailLoginDto } from './dto/auth-email-login.dto';
 import { AuthForgotPasswordDto } from './dto/auth-forgot-password.dto';
 import { AuthConfirmEmailDto } from './dto/auth-confirm-email.dto';
@@ -70,21 +71,31 @@ export class AuthController {
 
   ///////////////
   @Post('email/confirm')
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
+
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Ok',
+    type: User,
+  })
   async confirmEmail(
     @Body() confirmEmailDto: AuthConfirmEmailDto,
-  ): Promise<void> {
+  ): Promise<{id:number}> {
     console.log('Confirming email for uniqueToken:', confirmEmailDto.hash);
-    return this.service.confirmEmail(confirmEmailDto.hash);
+    return await this.service.confirmEmail(confirmEmailDto.hash);
   }
 
-  @Patch('email/register/finaly/:id')
-  async completeRegistration(
-    @Param('id') userId: number, // Отримуємо id з параметра маршруту
-    @Body() completeDto: UpdateUserRegisterDto,
-  ): Promise<void> {
-    await this.service.completeRegistration(userId, completeDto);
-  }
+    @Patch('email/register/finaly/:id')
+    async completeRegistration(
+      @Param('id') userId: number, // Отримуємо id з параметра маршруту
+      @Body() completeDto: UpdateUserRegisterDto,
+    ): Promise<void> {
+      if (!completeDto.nickName.startsWith('@')) {
+        throw new BadRequestException('Nickname should start with "@"');
+      }
+    return await this.service.completeRegistration(userId, completeDto);
+    }
+
   @Post('forgot/password')
   @HttpCode(HttpStatus.NO_CONTENT)
   async forgotPassword(
@@ -113,6 +124,7 @@ export class AuthController {
     return this.service.me(request.user);
   }
 
+  
   @ApiBearerAuth()
   @SerializeOptions({
     groups: ['me'],
