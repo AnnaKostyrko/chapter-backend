@@ -11,6 +11,8 @@ import {
   BeforeInsert,
   BeforeUpdate,
   OneToMany,
+  JoinTable,
+  ManyToMany,
 } from 'typeorm';
 import { Role } from '../../roles/entities/role.entity';
 import { Status } from '../../statuses/entities/status.entity';
@@ -94,6 +96,10 @@ export class User extends EntityHelper {
     eager: true,
   })
   status?: Status;
+
+  @ManyToMany(() => User, (user) => user.friends)
+  @JoinTable({ name: 'User2user(friends)' })
+  friends: User[];
 
   @Column({ type: String, nullable: true })
   @Index()
