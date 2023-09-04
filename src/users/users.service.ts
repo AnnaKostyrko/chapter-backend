@@ -32,6 +32,7 @@ export class UsersService {
   findOne(fields: EntityCondition<User>): Promise<NullableType<User>> {
     return this.usersRepository.findOne({
       where: fields,
+      relations: { subscribers: true },
     });
   }
 

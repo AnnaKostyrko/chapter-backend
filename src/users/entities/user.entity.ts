@@ -97,9 +97,9 @@ export class User extends EntityHelper {
   })
   status?: Status;
 
-  @ManyToMany(() => User, (user) => user.friends)
+  @ManyToMany(() => User, (user) => user.subscribers)
   @JoinTable({ name: 'User2user(friends)' })
-  friends: User[];
+  subscribers: User[];
 
   @Column({ type: String, nullable: true })
   @Index()
