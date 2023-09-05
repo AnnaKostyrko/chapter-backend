@@ -11,31 +11,22 @@ import {
   Delete,
   SerializeOptions,
   Param,
-  BadRequestException,
-  NotFoundException,
-  // Param,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiBearerAuth, ApiOkResponse, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthEmailLoginDto } from './dto/auth-email-login.dto';
 import { AuthForgotPasswordDto } from './dto/auth-forgot-password.dto';
 import { AuthConfirmEmailDto } from './dto/auth-confirm-email.dto';
 import { AuthResetPasswordDto } from './dto/auth-reset-password.dto';
 import { AuthUpdateDto } from './dto/auth-update.dto';
 import { AuthGuard } from '@nestjs/passport';
-// import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { LoginResponseType } from './types/login-response.type';
 import { User } from '../users/entities/user.entity';
 import { NullableType } from '../utils/types/nullable.type';
-// import { StatusEnum } from 'src/statuses/statuses.enum';
-
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
-
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
-import e from 'express';
-import { UsersService } from 'src/users/users.service';
-//временный тип без поля email
-// type RegisterDtoWithoutEmail = Omit<AuthRegisterLoginDto, 'email'>;
+
+
 @ApiTags('Auth')
 @Controller({
   path: 'auth',
@@ -43,8 +34,7 @@ import { UsersService } from 'src/users/users.service';
 })
 export class AuthController {
   constructor(
-    private readonly service: AuthService,
-    private readonly usService: UsersService
+    private readonly service: AuthService
     ) {}
 
   @SerializeOptions({

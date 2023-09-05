@@ -209,7 +209,7 @@ export class AuthService {
       .update(randomStringGenerator())
       .digest('hex')
       .slice(-6);
-      
+
       const existingUser = await this.usersService.findOne({ email: dto.email });
       if (existingUser) {
         const emailStatus = existingUser.status?.name;
@@ -268,7 +268,7 @@ export class AuthService {
     userId: number,
     completeDto: UpdateUserRegisterDto,
   ): Promise<void> {
-    /// Знайдіть користувача за його id, з фільтром на статус реєстрації
+    /// Find a user by their id, with a filter based on registration status
     const user = await this.usersService.findOne({
       id: userId,
     });
@@ -284,6 +284,7 @@ export class AuthService {
     const userNickName = await this.usersService.findOne({
       nickName: completeDto.nickName
     })
+    
     if(userNickName){
      
       throw new ConflictException(
@@ -303,22 +304,17 @@ export class AuthService {
         HttpStatus.NOT_FOUND,
       );
     }
-
-    //New feature(maybe)
     
-
-    if (completeDto.nickName !== undefined ) {
+    if (completeDto.nickName ) {
       user.nickName = completeDto.nickName;
-   
     }
- 
-    if (completeDto.firstName !== undefined) {
+    if (completeDto.firstName) {
       user.firstName = completeDto.firstName;
     }
-    if (completeDto.lastName !== undefined) {
+    if (completeDto.lastName) {
       user.lastName = completeDto.lastName;
     }
-    if (completeDto.password !== undefined) {
+    if (completeDto.password) {
       user.password = completeDto.password;
     }
  
