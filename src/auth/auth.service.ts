@@ -1,7 +1,10 @@
 import {
+  BadRequestException,
+  ConflictException,
   HttpException,
   HttpStatus,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import ms from 'ms';
@@ -207,6 +210,16 @@ export class AuthService {
       .digest('hex')
       .slice(-6);
 
+      const existingUser = await this.usersService.findOne({ email: dto.email });
+      if (existingUser) {
+        const emailStatus = existingUser.status?.name;
+        throw new ConflictException(
+          {
+        error: `User with this email already exists. Email status:${emailStatus}`,
+        status: HttpStatus.UNPROCESSABLE_ENTITY        
+      } 
+        );
+      }
     await this.usersService.create({
       ...dto,
       email: dto.email,
@@ -216,15 +229,15 @@ export class AuthService {
       status: {
         id: StatusEnum.inactive,
       } as Status,
-      hash,
     });
-
+   
     await this.mailService.userSignUp({
       to: dto.email,
       data: {
         hash,
       },
     });
+
   }
 
   async confirmEmail(uniqueToken: string): Promise<{ id: number }> {
@@ -254,12 +267,34 @@ export class AuthService {
     userId: number,
     completeDto: UpdateUserRegisterDto,
   ): Promise<void> {
-    /// Знайдіть користувача за його id, з фільтром на статус реєстрації
+    /// Find a user by their id, with a filter based on registration status
     const user = await this.usersService.findOne({
       id: userId,
     });
+      
+    if (!completeDto.nickName.startsWith('@')) {
+      throw new BadRequestException('Nickname should start with "@"');
+    }
 
-    if (!user) {
+   if(completeDto.password !== completeDto.confirmPassword){
+    throw new BadRequestException('Passwords do not match');
+   }
+  
+    const userNickName = await this.usersService.findOne({
+      nickName: completeDto.nickName
+    })
+    
+    if(userNickName){
+     
+      throw new ConflictException(
+        {
+      error: `User with this nickname already exists.`,
+      status: HttpStatus.UNPROCESSABLE_ENTITY        
+    } 
+      );
+    }
+
+  if (!user) {
       throw new HttpException(
         {
           status: HttpStatus.NOT_FOUND,
@@ -268,15 +303,19 @@ export class AuthService {
         HttpStatus.NOT_FOUND,
       );
     }
-
-    // user.nickName = completeDto.nickName;
-
-    user.firstName = completeDto.firstName;
-
-    user.lastName = completeDto.lastName;
-
-    user.password = completeDto.password;
-
+    if (completeDto.nickName ) {
+      user.nickName = completeDto.nickName;
+    }
+    if (completeDto.firstName) {
+      user.firstName = completeDto.firstName;
+    }
+    if (completeDto.lastName) {
+      user.lastName = completeDto.lastName;
+    }
+    if (completeDto.password) {
+      user.password = completeDto.password;
+    }
+ 
     await user.save();
   }
 
