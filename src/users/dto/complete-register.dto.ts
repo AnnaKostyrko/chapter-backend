@@ -5,14 +5,20 @@ import { IsNotExist } from 'src/utils/validators/is-not-exists.validator';
 
 export class UpdateUserRegisterDto {
 
+  @IsNotEmpty()
+  @ApiProperty({ example: 'John' })
+  firstName: string;
+
+  @IsNotEmpty()
+  @ApiProperty({ example: 'Doe' })
+  lastName: string; 
+
   @ApiProperty({ example: '@Jojo2323' })
-  @Validate(IsNotExist, ['User'], {
-    message: 'nickNameAlreadyExists',
-  })
-  
+
   @IsNotEmpty()
   @MinLength(3)
   nickName: string;
+
 
   @IsNotEmpty()
   @ApiProperty({example: 'string'})
@@ -20,12 +26,10 @@ export class UpdateUserRegisterDto {
   password: string;
 
   @IsNotEmpty()
-  @ApiProperty({ example: 'John' })
-  firstName: string;
-
-  @IsNotEmpty()
-  @ApiProperty({ example: 'Doe' })
-  lastName: string;
+  @ApiProperty()
+  @MinLength(6)
+  confirmPassword:string;
+  
 }
 
 

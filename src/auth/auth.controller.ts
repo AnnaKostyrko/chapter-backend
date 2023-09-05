@@ -12,6 +12,7 @@ import {
   SerializeOptions,
   Param,
   BadRequestException,
+  NotFoundException,
   // Param,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -31,6 +32,8 @@ import { NullableType } from '../utils/types/nullable.type';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
+import e from 'express';
+import { UsersService } from 'src/users/users.service';
 //временный тип без поля email
 // type RegisterDtoWithoutEmail = Omit<AuthRegisterLoginDto, 'email'>;
 @ApiTags('Auth')
@@ -39,7 +42,10 @@ import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
   version: '1',
 })
 export class AuthController {
-  constructor(private readonly service: AuthService) {}
+  constructor(
+    private readonly service: AuthService,
+    private readonly usService: UsersService
+    ) {}
 
   @SerializeOptions({
     groups: ['me'],
@@ -66,6 +72,7 @@ export class AuthController {
   @Post('email/register')
   @HttpCode(HttpStatus.NO_CONTENT)
   async register(@Body() createUserDto: AuthRegisterLoginDto): Promise<void> {
+     
     return this.service.register(createUserDto);
   }
 
@@ -81,7 +88,6 @@ export class AuthController {
   async confirmEmail(
     @Body() confirmEmailDto: AuthConfirmEmailDto,
   ): Promise<{id:number}> {
-    console.log('Confirming email for uniqueToken:', confirmEmailDto.hash);
     return await this.service.confirmEmail(confirmEmailDto.hash);
   }
 
@@ -90,9 +96,6 @@ export class AuthController {
       @Param('id') userId: number, // Отримуємо id з параметра маршруту
       @Body() completeDto: UpdateUserRegisterDto,
     ): Promise<void> {
-      if (!completeDto.nickName.startsWith('@')) {
-        throw new BadRequestException('Nickname should start with "@"');
-      }
     return await this.service.completeRegistration(userId, completeDto);
     }
 
