@@ -209,6 +209,7 @@ export class AuthService {
       .update(randomStringGenerator())
       .digest('hex')
       .slice(-6);
+      
       const existingUser = await this.usersService.findOne({ email: dto.email });
       if (existingUser) {
         const emailStatus = existingUser.status?.name;
