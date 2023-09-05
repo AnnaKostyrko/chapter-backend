@@ -17,8 +17,6 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { Roles } from 'src/roles/roles.decorator';
-import { RoleEnum } from 'src/roles/roles.enum';
 import { AuthGuard } from '@nestjs/passport';
 
 import { infinityPagination } from 'src/utils/infinity-pagination';
@@ -27,7 +25,6 @@ import { InfinityPaginationResultType } from '../utils/types/infinity-pagination
 import { NullableType } from '../utils/types/nullable.type';
 
 @ApiBearerAuth()
-@Roles(RoleEnum.admin)
 @UseGuards(AuthGuard('jwt'))
 @ApiTags('Users')
 @Controller({
