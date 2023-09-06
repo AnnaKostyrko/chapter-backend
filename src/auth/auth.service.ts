@@ -1,4 +1,6 @@
 import {
+  BadRequestException,
+  ConflictException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -200,8 +202,6 @@ export class AuthService {
       user,
     };
   }
-  //принципом "duck typing" (по сути, проверкой наличия необходимых свойств).
-  //
 
   async register(dto: AuthRegisterLoginDto): Promise<void> {
     const hash = crypto
@@ -210,6 +210,14 @@ export class AuthService {
       .digest('hex')
       .slice(-6);
 
+    const existingUser = await this.usersService.findOne({ email: dto.email });
+    if (existingUser) {
+      const emailStatus = existingUser.status?.name;
+      throw new ConflictException({
+        error: `User with this email already exists. Email status:${emailStatus}`,
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
+    }
     await this.usersService.create({
       ...dto,
       email: dto.email,
@@ -230,7 +238,7 @@ export class AuthService {
     });
   }
 
-  async confirmEmail(uniqueToken: string): Promise<void> {
+  async confirmEmail(uniqueToken: string): Promise<{ id: number }> {
     const user = await this.usersService.findOne({
       hash: uniqueToken,
     });
@@ -248,17 +256,38 @@ export class AuthService {
     user.status = plainToClass(Status, {
       id: StatusEnum.active,
     });
-
+    user.hash = null;
     await user.save();
+    return { id: user.id };
   }
+
   async completeRegistration(
     userId: number,
     completeDto: UpdateUserRegisterDto,
   ): Promise<void> {
-    // Знайдіть користувача за його id, з фільтром на статус реєстрації
+    /// Find a user by their id, with a filter based on registration status
     const user = await this.usersService.findOne({
       id: userId,
     });
+
+    if (!completeDto.nickName.startsWith('@')) {
+      throw new BadRequestException('Nickname should start with "@"');
+    }
+
+    if (completeDto.password !== completeDto.confirmPassword) {
+      throw new BadRequestException('Passwords do not match');
+    }
+
+    const userNickName = await this.usersService.findOne({
+      nickName: completeDto.nickName,
+    });
+
+    if (userNickName) {
+      throw new ConflictException({
+        error: `User with this nickname already exists.`,
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
+    }
 
     if (!user) {
       throw new HttpException(

@@ -1,19 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, MinLength } from 'class-validator';
-// import { IsExist } from '../../utils/validators/is-exists.validator';
-// import { FileEntity } from '../../files/entities/file.entity';
+import { IsNotEmpty, IsOptional, MinLength, Validate } from 'class-validator';
+import { IsExist } from '../../utils/validators/is-exists.validator';
+import { FileEntity } from '../../files/entities/file.entity';
 
 export class AuthUpdateDto {
-  // @ApiProperty({ type: () => FileEntity })
-  // @IsOptional()
-  // @Validate(IsExist, ['FileEntity', 'id'], {
-  //   message: 'imageNotExists',
-  // })
-  // photo?: FileEntity;
-
-  @ApiProperty({ example: 'http://......' })
+  @ApiProperty({ type: () => FileEntity })
   @IsOptional()
-  avatarUrl?: string | null;
+  @Validate(IsExist, ['FileEntity', 'id'], {
+    message: 'imageNotExists',
+  })
+  photo?: FileEntity;
 
   @ApiProperty({ example: 'John' })
   @IsOptional()
@@ -24,21 +20,6 @@ export class AuthUpdateDto {
   @IsOptional()
   @IsNotEmpty({ message: 'mustBeNotEmpty' })
   lastName?: string;
-
-  @ApiProperty({ example: '@sdfsdjk' })
-  @IsOptional()
-  @IsNotEmpty({ message: 'mustBeNotEmpty' })
-  nickName?: string;
-
-  @ApiProperty({ example: 'some text' })
-  @IsOptional()
-  @IsNotEmpty({ message: 'mustBeNotEmpty' })
-  userStatus?: string;
-
-  @ApiProperty({ example: 'Kyiv' })
-  @IsOptional()
-  @IsNotEmpty({ message: 'mustBeNotEmpty' })
-  location?: string;
 
   @ApiProperty()
   @IsOptional()
