@@ -1,13 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import { IsNotEmpty, MinLength, Validate } from 'class-validator';
-import { IsNotExist } from 'src/utils/validators/is-not-exists.validator';
+import { IsNotEmpty, MinLength } from 'class-validator';
 
 export class UpdateUserRegisterDto {
+  @IsNotEmpty()
+  @ApiProperty({ example: 'John' })
+  firstName: string;
+
+  @IsNotEmpty()
+  @ApiProperty({ example: 'Doe' })
+  lastName: string;
+
   @ApiProperty({ example: '@Jojo2323' })
-  @Validate(IsNotExist, ['User'], {
-    message: 'nickNameAlreadyExists',
-  })
   @IsNotEmpty()
   @MinLength(3)
   nickName: string;
@@ -18,10 +22,7 @@ export class UpdateUserRegisterDto {
   password: string;
 
   @IsNotEmpty()
-  @ApiProperty({ example: 'John' })
-  firstName: string;
-
-  @IsNotEmpty()
-  @ApiProperty({ example: 'Doe' })
-  lastName: string;
+  @ApiProperty()
+  @MinLength(6)
+  confirmPassword: string;
 }
