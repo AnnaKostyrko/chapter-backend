@@ -270,6 +270,7 @@ export class AuthService {
     /// Знайдіть користувача за його id, з фільтром на статус реєстрації
     const user = await this.usersService.findOne({
       id: userId,
+      
     });
       
     if (!completeDto.nickName.startsWith('@')) {
@@ -284,12 +285,13 @@ export class AuthService {
       nickName: completeDto.nickName
     })
     if(userNickName){
-     
-      throw new ConflictException(
+      
+      throw new HttpException(
         {
-      error: `User with this nickname already exists.`,
-      status: HttpStatus.UNPROCESSABLE_ENTITY        
-    } 
+          error: 'User with this nickname already exists.',
+          status: HttpStatus.UNPROCESSABLE_ENTITY,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
 
@@ -303,12 +305,10 @@ export class AuthService {
       );
     }
 
-    //New feature(maybe)
-    
 
+    
     if (completeDto.nickName !== undefined ) {
       user.nickName = completeDto.nickName;
-   
     }
  
     if (completeDto.firstName !== undefined) {
