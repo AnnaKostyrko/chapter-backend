@@ -1,16 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import { IsNotEmpty, MinLength,  } from 'class-validator';
+import { IsNotEmpty, MinLength } from 'class-validator';
 
 export class UpdateUserRegisterDto {
-
   @IsNotEmpty()
   @ApiProperty({ example: 'John' })
   firstName: string;
 
   @IsNotEmpty()
   @ApiProperty({ example: 'Doe' })
-  lastName: string; 
+  lastName: string;
 
   @ApiProperty({ example: '@Jojo2323' })
   @IsNotEmpty()
@@ -25,6 +24,5 @@ export class UpdateUserRegisterDto {
   @IsNotEmpty()
   @ApiProperty()
   @MinLength(6)
-  confirmPassword:string;
-  
+  confirmPassword: string;
 }

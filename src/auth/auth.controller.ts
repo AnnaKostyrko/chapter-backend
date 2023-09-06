@@ -26,16 +26,13 @@ import { NullableType } from '../utils/types/nullable.type';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
 
-
 @ApiTags('Auth')
 @Controller({
   path: 'auth',
   version: '1',
 })
 export class AuthController {
-  constructor(
-    private readonly service: AuthService
-    ) {}
+  constructor(private readonly service: AuthService) {}
 
   @SerializeOptions({
     groups: ['me'],
@@ -68,7 +65,6 @@ export class AuthController {
   ///////////////
   @Post('email/confirm')
   @HttpCode(HttpStatus.OK)
-
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Ok',
@@ -76,17 +72,17 @@ export class AuthController {
   })
   async confirmEmail(
     @Body() confirmEmailDto: AuthConfirmEmailDto,
-  ): Promise<{id:number}> {
+  ): Promise<{ id: number }> {
     return await this.service.confirmEmail(confirmEmailDto.hash);
   }
 
-    @Patch('email/register/finaly/:id')
-    async completeRegistration(
-      @Param('id') userId: number, // Отримуємо id з параметра маршруту
-      @Body() completeDto: UpdateUserRegisterDto,
-    ): Promise<void> {
+  @Patch('email/register/finaly/:id')
+  async completeRegistration(
+    @Param('id') userId: number, // Отримуємо id з параметра маршруту
+    @Body() completeDto: UpdateUserRegisterDto,
+  ): Promise<void> {
     return await this.service.completeRegistration(userId, completeDto);
-    }
+  }
 
   @Post('forgot/password')
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -116,7 +112,6 @@ export class AuthController {
     return this.service.me(request.user);
   }
 
-  
   @ApiBearerAuth()
   @SerializeOptions({
     groups: ['me'],

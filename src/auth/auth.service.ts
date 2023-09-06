@@ -4,7 +4,6 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import ms from 'ms';
@@ -203,6 +202,7 @@ export class AuthService {
       user,
     };
   }
+
   async register(dto: AuthRegisterLoginDto): Promise<void> {
     const hash = crypto
       .createHash('sha256')
@@ -210,16 +210,14 @@ export class AuthService {
       .digest('hex')
       .slice(-6);
 
-      const existingUser = await this.usersService.findOne({ email: dto.email });
-      if (existingUser) {
-        const emailStatus = existingUser.status?.name;
-        throw new ConflictException(
-          {
+    const existingUser = await this.usersService.findOne({ email: dto.email });
+    if (existingUser) {
+      const emailStatus = existingUser.status?.name;
+      throw new ConflictException({
         error: `User with this email already exists. Email status:${emailStatus}`,
-        status: HttpStatus.UNPROCESSABLE_ENTITY        
-      } 
-        );
-      }
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
+    }
     await this.usersService.create({
       ...dto,
       email: dto.email,
@@ -229,15 +227,15 @@ export class AuthService {
       status: {
         id: StatusEnum.inactive,
       } as Status,
+      hash,
     });
-   
+
     await this.mailService.userSignUp({
       to: dto.email,
       data: {
         hash,
       },
     });
-
   }
 
   async confirmEmail(uniqueToken: string): Promise<{ id: number }> {
@@ -271,30 +269,27 @@ export class AuthService {
     const user = await this.usersService.findOne({
       id: userId,
     });
-      
+
     if (!completeDto.nickName.startsWith('@')) {
       throw new BadRequestException('Nickname should start with "@"');
     }
 
-   if(completeDto.password !== completeDto.confirmPassword){
-    throw new BadRequestException('Passwords do not match');
-   }
-  
-    const userNickName = await this.usersService.findOne({
-      nickName: completeDto.nickName
-    })
-    
-    if(userNickName){
-     
-      throw new ConflictException(
-        {
-      error: `User with this nickname already exists.`,
-      status: HttpStatus.UNPROCESSABLE_ENTITY        
-    } 
-      );
+    if (completeDto.password !== completeDto.confirmPassword) {
+      throw new BadRequestException('Passwords do not match');
     }
 
-  if (!user) {
+    const userNickName = await this.usersService.findOne({
+      nickName: completeDto.nickName,
+    });
+
+    if (userNickName) {
+      throw new ConflictException({
+        error: `User with this nickname already exists.`,
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
+    }
+
+    if (!user) {
       throw new HttpException(
         {
           status: HttpStatus.NOT_FOUND,
@@ -303,7 +298,7 @@ export class AuthService {
         HttpStatus.NOT_FOUND,
       );
     }
-    if (completeDto.nickName ) {
+    if (completeDto.nickName) {
       user.nickName = completeDto.nickName;
     }
     if (completeDto.firstName) {
@@ -315,7 +310,7 @@ export class AuthService {
     if (completeDto.password) {
       user.password = completeDto.password;
     }
- 
+
     await user.save();
   }
 
