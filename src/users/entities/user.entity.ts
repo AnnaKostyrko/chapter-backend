@@ -23,6 +23,7 @@ import { AuthProvidersEnum } from 'src/auth/auth-providers.enum';
 import { Exclude, Expose } from 'class-transformer';
 import { PostEntity } from '../../post/entities/post.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { Book } from './book.entity';
 
 @Entity()
 export class User extends EntityHelper {
@@ -77,6 +78,9 @@ export class User extends EntityHelper {
   nickName: string;
 
   @Column({ type: String, nullable: true })
+  userStatus: string;
+
+  @Column({ type: String, nullable: true })
   location: string;
 
   @Column({ type: String, nullable: true })
@@ -117,4 +121,7 @@ export class User extends EntityHelper {
 
   @OneToMany(() => PostEntity, (post) => post.author)
   posts: PostEntity[];
+
+  @OneToMany(() => Book, (book) => book.user)
+  books: Book[];
 }
