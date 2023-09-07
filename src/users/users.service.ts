@@ -29,9 +29,19 @@ export class UsersService {
     });
   }
 
-  findOne(fields: EntityCondition<User>): Promise<NullableType<User>> {
+  // findOne(fields: EntityCondition<User>): Promise<NullableType<User>> {
+  //   return this.usersRepository.findOne({
+  //     where: fields,
+  //   });
+  // }
+
+  findOne(
+    fields: EntityCondition<User>,
+    relations: string[] = [],
+  ): Promise<NullableType<User>> {
     return this.usersRepository.findOne({
       where: fields,
+      relations,
     });
   }
 
@@ -48,50 +58,13 @@ export class UsersService {
     await this.usersRepository.softDelete(id);
   }
 
-  // async me(id: string): Promise<Partial<User>> {
-  //   const user = await this.findOne({ id: +id });
-
-  //   if (!user) {
-  //     throw new Error('User not found');
-  //   }
-
-  //   return {
-  //     avatarUrl: user.avatarUrl,
-  //     firstName: user.firstName,
-  //     lastName: user.lastName,
-  //     nickName: user.nickName,
-  //     location: user.location,
-  //     userStatus: user.userStatus,
-  //   };
-  // }
-
-  // async me(
-  //   requestingUserId: number,
-  //   targetUserId: number,
-  // ): Promise<Partial<User>> {
-  //   const user = await this.findOne({
-  //     id: requestingUserId === targetUserId ? requestingUserId : targetUserId,
-  //   });
-
-  //   if (!user) {
-  //     throw new Error('User not found');
-  //   }
-
-  //   return {
-  //     avatarUrl: user.avatarUrl,
-  //     firstName: user.firstName,
-  //     lastName: user.lastName,
-  //     nickName: user.nickName,
-  //     ...(requestingUserId === targetUserId && {
-  //       location: user.location,
-  //       userStatus: user.userStatus,
-  //     }),
-  //   };
-  // }
   async me(userId: number): Promise<Partial<object>> {
-    const user = await this.findOne({
-      id: userId,
-    });
+    const user = await this.findOne(
+      {
+        id: userId,
+      },
+      ['posts'],
+    );
 
     if (!user) {
       throw new Error('User not found');
@@ -104,7 +77,6 @@ export class UsersService {
       nickName: user.nickName,
       location: user.location,
       userStatus: user.userStatus,
-      userPosts: user.posts,
     };
   }
 }
