@@ -35,13 +35,41 @@ export class UsersService {
     });
   }
 
-  update(id: User['id'], payload: DeepPartial<User>): Promise<User> {
-    return this.usersRepository.save(
-      this.usersRepository.create({
-        id,
-        ...payload,
-      }),
-    );
+  async update(
+    userId: number,
+    updateProfileDto: DeepPartial<User>,
+  ): Promise<User> {
+    // Знайдемо користувача за його ідентифікатором
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    if (updateProfileDto.firstName) {
+      user.firstName = updateProfileDto.firstName;
+    }
+
+    if (updateProfileDto.lastName) {
+      user.lastName = updateProfileDto.lastName;
+    }
+
+    if (updateProfileDto.nickName) {
+      user.nickName = updateProfileDto.nickName;
+    }
+
+    if (updateProfileDto.location) {
+      user.location = updateProfileDto.location;
+    }
+
+    if (updateProfileDto.avatarUrl) {
+      user.avatarUrl = updateProfileDto.avatarUrl;
+    }
+    if (updateProfileDto.userStatus) {
+      user.userStatus = updateProfileDto.userStatus;
+    }
+
+    return this.usersRepository.save(user);
   }
 
   async softDelete(id: User['id']): Promise<void> {
