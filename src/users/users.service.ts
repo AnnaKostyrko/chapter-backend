@@ -58,7 +58,7 @@ export class UsersService {
   async toggleSubscription(
     currentUserId: number,
     targetUserId: number,
-  ): Promise<any> {
+  ): Promise<User> {
     const targetUser = await this.findOne({ id: targetUserId });
     const currentUser = await this.findOne({ id: currentUserId });
 

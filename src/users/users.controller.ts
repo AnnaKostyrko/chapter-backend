@@ -83,7 +83,10 @@ export class UsersController {
 
   @Post('subscribe-unsubscribe/:userId')
   @HttpCode(HttpStatus.OK)
-  async subscribe(@Param('userId') userId: number, @Request() req) {
+  async subscribe(
+    @Param('userId') userId: number,
+    @Request() req,
+  ): Promise<User> {
     const currentUserId = req.user.id;
     return await this.usersService.toggleSubscription(currentUserId, userId);
   }
