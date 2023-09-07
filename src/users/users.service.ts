@@ -1,5 +1,7 @@
 import {
   ConflictException,
+  // HttpException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -53,37 +55,36 @@ export class UsersService {
     await this.usersRepository.softDelete(id);
   }
 
-  async subscribe(currentUserId: number, targetUserId: number): Promise<any> {
-    // Check if there is a user to subscribe to.
+  async toggleSubscription(
+    currentUserId: number,
+    targetUserId: number,
+  ): Promise<any> {
     const targetUser = await this.findOne({ id: targetUserId });
-
-    if (!targetUser) {
-      throw new NotFoundException('User not found');
-    }
-    // Check that the user is not subscribing to himself
-    if (currentUserId === targetUserId) {
-      throw new NotFoundException('You cannot subscribe to yourself!');
-    }
-
     const currentUser = await this.findOne({ id: currentUserId });
 
-    if (!currentUser) {
-      throw new NotFoundException('Current user not found');
+    if (!targetUser || !currentUser) {
+      throw new NotFoundException({
+        error: 'User not found',
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
     }
 
-    if (!currentUser.subscribers) {
-      currentUser.subscribers = [];
+    if (currentUserId === targetUserId) {
+      throw new ConflictException({
+        error: 'You cannot subscribe to yourself!',
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
     }
 
-    const isAlreadySubscribed = currentUser.subscribers.some(
+    const isSubscribed = currentUser.subscribers.some(
       (subscriber) => subscriber.id === targetUserId,
     );
 
-    if (isAlreadySubscribed) {
-      throw new ConflictException('You are already subscribed to this user');
-    }
-
-    currentUser.subscribers.push(targetUser);
+    currentUser.subscribers = isSubscribed
+      ? currentUser.subscribers.filter(
+          (subscriber) => subscriber.id !== targetUserId,
+        )
+      : [...currentUser.subscribers, targetUser];
 
     await currentUser.save();
 

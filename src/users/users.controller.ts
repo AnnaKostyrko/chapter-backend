@@ -81,10 +81,10 @@ export class UsersController {
     return this.usersService.softDelete(id);
   }
 
-  @Post('subscribe/:userId')
+  @Post('subscribe-unsubscribe/:userId')
   @HttpCode(HttpStatus.OK)
   async subscribe(@Param('userId') userId: number, @Request() req) {
     const currentUserId = req.user.id;
-    return await this.usersService.subscribe(currentUserId, userId);
+    return await this.usersService.toggleSubscription(currentUserId, userId);
   }
 }
