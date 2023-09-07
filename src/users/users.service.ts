@@ -46,28 +46,12 @@ export class UsersService {
       throw new Error('User not found');
     }
 
-    if (updateProfileDto.firstName) {
-      user.firstName = updateProfileDto.firstName;
-    }
-
-    if (updateProfileDto.lastName) {
-      user.lastName = updateProfileDto.lastName;
-    }
-
-    if (updateProfileDto.nickName) {
-      user.nickName = updateProfileDto.nickName;
-    }
-
-    if (updateProfileDto.location) {
-      user.location = updateProfileDto.location;
-    }
-
-    if (updateProfileDto.avatarUrl) {
-      user.avatarUrl = updateProfileDto.avatarUrl;
-    }
-    if (updateProfileDto.userStatus) {
-      user.userStatus = updateProfileDto.userStatus;
-    }
+    user.firstName = updateProfileDto.firstName ?? user.firstName;
+    user.lastName = updateProfileDto.lastName ?? user.lastName;
+    user.nickName = updateProfileDto.nickName ?? user.nickName;
+    user.location = updateProfileDto.location ?? user.location;
+    user.avatarUrl = updateProfileDto.avatarUrl ?? user.avatarUrl;
+    user.userStatus = updateProfileDto.userStatus ?? user.userStatus;
 
     return this.usersRepository.save(user);
   }
