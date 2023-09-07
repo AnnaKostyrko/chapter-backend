@@ -154,13 +154,4 @@ export class AuthController {
   public async delete(@Request() request): Promise<void> {
     return this.service.softDelete(request.user);
   }
-
-  @ApiBearerAuth()
-  @Post('subscribe/:userId')
-  @UseGuards(AuthGuard('jwt'))
-  @HttpCode(HttpStatus.OK)
-  async subscribe(@Param('userId') userId: number, @Request() req) {
-    const currentUserId = req.user.id;
-    return await this.service.subscribe(currentUserId, userId);
-  }
 }

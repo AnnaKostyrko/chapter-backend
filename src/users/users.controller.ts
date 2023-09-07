@@ -12,6 +12,7 @@ import {
   ParseIntPipe,
   HttpStatus,
   HttpCode,
+  Request,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -78,5 +79,12 @@ export class UsersController {
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: number): Promise<void> {
     return this.usersService.softDelete(id);
+  }
+
+  @Post('subscribe/:userId')
+  @HttpCode(HttpStatus.OK)
+  async subscribe(@Param('userId') userId: number, @Request() req) {
+    const currentUserId = req.user.id;
+    return await this.usersService.subscribe(currentUserId, userId);
   }
 }
