@@ -22,7 +22,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { infinityPagination } from 'src/utils/infinity-pagination';
 import { User } from './entities/user.entity';
 import { InfinityPaginationResultType } from '../utils/types/infinity-pagination-result.type';
-import { NullableType } from '../utils/types/nullable.type';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
@@ -61,8 +60,8 @@ export class UsersController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  findOne(@Param('id') id: string): Promise<NullableType<User>> {
-    return this.usersService.findOne({ id: +id });
+  async getUserById(@Param('id') id: number): Promise<Partial<User>> {
+    return await this.usersService.getUserById(id);
   }
 
   @Patch(':id')
