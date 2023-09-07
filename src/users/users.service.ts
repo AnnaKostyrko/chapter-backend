@@ -47,4 +47,64 @@ export class UsersService {
   async softDelete(id: User['id']): Promise<void> {
     await this.usersRepository.softDelete(id);
   }
+
+  // async me(id: string): Promise<Partial<User>> {
+  //   const user = await this.findOne({ id: +id });
+
+  //   if (!user) {
+  //     throw new Error('User not found');
+  //   }
+
+  //   return {
+  //     avatarUrl: user.avatarUrl,
+  //     firstName: user.firstName,
+  //     lastName: user.lastName,
+  //     nickName: user.nickName,
+  //     location: user.location,
+  //     userStatus: user.userStatus,
+  //   };
+  // }
+
+  // async me(
+  //   requestingUserId: number,
+  //   targetUserId: number,
+  // ): Promise<Partial<User>> {
+  //   const user = await this.findOne({
+  //     id: requestingUserId === targetUserId ? requestingUserId : targetUserId,
+  //   });
+
+  //   if (!user) {
+  //     throw new Error('User not found');
+  //   }
+
+  //   return {
+  //     avatarUrl: user.avatarUrl,
+  //     firstName: user.firstName,
+  //     lastName: user.lastName,
+  //     nickName: user.nickName,
+  //     ...(requestingUserId === targetUserId && {
+  //       location: user.location,
+  //       userStatus: user.userStatus,
+  //     }),
+  //   };
+  // }
+  async me(userId: number): Promise<Partial<object>> {
+    const user = await this.findOne({
+      id: userId,
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    return {
+      avatarUrl: user.avatarUrl,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      nickName: user.nickName,
+      location: user.location,
+      userStatus: user.userStatus,
+      userPosts: user.posts,
+    };
+  }
 }

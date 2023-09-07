@@ -12,6 +12,7 @@ import {
   ParseIntPipe,
   HttpStatus,
   HttpCode,
+  Request,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -22,7 +23,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { infinityPagination } from 'src/utils/infinity-pagination';
 import { User } from './entities/user.entity';
 import { InfinityPaginationResultType } from '../utils/types/infinity-pagination-result.type';
-import { NullableType } from '../utils/types/nullable.type';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
@@ -58,11 +58,16 @@ export class UsersController {
       { page, limit },
     );
   }
-
-  @Get(':id')
+  // @Get(':id')
+  // @HttpCode(HttpStatus.OK)
+  // findOne(@Param('id') id: string): Promise<Partial<User>> {
+  //   return this.usersService.me(id);
+  // }
+  @Get('me')
   @HttpCode(HttpStatus.OK)
-  findOne(@Param('id') id: string): Promise<NullableType<User>> {
-    return this.usersService.findOne({ id: +id });
+  async me(@Request() request): Promise<Partial<User>> {
+    console.log('request.user', request.user);
+    return await this.usersService.me(request.user.id);
   }
 
   @Patch(':id')
