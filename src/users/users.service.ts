@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
@@ -39,11 +39,26 @@ export class UsersService {
     userId: number,
     updateProfileDto: DeepPartial<User>,
   ): Promise<User> {
-    // Знайдемо користувача за його ідентифікатором
     const user = await this.usersRepository.findOne({ where: { id: userId } });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: 'User not found.',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (userId !== user.id) {
+      throw new HttpException(
+        {
+          status: HttpStatus.FORBIDDEN,
+          error: 'You do not have permission to update this user.',
+        },
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     user.firstName = updateProfileDto.firstName ?? user.firstName;
