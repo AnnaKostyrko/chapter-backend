@@ -58,11 +58,7 @@ export class UsersController {
       { page, limit },
     );
   }
-  // @Get(':id')
-  // @HttpCode(HttpStatus.OK)
-  // findOne(@Param('id') id: string): Promise<Partial<User>> {
-  //   return this.usersService.me(id);
-  // }
+
   @Get('me')
   @HttpCode(HttpStatus.OK)
   async me(@Request() request): Promise<Partial<User>> {
