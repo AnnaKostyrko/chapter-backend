@@ -66,7 +66,7 @@ export class UsersController {
     return this.usersService.findOne({ id: +id });
   }
 
-  @Patch(':id')
+  @Patch('me')
   @HttpCode(HttpStatus.OK)
   update(
     @Request() request,
