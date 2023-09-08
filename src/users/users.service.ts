@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
@@ -48,15 +48,11 @@ export class UsersService {
     await this.usersRepository.softDelete(id);
   }
 
-  async getUserById(userId: number): Promise<Partial<object>> {
-    const user = await this.findOne({
-      id: userId,
-    });
-
+  async getGuestsUserInfo(id: number): Promise<Partial<User>> {
+    const user = await this.findOne({ id: id });
     if (!user) {
-      throw new Error('User not found');
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
-
     return {
       avatarUrl: user.avatarUrl,
       firstName: user.firstName,

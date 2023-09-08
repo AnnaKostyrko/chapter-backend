@@ -25,7 +25,6 @@ import { User } from '../users/entities/user.entity';
 import { NullableType } from '../utils/types/nullable.type';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
-import { GuestUserInfoResponse } from 'src/response-example/GuestUserInfoResponse';
 
 @ApiTags('Auth')
 @Controller({
@@ -100,18 +99,6 @@ export class AuthController {
       resetPasswordDto.hash,
       resetPasswordDto.password,
     );
-  }
-
-  @ApiBearerAuth()
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'User information',
-    type: GuestUserInfoResponse,
-  })
-  @UseGuards(AuthGuard('jwt'))
-  @Get('profile/:userId')
-  async getGuestUserInfo(@Param('userId') userId: number) {
-    return this.service.getGuestsUserInfo(userId);
   }
 
   @ApiBearerAuth()

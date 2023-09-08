@@ -380,21 +380,6 @@ export class AuthService {
     });
   }
 
-  async getGuestsUserInfo(userId: number): Promise<Partial<User>> {
-    const user = await this.usersService.findOne({ id: userId });
-    if (!user) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
-    return {
-      avatarUrl: user.avatarUrl,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      nickName: user.nickName,
-      location: user.location,
-      // userStatus: user.userStatus,
-    };
-  }
-
   async update(
     userJwtPayload: JwtPayloadType,
     userDto: AuthUpdateDto,
