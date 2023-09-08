@@ -16,13 +16,15 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 
 import { infinityPagination } from 'src/utils/infinity-pagination';
 import { User } from './entities/user.entity';
 import { InfinityPaginationResultType } from '../utils/types/infinity-pagination-result.type';
 import { NullableType } from '../utils/types/nullable.type';
+import { CreateBookDto } from './dto/create-book.dto';
+import { Book } from './entities/book.entity';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
@@ -78,5 +80,18 @@ export class UsersController {
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: number): Promise<void> {
     return this.usersService.softDelete(id);
+  }
+
+  @Post('books/:id')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: Book,
+  })
+  @ApiBody({ type: CreateBookDto, description: 'Create book' })
+  async addBookToUser(
+    @Param('id') id: number,
+    @Body() createBookDto: CreateBookDto,
+  ) {
+    return await this.usersService.addBookToUser(id, createBookDto);
   }
 }

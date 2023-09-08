@@ -6,12 +6,16 @@ import { DeepPartial, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { NullableType } from '../utils/types/nullable.type';
+import { Book } from './entities/book.entity';
+import { CreateBookDto } from './dto/create-book.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(Book)
+    private booksRepository: Repository<Book>,
   ) {}
 
   create(createProfileDto: CreateUserDto): Promise<User> {
@@ -46,5 +50,31 @@ export class UsersService {
 
   async softDelete(id: User['id']): Promise<void> {
     await this.usersRepository.softDelete(id);
+  }
+
+  async addBookToUser(
+    userId: number,
+    createBookDto: CreateBookDto,
+  ): Promise<Book> {
+    const book = this.booksRepository.create(createBookDto);
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+      relations: ['books'],
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    book.user = user;
+    await this.booksRepository.save(book);
+
+    if (!user.books) {
+      user.books = [];
+    }
+    user.books.push(book);
+    await this.usersRepository.save(user);
+
+    return book;
   }
 }
