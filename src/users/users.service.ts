@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
-import { DeepPartial, Repository } from 'typeorm';
+import { DeepPartial, IsNull, Not, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { NullableType } from '../utils/types/nullable.type';
@@ -18,6 +18,10 @@ export class UsersService {
     return this.usersRepository.save(
       this.usersRepository.create(createProfileDto),
     );
+  }
+
+  async findAll(): Promise<User[]> {
+    return this.usersRepository.find();
   }
 
   findManyWithPagination(
@@ -46,5 +50,14 @@ export class UsersService {
 
   async softDelete(id: User['id']): Promise<void> {
     await this.usersRepository.softDelete(id);
+  }
+
+  async findAllDeletedUsers(): Promise<User[]> {
+    return this.usersRepository.find({
+      withDeleted: true,
+      where: {
+        deletedAt: Not(IsNull()),
+      },
+    });
   }
 }

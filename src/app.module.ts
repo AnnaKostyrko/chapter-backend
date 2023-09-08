@@ -27,6 +27,8 @@ import { AllConfigType } from './config/config.type';
 import { SessionModule } from './session/session.module';
 import { MailerModule } from './mailer/mailer.module';
 import { PostModule } from './post/post.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { TaskModule } from './task/task.module';
 
 @Module({
   imports: [
@@ -85,6 +87,8 @@ import { PostModule } from './post/post.module';
     MailerModule,
     HomeModule,
     PostModule,
+    ScheduleModule.forRoot(),
+    TaskModule,
   ],
 })
 export class AppModule {}
