@@ -4,6 +4,7 @@ import {
   Post,
   Body,
   Patch,
+  Request,
   Param,
   Delete,
   UseGuards,
@@ -65,13 +66,13 @@ export class UsersController {
     return this.usersService.findOne({ id: +id });
   }
 
-  @Patch(':id')
+  @Patch('me')
   @HttpCode(HttpStatus.OK)
   update(
-    @Param('id') id: number,
+    @Request() request,
     @Body() updateProfileDto: UpdateUserDto,
   ): Promise<User> {
-    return this.usersService.update(id, updateProfileDto);
+    return this.usersService.update(request.user.id, updateProfileDto);
   }
 
   @Delete(':id')
