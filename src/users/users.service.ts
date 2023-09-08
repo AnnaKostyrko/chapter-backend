@@ -29,12 +29,6 @@ export class UsersService {
     });
   }
 
-  // findOne(fields: EntityCondition<User>): Promise<NullableType<User>> {
-  //   return this.usersRepository.findOne({
-  //     where: fields,
-  //   });
-  // }
-
   findOne(
     fields: EntityCondition<User>,
     relations: string[] = [],

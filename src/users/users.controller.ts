@@ -62,8 +62,7 @@ export class UsersController {
   @Get('me')
   @HttpCode(HttpStatus.OK)
   async me(@Request() request): Promise<Partial<User>> {
-    console.log('request.user', request.user);
-    return await this.usersService.me(request.user.id);
+    return this.usersService.me(request.user.id);
   }
 
   @Patch(':id')
