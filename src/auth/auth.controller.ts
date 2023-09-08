@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Get,
   HttpCode,
   HttpStatus,
   Request,
@@ -99,17 +98,6 @@ export class AuthController {
       resetPasswordDto.hash,
       resetPasswordDto.password,
     );
-  }
-
-  @ApiBearerAuth()
-  @SerializeOptions({
-    groups: ['me'],
-  })
-  @Get('me')
-  @UseGuards(AuthGuard('jwt'))
-  @HttpCode(HttpStatus.OK)
-  public me(@Request() request): Promise<Partial<User>> {
-    return this.service.me(request.user);
   }
 
   @ApiBearerAuth()
