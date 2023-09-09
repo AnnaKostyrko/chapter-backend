@@ -9,6 +9,7 @@ import { User } from './user.entity';
 import { BookStatus } from './book-status.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { EntityHelper } from '../../utils/entity-helper';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class Book extends EntityHelper {
@@ -30,16 +31,18 @@ export class Book extends EntityHelper {
   })
   @Column()
   annotation: string;
-
   @ApiProperty({
-    type: () => User,
+    example: '1',
+    description: 'id for book status',
   })
+  @Column({ nullable: true })
+  book_statusId: number;
+
+  @Exclude()
   @ManyToOne(() => User, (user) => user.books, { cascade: true })
   user: User;
 
-  @ApiProperty({
-    type: () => BookStatus,
-  })
+  @Exclude()
   @ManyToOne(() => BookStatus, (status) => status.books, { cascade: true })
   @JoinColumn({ name: 'book_statusId' })
   status: BookStatus;

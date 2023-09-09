@@ -12,6 +12,7 @@ import {
   ParseIntPipe,
   HttpStatus,
   HttpCode,
+  Request,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -82,16 +83,19 @@ export class UsersController {
     return this.usersService.softDelete(id);
   }
 
-  @Post('books/:id')
+  @Post('books')
   @ApiResponse({
     status: HttpStatus.OK,
     type: Book,
   })
   @ApiBody({ type: CreateBookDto, description: 'Create book' })
   async addBookToUser(
-    @Param('id') id: number,
+    @Request() request: Express.Request & { user: User },
     @Body() createBookDto: CreateBookDto,
   ) {
-    return await this.usersService.addBookToUser(id, createBookDto);
+    return await this.usersService.addBookToUser(
+      request.user.id,
+      createBookDto,
+    );
   }
 }

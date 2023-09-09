@@ -72,6 +72,11 @@ export class UsersService {
     if (!user.books) {
       user.books = [];
     }
+
+    if (user.books.length > 12) {
+      throw new Error('User already has 12 books');
+    }
+
     user.books.push(book);
     await this.usersRepository.save(user);
 
