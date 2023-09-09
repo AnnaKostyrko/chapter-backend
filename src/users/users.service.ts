@@ -8,7 +8,6 @@ import { User } from './entities/user.entity';
 import { NullableType } from '../utils/types/nullable.type';
 import { BookInfoDto } from './dto/book-info.dto';
 import { Book } from './entities/book.entity';
-import { Book } from './entities/book.entity';
 import { CreateBookDto } from './dto/create-book.dto';
 
 @Injectable()
@@ -102,7 +101,7 @@ export class UsersService {
     userId: number,
     createBookDto: CreateBookDto,
   ): Promise<Book> {
-    const book = this.booksRepository.create(createBookDto);
+    const book = this.bookRepository.create(createBookDto);
     const user = await this.usersRepository.findOne({
       where: { id: userId },
       relations: ['books'],
@@ -113,7 +112,7 @@ export class UsersService {
     }
 
     book.user = user;
-    await this.booksRepository.save(book);
+    await this.bookRepository.save(book);
 
     if (!user.books) {
       user.books = [];
