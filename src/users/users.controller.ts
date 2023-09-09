@@ -4,7 +4,6 @@ import {
   Post,
   Body,
   Patch,
-  Request,
   Param,
   Delete,
   UseGuards,
@@ -13,11 +12,12 @@ import {
   ParseIntPipe,
   HttpStatus,
   HttpCode,
+  Request,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 
 import { infinityPagination } from 'src/utils/infinity-pagination';
@@ -25,6 +25,8 @@ import { User } from './entities/user.entity';
 import { InfinityPaginationResultType } from '../utils/types/infinity-pagination-result.type';
 import { NullableType } from '../utils/types/nullable.type';
 import { BookInfoDto } from './dto/book-info.dto';
+import { CreateBookDto } from './dto/create-book.dto';
+import { Book } from './entities/book.entity';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
@@ -88,5 +90,21 @@ export class UsersController {
     @Param('bookId') bookId: number,
   ): Promise<BookInfoDto> {
     return this.usersService.getBookInfoByUser(userId, bookId);
+  }
+
+  @Post('books')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: Book,
+  })
+  @ApiBody({ type: CreateBookDto, description: 'Create book' })
+  async addBookToUser(
+    @Request() request: Express.Request & { user: User },
+    @Body() createBookDto: CreateBookDto,
+  ) {
+    return await this.usersService.addBookToUser(
+      request.user.id,
+      createBookDto,
+    );
   }
 }

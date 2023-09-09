@@ -8,6 +8,7 @@ import { User } from './entities/user.entity';
 import { NullableType } from '../utils/types/nullable.type';
 import { BookInfoDto } from './dto/book-info.dto';
 import { Book } from './entities/book.entity';
+import { CreateBookDto } from './dto/create-book.dto';
 
 @Injectable()
 export class UsersService {
@@ -94,5 +95,36 @@ export class UsersService {
       annotation: book.annotation,
       statusName: book.status.name,
     };
+  }
+
+  async addBookToUser(
+    userId: number,
+    createBookDto: CreateBookDto,
+  ): Promise<Book> {
+    const book = this.bookRepository.create(createBookDto);
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+      relations: ['books'],
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    book.user = user;
+    await this.bookRepository.save(book);
+
+    if (!user.books) {
+      user.books = [];
+    }
+
+    if (user.books.length > 12) {
+      throw new Error('User already has 12 books');
+    }
+
+    user.books.push(book);
+    await this.usersRepository.save(user);
+
+    return book;
   }
 }
