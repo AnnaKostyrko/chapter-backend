@@ -24,6 +24,7 @@ import { infinityPagination } from 'src/utils/infinity-pagination';
 import { User } from './entities/user.entity';
 import { InfinityPaginationResultType } from '../utils/types/infinity-pagination-result.type';
 import { NullableType } from '../utils/types/nullable.type';
+import { BookInfoDto } from './dto/book-info.dto';
 import { CreateBookDto } from './dto/create-book.dto';
 import { Book } from './entities/book.entity';
 
@@ -68,19 +69,27 @@ export class UsersController {
     return this.usersService.findOne({ id: +id });
   }
 
-  @Patch(':id')
+  @Patch('me')
   @HttpCode(HttpStatus.OK)
   update(
-    @Param('id') id: number,
+    @Request() request,
     @Body() updateProfileDto: UpdateUserDto,
   ): Promise<User> {
-    return this.usersService.update(id, updateProfileDto);
+    return this.usersService.update(request.user.id, updateProfileDto);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: number): Promise<void> {
     return this.usersService.softDelete(id);
+  }
+
+  @Get(':id/books/:bookId')
+  async getBookInfoByUser(
+    @Param('id') userId: number,
+    @Param('bookId') bookId: number,
+  ): Promise<BookInfoDto> {
+    return this.usersService.getBookInfoByUser(userId, bookId);
   }
 
   @Post('books')
