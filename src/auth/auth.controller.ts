@@ -74,12 +74,14 @@ export class AuthController {
     description: 'Ok',
     type: User,
   })
+  
   async confirmEmail(
     @Body() confirmEmailDto: AuthConfirmEmailDto,
   ): Promise<{id:number}> {
     return await this.service.confirmEmail(confirmEmailDto.hash);
   }
 
+  
     @Patch('email/register/finaly/:id')
     async completeRegistration(
       @Param('id') userId: number, // Отримуємо id з параметра маршруту

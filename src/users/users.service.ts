@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
@@ -34,6 +34,8 @@ export class UsersService {
       where: fields,
     });
   }
+
+
 
   update(id: User['id'], payload: DeepPartial<User>): Promise<User> {
     return this.usersRepository.save(

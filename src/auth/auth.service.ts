@@ -204,6 +204,7 @@ export class AuthService {
     };
   }
   async register(dto: AuthRegisterLoginDto): Promise<void> {
+    
     const hash = crypto
       .createHash('sha256')
       .update(randomStringGenerator())
@@ -211,6 +212,7 @@ export class AuthService {
       .slice(-6);
 
       const existingUser = await this.usersService.findOne({ email: dto.email });
+     
       if (existingUser) {
         const emailStatus = existingUser.status?.name;
         throw new ConflictException(
@@ -220,6 +222,7 @@ export class AuthService {
       } 
         );
       }
+
     await this.usersService.create({
       ...dto,
       email: dto.email,
@@ -241,6 +244,7 @@ export class AuthService {
   }
 
   async confirmEmail(uniqueToken: string): Promise<{ id: number }> {
+    
     const user = await this.usersService.findOne({
       hash: uniqueToken,
     });
