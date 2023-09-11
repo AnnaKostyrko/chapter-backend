@@ -298,18 +298,14 @@ export class AuthService {
         HttpStatus.NOT_FOUND,
       );
     }
-    if (completeDto.nickName) {
-      user.nickName = completeDto.nickName;
-    }
-    if (completeDto.firstName) {
-      user.firstName = completeDto.firstName;
-    }
-    if (completeDto.lastName) {
-      user.lastName = completeDto.lastName;
-    }
-    if (completeDto.password) {
-      user.password = completeDto.password;
-    }
+
+    user.nickName = completeDto.nickName;
+
+    user.firstName = completeDto.firstName;
+
+    user.lastName = completeDto.lastName;
+
+    user.password = completeDto.password;
 
     await user.save();
   }

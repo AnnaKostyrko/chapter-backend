@@ -23,7 +23,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { infinityPagination } from 'src/utils/infinity-pagination';
 import { User } from './entities/user.entity';
 import { InfinityPaginationResultType } from '../utils/types/infinity-pagination-result.type';
-import { NullableType } from '../utils/types/nullable.type';
+
 import { BookInfoDto } from './dto/book-info.dto';
 import { CreateBookDto } from './dto/create-book.dto';
 import { Book } from './entities/book.entity';
@@ -63,10 +63,10 @@ export class UsersController {
     );
   }
 
-  @Get(':id')
+  @Get('me')
   @HttpCode(HttpStatus.OK)
-  findOne(@Param('id') id: string): Promise<NullableType<User>> {
-    return this.usersService.findOne({ id: +id });
+  async me(@Request() request): Promise<Partial<User>> {
+    return this.usersService.me(request.user.id);
   }
 
   @Patch('me')
@@ -89,7 +89,7 @@ export class UsersController {
     @Param('id') userId: number,
     @Param('bookId') bookId: number,
   ): Promise<BookInfoDto> {
-    return this.usersService.getBookInfoByUser(userId, bookId);
+    return await this.usersService.getBookInfoByUser(userId, bookId);
   }
 
   @Post('books')

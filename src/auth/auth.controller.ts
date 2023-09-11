@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Get,
   HttpCode,
   HttpStatus,
   Request,
@@ -22,7 +21,7 @@ import { AuthResetPasswordDto } from './dto/auth-reset-password.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { LoginResponseType } from './types/login-response.type';
 import { User } from '../users/entities/user.entity';
-import { NullableType } from '../utils/types/nullable.type';
+
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
 
@@ -99,17 +98,6 @@ export class AuthController {
       resetPasswordDto.hash,
       resetPasswordDto.password,
     );
-  }
-
-  @ApiBearerAuth()
-  @SerializeOptions({
-    groups: ['me'],
-  })
-  @Get('me')
-  @UseGuards(AuthGuard('jwt'))
-  @HttpCode(HttpStatus.OK)
-  public me(@Request() request): Promise<NullableType<User>> {
-    return this.service.me(request.user);
   }
 
   @ApiBearerAuth()
