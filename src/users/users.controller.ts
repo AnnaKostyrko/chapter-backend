@@ -12,17 +12,21 @@ import {
   ParseIntPipe,
   HttpStatus,
   HttpCode,
+  Request,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 
 import { infinityPagination } from 'src/utils/infinity-pagination';
 import { User } from './entities/user.entity';
 import { InfinityPaginationResultType } from '../utils/types/infinity-pagination-result.type';
 import { GuestUserInfoResponse } from 'src/response-example/GuestUserInfoResponse';
+import { BookInfoDto } from './dto/book-info.dto';
+import { CreateBookDto } from './dto/create-book.dto';
+import { Book } from './entities/book.entity';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
@@ -70,18 +74,42 @@ export class UsersController {
     return this.usersService.getGuestsUserInfo(id);
   }
 
-  @Patch(':id')
+  @Patch('me')
   @HttpCode(HttpStatus.OK)
   update(
-    @Param('id') id: number,
+    @Request() request,
     @Body() updateProfileDto: UpdateUserDto,
   ): Promise<User> {
-    return this.usersService.update(id, updateProfileDto);
+    return this.usersService.update(request.user.id, updateProfileDto);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: number): Promise<void> {
     return this.usersService.softDelete(id);
+  }
+
+  @Get(':id/books/:bookId')
+  async getBookInfoByUser(
+    @Param('id') userId: number,
+    @Param('bookId') bookId: number,
+  ): Promise<BookInfoDto> {
+    return this.usersService.getBookInfoByUser(userId, bookId);
+  }
+
+  @Post('books')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: Book,
+  })
+  @ApiBody({ type: CreateBookDto, description: 'Create book' })
+  async addBookToUser(
+    @Request() request: Express.Request & { user: User },
+    @Body() createBookDto: CreateBookDto,
+  ) {
+    return await this.usersService.addBookToUser(
+      request.user.id,
+      createBookDto,
+    );
   }
 }
