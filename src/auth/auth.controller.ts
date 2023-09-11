@@ -17,7 +17,7 @@ import { AuthEmailLoginDto } from './dto/auth-email-login.dto';
 import { AuthForgotPasswordDto } from './dto/auth-forgot-password.dto';
 import { AuthConfirmEmailDto } from './dto/auth-confirm-email.dto';
 import { AuthResetPasswordDto } from './dto/auth-reset-password.dto';
-import { AuthUpdateDto } from './dto/auth-update.dto';
+
 import { AuthGuard } from '@nestjs/passport';
 import { LoginResponseType } from './types/login-response.type';
 import { User } from '../users/entities/user.entity';
@@ -119,20 +119,6 @@ export class AuthController {
     await this.service.logout({
       sessionId: request.user.sessionId,
     });
-  }
-
-  @ApiBearerAuth()
-  @SerializeOptions({
-    groups: ['me'],
-  })
-  @Patch('me')
-  @UseGuards(AuthGuard('jwt'))
-  @HttpCode(HttpStatus.OK)
-  public update(
-    @Request() request,
-    @Body() userDto: AuthUpdateDto,
-  ): Promise<NullableType<User>> {
-    return this.service.update(request.user, userDto);
   }
 
   @ApiBearerAuth()
