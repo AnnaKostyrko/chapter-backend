@@ -9,6 +9,8 @@ import { NullableType } from '../utils/types/nullable.type';
 import { BookInfoDto } from './dto/book-info.dto';
 import { Book } from './entities/book.entity';
 import { CreateBookDto } from './dto/create-book.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
+import bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UsersService {
@@ -150,5 +152,70 @@ export class UsersService {
     await this.usersRepository.save(user);
 
     return book;
+  }
+
+  async updatePassword(userId: number, updtePasswordDto: UpdatePasswordDto) {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: 'User not found.',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const isValidPassword = await bcrypt.compare(
+      updtePasswordDto.oldPassword,
+      user.password,
+    );
+
+    if (!isValidPassword) {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: 'Incorrect old password!',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const samePassword = await bcrypt.compare(
+      updtePasswordDto.newPassword,
+      user.password,
+    );
+
+    if (samePassword) {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: 'The new password must be different from the old one!',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (updtePasswordDto.newPassword !== updtePasswordDto.repeatNewPassword) {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: 'Both passwords must match!',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    user.password = updtePasswordDto.newPassword;
+    await this.usersRepository.save(user);
+
+    throw new HttpException(
+      {
+        status: HttpStatus.OK,
+        message: 'Password updated successfully',
+      },
+      HttpStatus.OK,
+    );
   }
 }
