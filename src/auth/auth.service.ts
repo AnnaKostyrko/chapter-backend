@@ -37,6 +37,7 @@ import { JwtPayloadType } from './strategies/types/jwt-payload.type';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
 import { async } from 'rxjs';
+import { error } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -261,11 +262,6 @@ export class AuthService {
 
       user.hash = hash;
       await user.save();
-
-      // don't work 
-     setTimeout(()=>{  
-      user.hash = null;
-     },15000)
   
     await this.mailService.userSignUp({
       to: email,
@@ -273,7 +269,22 @@ export class AuthService {
         hash,
       },
     });
-  }
+
+    // if (user.hash !== null) {
+    //   throw new BadRequestException("after 15 minutes, the confirmation code is canceled");
+    // }
+
+    // Delay setting user.hash to null
+    setTimeout(async() => {
+   
+      const delay = (ms) => new Promise(res => setTimeout(res, ms));
+      await delay(15000); // Wait for 15 seconds
+    
+      user.hash = null;
+      await user.save();
+
+    }, 15000);}
+ 
 
   async confirmEmail(uniqueToken: string): Promise<{id:number}> {
     
@@ -303,7 +314,7 @@ export class AuthService {
     userId: number,
     completeDto: UpdateUserRegisterDto,
   ): Promise<void> {
-    /// Знайдіть користувача за його id, з фільтром на статус реєстрації
+  // Find a user by their id, with a filter on registration status
     const user = await this.usersService.findOne({
       id: userId,
     });
