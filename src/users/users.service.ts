@@ -11,6 +11,7 @@ import { Book } from './entities/book.entity';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import bcrypt from 'bcryptjs';
+import { createResponse } from 'src/helpers/response-helpers';
 
 @Injectable()
 export class UsersService {
@@ -158,13 +159,7 @@ export class UsersService {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
 
     if (!user) {
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          error: 'User not found.',
-        },
-        HttpStatus.NOT_FOUND,
-      );
+      throw createResponse(HttpStatus.NOT_FOUND, 'User not found.');
     }
 
     const isValidPassword = await bcrypt.compare(
@@ -173,13 +168,7 @@ export class UsersService {
     );
 
     if (!isValidPassword) {
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          error: 'Incorrect old password!',
-        },
-        HttpStatus.NOT_FOUND,
-      );
+      throw createResponse(HttpStatus.BAD_REQUEST, 'Incorrect old password!');
     }
 
     const samePassword = await bcrypt.compare(
@@ -188,34 +177,27 @@ export class UsersService {
     );
 
     if (samePassword) {
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          error: 'The new password must be different from the old one!',
-        },
-        HttpStatus.NOT_FOUND,
+      throw createResponse(
+        HttpStatus.BAD_REQUEST,
+        'The new password must be different from the old one!',
       );
     }
 
     if (updtePasswordDto.newPassword !== updtePasswordDto.repeatNewPassword) {
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          error: 'Both passwords must match!',
-        },
-        HttpStatus.NOT_FOUND,
+      throw createResponse(
+        HttpStatus.BAD_REQUEST,
+        'Both passwords must match!',
       );
     }
 
     user.password = updtePasswordDto.newPassword;
     await this.usersRepository.save(user);
 
-    throw new HttpException(
-      {
-        status: HttpStatus.OK,
-        message: 'Password updated successfully',
-      },
+    // Успішна відповідь
+    return createResponse(
       HttpStatus.OK,
+      'Password updated successfully',
+      false,
     );
   }
 }
