@@ -36,6 +36,7 @@ import { JwtPayloadType } from './strategies/types/jwt-payload.type';
 // import { session } from 'passport';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
+import { async } from 'rxjs';
 
 @Injectable()
 export class AuthService {
@@ -203,6 +204,7 @@ export class AuthService {
       user,
     };
   }
+
   async register(dto: AuthRegisterLoginDto): Promise<void> {
 
     const hash = crypto
@@ -231,7 +233,8 @@ export class AuthService {
       } as Role,
       status: {
         id: StatusEnum.inactive,
-      } as Status
+      } as Status,
+      hash
     });
    
     await this.mailService.userSignUp({
@@ -243,31 +246,35 @@ export class AuthService {
     });
 
   }
-  // async resendConfirmationCode(email: string): Promise<void> {
-  //   const user = await this.usersService.findOne({ email });
+  async resendConfirmationCode(email: string): Promise<void> {
+    const user = await this.usersService.findOne({ email });
   
-  //   if (!user) {
-  //     throw new NotFoundException('User not found');
-  //   }
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
   
-  //   const hash = crypto
-  //   .createHash('sha256')
-  //   .update(randomStringGenerator())
-  //   .digest('hex')
-  //   .slice(-6);
+    const hash = crypto
+    .createHash('sha256')
+    .update(randomStringGenerator())
+    .digest('hex')
+    .slice(-6);
 
-  // setTimeout(async() => {
-    
-  //   await user.save();
-  // }, 15 * 60 * 1000);
+      user.hash = hash;
+      await user.save();
+
+      // don't work 
+     setTimeout(()=>{  
+      user.hash = null;
+     },15000)
   
-  //   await this.mailService.userSignUp({
-  //     to: email,
-  //     data: {
-  //       hash,
-  //     },
-  //   });
-  // }
+    await this.mailService.userSignUp({
+      to: email,
+      data: {
+        hash,
+      },
+    });
+  }
+
   async confirmEmail(uniqueToken: string): Promise<{id:number}> {
     
     const user = await this.usersService.findOne({
