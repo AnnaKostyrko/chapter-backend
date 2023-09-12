@@ -204,7 +204,7 @@ export class AuthService {
     };
   }
   async register(dto: AuthRegisterLoginDto): Promise<void> {
-    
+
     const hash = crypto
       .createHash('sha256')
       .update(randomStringGenerator())
@@ -212,17 +212,17 @@ export class AuthService {
       .slice(-6);
 
       const existingUser = await this.usersService.findOne({ email: dto.email });
-     
+
       if (existingUser) {
         const emailStatus = existingUser.status?.name;
         throw new ConflictException(
           {
         error: `User with this email already exists. Email status:${emailStatus}`,
         status: HttpStatus.UNPROCESSABLE_ENTITY        
-      } 
+          } 
         );
       }
-
+      
     await this.usersService.create({
       ...dto,
       email: dto.email,
@@ -231,7 +231,7 @@ export class AuthService {
       } as Role,
       status: {
         id: StatusEnum.inactive,
-      } as Status,
+      } as Status
     });
    
     await this.mailService.userSignUp({
@@ -239,11 +239,36 @@ export class AuthService {
       data: {
         hash,
       },
+      
     });
 
   }
+  // async resendConfirmationCode(email: string): Promise<void> {
+  //   const user = await this.usersService.findOne({ email });
+  
+  //   if (!user) {
+  //     throw new NotFoundException('User not found');
+  //   }
+  
+  //   const hash = crypto
+  //   .createHash('sha256')
+  //   .update(randomStringGenerator())
+  //   .digest('hex')
+  //   .slice(-6);
 
-  async confirmEmail(uniqueToken: string): Promise<{ id: number }> {
+  // setTimeout(async() => {
+    
+  //   await user.save();
+  // }, 15 * 60 * 1000);
+  
+  //   await this.mailService.userSignUp({
+  //     to: email,
+  //     data: {
+  //       hash,
+  //     },
+  //   });
+  // }
+  async confirmEmail(uniqueToken: string): Promise<{id:number}> {
     
     const user = await this.usersService.findOne({
       hash: uniqueToken,
@@ -262,16 +287,16 @@ export class AuthService {
     user.status = plainToClass(Status, {
       id: StatusEnum.active,
     });
-    user.hash = null;
+    user.hash = null; 
     await user.save();
-    return { id: user.id };
+    return {id: user.id}
   }
 
   async completeRegistration(
     userId: number,
     completeDto: UpdateUserRegisterDto,
   ): Promise<void> {
-    /// Find a user by their id, with a filter based on registration status
+    /// Знайдіть користувача за його id, з фільтром на статус реєстрації
     const user = await this.usersService.findOne({
       id: userId,
     });
@@ -287,14 +312,16 @@ export class AuthService {
     const userNickName = await this.usersService.findOne({
       nickName: completeDto.nickName
     })
+    //return all users
     
     if(userNickName){
-     
-      throw new ConflictException(
+      
+      throw new HttpException(
         {
-      error: `User with this nickname already exists.`,
-      status: HttpStatus.UNPROCESSABLE_ENTITY        
-    } 
+          error: 'User with this nickname already exists.',
+          status: HttpStatus.UNPROCESSABLE_ENTITY,
+        },
+        HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
 
@@ -307,21 +334,26 @@ export class AuthService {
         HttpStatus.NOT_FOUND,
       );
     }
-    if (completeDto.nickName ) {
+
+
+    
+    if (completeDto.nickName !== undefined ) {
       user.nickName = completeDto.nickName;
     }
-    if (completeDto.firstName) {
+ 
+    if (completeDto.firstName !== undefined) {
       user.firstName = completeDto.firstName;
     }
-    if (completeDto.lastName) {
+    if (completeDto.lastName !== undefined) {
       user.lastName = completeDto.lastName;
     }
-    if (completeDto.password) {
+    if (completeDto.password !== undefined) {
       user.password = completeDto.password;
     }
  
     await user.save();
   }
+   
 
   async forgotPassword(email: string): Promise<void> {
     const user = await this.usersService.findOne({

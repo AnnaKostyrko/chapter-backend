@@ -26,5 +26,6 @@ export class UpdateUserRegisterDto {
   @ApiProperty()
   @MinLength(6)
   confirmPassword:string;
-  
+
+
 }
