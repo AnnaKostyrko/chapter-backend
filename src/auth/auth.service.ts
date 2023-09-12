@@ -241,6 +241,7 @@ export class AuthService {
   }
 
   async confirmEmail(uniqueToken: string): Promise<{id:number}> {
+    
     const user = await this.usersService.findOne({
       hash: uniqueToken,
     });
@@ -262,7 +263,22 @@ export class AuthService {
     await user.save();
     return {id: user.id}
   }
-
+  async resendConfirmationCode(email: string): Promise<boolean> {
+    const user = await this.usersService.findOne(email);
+  
+    if (user && !user.isConfirmed) {
+      const confirmationCode = generateConfirmationCode(); // Функция для генерации кода
+      user.confirmationCode = confirmationCode;
+      await this.userService.saveUser(user);
+  
+      // Здесь добавьте код для отправки сообщения с кодом подтверждения
+      // Например, отправка по электронной почте или SMS
+  
+      return true;
+    } else {
+      return false;
+    }
+  }
   async completeRegistration(
     userId: number,
     completeDto: UpdateUserRegisterDto,
@@ -270,7 +286,6 @@ export class AuthService {
     /// Знайдіть користувача за його id, з фільтром на статус реєстрації
     const user = await this.usersService.findOne({
       id: userId,
-      
     });
       
     if (!completeDto.nickName.startsWith('@')) {
@@ -284,6 +299,8 @@ export class AuthService {
     const userNickName = await this.usersService.findOne({
       nickName: completeDto.nickName
     })
+    //return all users
+    
     if(userNickName){
       
       throw new HttpException(

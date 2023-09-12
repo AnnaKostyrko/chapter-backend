@@ -6,6 +6,7 @@ import { DeepPartial, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { NullableType } from '../utils/types/nullable.type';
+import { UpdateUserRegisterDto } from './dto/complete-register.dto';
 
 @Injectable()
 export class UsersService {
@@ -19,6 +20,32 @@ export class UsersService {
       this.usersRepository.create(createProfileDto),
     );
   }
+
+// find
+// find(UpdateUserRegister:UpdateUserRegisterDto):Promise<User>{
+//   const users = await this.usersRepository.find({
+//     skip,
+//     take,
+//     where: {
+//         name: ILike(`%${ firstName || ''}%`)
+//     },
+//     order: sortingObject,
+//     join: {
+//         alias: 'user',
+//         leftJoinAndSelect: {
+//             country: 'user.country_id',
+//         },
+//     },
+//   });
+//   return this.userRepository
+//       .createQueryBuilder('user')
+//       .where('user.name LIKE :searchString OR user.email LIKE :searchString', {
+//         searchString: %${searchString}%,
+//       })
+//       .getMany();
+// }
+
+//like - пошук подібного рядка 
 
   findManyWithPagination(
     paginationOptions: IPaginationOptions,

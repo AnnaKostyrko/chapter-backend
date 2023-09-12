@@ -1,8 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import { IsNotEmpty, MinLength, Validate } from 'class-validator';
-import { IsNotExist } from 'src/utils/validators/is-not-exists.validator';
-import { Unique } from 'typeorm';
+import { IsNotEmpty, MinLength } from 'class-validator';
+
 
 export class UpdateUserRegisterDto {
 
