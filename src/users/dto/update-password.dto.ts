@@ -7,12 +7,12 @@ export class UpdatePasswordDto {
   oldPassword: string;
 
   @ApiProperty({ example: '1111111' })
-  @MinLength(6)
+  @MinLength(8)
   @IsNotEmpty()
   newPassword: string;
 
   @ApiProperty({ example: '1111111' })
-  @MinLength(6)
+  @MinLength(8)
   @IsNotEmpty()
   repeatNewPassword: string;
 }
