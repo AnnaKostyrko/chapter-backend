@@ -25,6 +25,7 @@ export class PostController {
     @Body() createPostDto: PostDto,
   ): Promise<PostEntity> {
     const currentUser: User = req.user;
+
     return await this.postService.create(currentUser, createPostDto);
   }
 }

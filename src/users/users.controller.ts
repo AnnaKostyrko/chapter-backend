@@ -17,13 +17,16 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 
 import { infinityPagination } from 'src/utils/infinity-pagination';
 import { User } from './entities/user.entity';
 import { InfinityPaginationResultType } from '../utils/types/infinity-pagination-result.type';
-import { NullableType } from '../utils/types/nullable.type';
+
+import { BookInfoDto } from './dto/book-info.dto';
+import { CreateBookDto } from './dto/create-book.dto';
+import { Book } from './entities/book.entity';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
@@ -60,19 +63,19 @@ export class UsersController {
     );
   }
 
-  @Get(':id')
+  @Get('me')
   @HttpCode(HttpStatus.OK)
-  findOne(@Param('id') id: string): Promise<NullableType<User>> {
-    return this.usersService.findOne({ id: +id });
+  async me(@Request() request): Promise<Partial<User>> {
+    return this.usersService.me(request.user.id);
   }
 
-  @Patch(':id')
+  @Patch('me')
   @HttpCode(HttpStatus.OK)
   update(
-    @Param('id') id: number,
+    @Request() request,
     @Body() updateProfileDto: UpdateUserDto,
   ): Promise<User> {
-    return this.usersService.update(id, updateProfileDto);
+    return this.usersService.update(request.user.id, updateProfileDto);
   }
 
   @Delete(':id')
@@ -89,5 +92,29 @@ export class UsersController {
   ): Promise<User> {
     const currentUserId = req.user.id;
     return await this.usersService.toggleSubscription(currentUserId, userId);
+  }
+
+  @Get(':id/books/:bookId')
+  async getBookInfoByUser(
+    @Param('id') userId: number,
+    @Param('bookId') bookId: number,
+  ): Promise<BookInfoDto> {
+    return await this.usersService.getBookInfoByUser(userId, bookId);
+  }
+
+  @Post('books')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: Book,
+  })
+  @ApiBody({ type: CreateBookDto, description: 'Create book' })
+  async addBookToUser(
+    @Request() request: Express.Request & { user: User },
+    @Body() createBookDto: CreateBookDto,
+  ) {
+    return await this.usersService.addBookToUser(
+      request.user.id,
+      createBookDto,
+    );
   }
 }
