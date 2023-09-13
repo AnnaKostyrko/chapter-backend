@@ -15,6 +15,4 @@ export class GuestUserInfoResponse {
 
   @ApiProperty({ example: 'Location' })
   location: string;
-
-  // Include any other fields you want to display
 }
