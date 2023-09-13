@@ -85,6 +85,16 @@ export class UsersController {
     return this.usersService.softDelete(id);
   }
 
+  @Post('subscribe-unsubscribe/:userId')
+  @HttpCode(HttpStatus.OK)
+  async subscribe(
+    @Param('userId') userId: number,
+    @Request() req,
+  ): Promise<User> {
+    const currentUserId = req.user.id;
+    return await this.usersService.toggleSubscription(currentUserId, userId);
+  }
+
   @ApiBearerAuth()
   @ApiResponse({
     status: HttpStatus.OK,
