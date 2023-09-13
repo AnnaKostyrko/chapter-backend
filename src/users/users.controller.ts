@@ -27,6 +27,7 @@ import { InfinityPaginationResultType } from '../utils/types/infinity-pagination
 import { BookInfoDto } from './dto/book-info.dto';
 import { CreateBookDto } from './dto/create-book.dto';
 import { Book } from './entities/book.entity';
+import { GuestUserInfoResponse } from 'src/response-example/GuestUserInfoResponse';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
@@ -82,6 +83,17 @@ export class UsersController {
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: number): Promise<void> {
     return this.usersService.softDelete(id);
+  }
+
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'User information for guests',
+    type: GuestUserInfoResponse,
+  })
+  @Get('profile/:userId')
+  async getGuestUserInfo(@Param('userId') userId: number) {
+    return await this.usersService.getGuestsUserInfo(userId);
   }
 
   @Get(':id/books/:bookId')
