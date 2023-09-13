@@ -27,6 +27,7 @@ import { InfinityPaginationResultType } from '../utils/types/infinity-pagination
 import { BookInfoDto } from './dto/book-info.dto';
 import { CreateBookDto } from './dto/create-book.dto';
 import { Book } from './entities/book.entity';
+import { GuestUserInfoResponse } from 'src/response-example/GuestUserInfoResponse';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
@@ -66,7 +67,7 @@ export class UsersController {
   @Get('me')
   @HttpCode(HttpStatus.OK)
   async me(@Request() request): Promise<Partial<User>> {
-    return this.usersService.me(request.user.id);
+    return await this.usersService.me(request.user.id);
   }
 
   @Patch('me')
@@ -92,6 +93,17 @@ export class UsersController {
   ): Promise<User> {
     const currentUserId = req.user.id;
     return await this.usersService.toggleSubscription(currentUserId, userId);
+  }
+
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'User information for guests',
+    type: GuestUserInfoResponse,
+  })
+  @Get('profile/:userId')
+  async getGuestUserInfo(@Param('userId') userId: number) {
+    return await this.usersService.getGuestsUserInfo(userId);
   }
 
   @Get(':id/books/:bookId')

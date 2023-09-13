@@ -146,6 +146,21 @@ export class UsersService {
     };
   }
 
+  async getGuestsUserInfo(userId: number): Promise<Partial<User>> {
+    const user = await this.findOne({ id: userId });
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+    return {
+      avatarUrl: user.avatarUrl,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      nickName: user.nickName,
+      location: user.location,
+      userStatus: user.userStatus,
+    };
+  }
+
   async getBookInfoByUser(id: number, bookId: number): Promise<BookInfoDto> {
     const book = await this.bookRepository.findOne({
       where: { id: bookId, user: { id: id } },
