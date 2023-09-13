@@ -103,7 +103,6 @@ export class UsersService {
       userStatus: user.userStatus,
     };
   }
-
   async getBookInfoByUser(id: number, bookId: number): Promise<BookInfoDto> {
     const book = await this.bookRepository.findOne({
       where: { id: bookId, user: { id: id } },
