@@ -95,7 +95,9 @@ export class UsersService {
     targetUserId: number,
   ): Promise<User> {
     const targetUser = await this.findOne({ id: targetUserId });
-    const currentUser = await this.findOne({ id: currentUserId });
+    const currentUser = await this.findOne({ id: currentUserId }, [
+      'subscribers',
+    ]);
 
     if (!targetUser || !currentUser) {
       throw new NotFoundException({
