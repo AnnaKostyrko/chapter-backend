@@ -34,9 +34,13 @@ export class UsersService {
     });
   }
 
-  findOne(fields: EntityCondition<User>): Promise<NullableType<User>> {
+  findOne(
+    fields: EntityCondition<User>,
+    relations: string[] = [],
+  ): Promise<NullableType<User>> {
     return this.usersRepository.findOne({
       where: fields,
+      relations,
     });
   }
 
@@ -80,10 +84,15 @@ export class UsersService {
     await this.usersRepository.softDelete(id);
   }
 
-  async getGuestsUserInfo(id: number): Promise<Partial<User>> {
-    const user = await this.findOne({ id: id });
+  async me(userId: number): Promise<Partial<object>> {
+    const user = await this.findOne(
+      {
+        id: userId,
+      },
+      ['posts'],
+    );
     if (!user) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      throw new Error('User not found');
     }
     return {
       avatarUrl: user.avatarUrl,

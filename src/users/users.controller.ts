@@ -23,7 +23,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { infinityPagination } from 'src/utils/infinity-pagination';
 import { User } from './entities/user.entity';
 import { InfinityPaginationResultType } from '../utils/types/infinity-pagination-result.type';
-import { GuestUserInfoResponse } from 'src/response-example/GuestUserInfoResponse';
+
 import { BookInfoDto } from './dto/book-info.dto';
 import { CreateBookDto } from './dto/create-book.dto';
 import { Book } from './entities/book.entity';
@@ -63,15 +63,10 @@ export class UsersController {
     );
   }
 
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'User information for guests',
-    type: GuestUserInfoResponse,
-  })
-  @UseGuards(AuthGuard('jwt'))
-  @Get(':id')
-  async getGuestUserInfo(@Param('id') id: number) {
-    return this.usersService.getGuestsUserInfo(id);
+  @Get('me')
+  @HttpCode(HttpStatus.OK)
+  async me(@Request() request): Promise<Partial<User>> {
+    return await this.usersService.me(request.user.id);
   }
 
   @Patch('me')
@@ -94,7 +89,7 @@ export class UsersController {
     @Param('id') userId: number,
     @Param('bookId') bookId: number,
   ): Promise<BookInfoDto> {
-    return this.usersService.getBookInfoByUser(userId, bookId);
+    return await this.usersService.getBookInfoByUser(userId, bookId);
   }
 
   @Post('books')

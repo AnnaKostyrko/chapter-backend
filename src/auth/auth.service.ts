@@ -300,8 +300,11 @@ export class AuthService {
     }
 
     user.nickName = completeDto.nickName;
+
     user.firstName = completeDto.firstName;
+
     user.lastName = completeDto.lastName;
+
     user.password = completeDto.password;
 
     await user.save();
