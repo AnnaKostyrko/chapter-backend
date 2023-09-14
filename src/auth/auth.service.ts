@@ -269,15 +269,11 @@ export class AuthService {
         hash,
       },
     });
-
-    if (user.hash !== null) {
-      throw new BadRequestException("after 15 minutes, the confirmation code is canceled");
-    }
-  
     // Delay setting user.hash to null
     setTimeout(async() => {
 
       const delay = (ms) => new Promise(res => setTimeout(res, ms));
+
       await delay(15 * 60 * 1000); 
 
       user.hash = null;
