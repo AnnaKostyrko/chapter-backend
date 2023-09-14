@@ -278,12 +278,12 @@ export class AuthService {
     setTimeout(async() => {
 
       const delay = (ms) => new Promise(res => setTimeout(res, ms));
-      await delay(15000); // Wait for 15 seconds
+      await delay(15 * 60 * 1000); 
 
       user.hash = null;
       await user.save();
 
-    }, 15000)}
+    }, 15 * 60 * 1000)}
  
 
   async confirmEmail(uniqueToken: string): Promise<{id:number}> {
@@ -314,6 +314,7 @@ export class AuthService {
     userId: number,
     completeDto: UpdateUserRegisterDto,
   ): Promise<void> {
+
   // Find a user by their id, with a filter on registration status
     const user = await this.usersService.findOne({
       id: userId,
