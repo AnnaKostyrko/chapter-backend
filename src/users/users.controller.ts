@@ -17,13 +17,19 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+
+import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 
 import { infinityPagination } from 'src/utils/infinity-pagination';
 import { User } from './entities/user.entity';
 import { InfinityPaginationResultType } from '../utils/types/infinity-pagination-result.type';
-import { NullableType } from '../utils/types/nullable.type';
+
+import { BookInfoDto } from './dto/book-info.dto';
+import { CreateBookDto } from './dto/create-book.dto';
+import { Book } from './entities/book.entity';
+import { UpdatePasswordDto } from './dto/update-password.dto';
+import { GuestUserInfoResponse } from 'src/response-example/GuestUserInfoResponse';
 
 @ApiTags('Users')
 @Controller({
@@ -62,23 +68,19 @@ export class UsersController {
     );
   }
 
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
-  @Get(':id')
+  @Get('me')
   @HttpCode(HttpStatus.OK)
-  findOne(@Param('id') id: string): Promise<NullableType<User>> {
-    return this.usersService.findOne({ id: +id });
+  async me(@Request() request): Promise<Partial<User>> {
+    return await this.usersService.me(request.user.id);
   }
 
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
-  @Patch(':id')
+  @Patch('me')
   @HttpCode(HttpStatus.OK)
   update(
-    @Param('id') id: number,
+    @Request() request,
     @Body() updateProfileDto: UpdateUserDto,
   ): Promise<User> {
-    return this.usersService.update(id, updateProfileDto);
+    return this.usersService.update(request.user.id, updateProfileDto);
   }
 
   @ApiBearerAuth()
@@ -87,5 +89,64 @@ export class UsersController {
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Request() request): Promise<void> {
     return this.usersService.softDelete(request.user.id);
+  }
+
+  @Post('subscribe-unsubscribe/:userId')
+  @HttpCode(HttpStatus.OK)
+  async subscribe(
+    @Param('userId') userId: number,
+    @Request() req,
+  ): Promise<User> {
+    const currentUserId = req.user.id;
+    return await this.usersService.toggleSubscription(currentUserId, userId);
+  }
+
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'User information for guests',
+    type: GuestUserInfoResponse,
+  })
+  @Get('profile/:userId')
+  async getGuestUserInfo(@Param('userId') userId: number) {
+    return await this.usersService.getGuestsUserInfo(userId);
+  }
+
+  @Get(':id/books/:bookId')
+  async getBookInfoByUser(
+    @Param('id') userId: number,
+    @Param('bookId') bookId: number,
+  ): Promise<BookInfoDto> {
+    return await this.usersService.getBookInfoByUser(userId, bookId);
+  }
+
+  @Post('books')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: Book,
+  })
+  @ApiBody({ type: CreateBookDto, description: 'Create book' })
+  async addBookToUser(
+    @Request() request: Express.Request & { user: User },
+    @Body() createBookDto: CreateBookDto,
+  ) {
+    return await this.usersService.addBookToUser(
+      request.user.id,
+      createBookDto,
+    );
+  }
+
+  @Post('update-password')
+  @ApiResponse({
+    status: HttpStatus.OK,
+  })
+  async updatePassword(
+    @Request() request,
+    @Body() updatePasswordDto: UpdatePasswordDto,
+  ) {
+    return await this.usersService.updatePassword(
+      request.user.id,
+      updatePasswordDto,
+    );
   }
 }

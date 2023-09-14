@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Get,
   HttpCode,
   HttpStatus,
   Request,
@@ -18,11 +17,11 @@ import { AuthEmailLoginDto } from './dto/auth-email-login.dto';
 import { AuthForgotPasswordDto } from './dto/auth-forgot-password.dto';
 import { AuthConfirmEmailDto } from './dto/auth-confirm-email.dto';
 import { AuthResetPasswordDto } from './dto/auth-reset-password.dto';
-import { AuthUpdateDto } from './dto/auth-update.dto';
+
 import { AuthGuard } from '@nestjs/passport';
 import { LoginResponseType } from './types/login-response.type';
 import { User } from '../users/entities/user.entity';
-import { NullableType } from '../utils/types/nullable.type';
+
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
 
@@ -105,17 +104,6 @@ export class AuthController {
   @SerializeOptions({
     groups: ['me'],
   })
-  @Get('me')
-  @UseGuards(AuthGuard('jwt'))
-  @HttpCode(HttpStatus.OK)
-  public me(@Request() request): Promise<NullableType<User>> {
-    return this.service.me(request.user);
-  }
-
-  @ApiBearerAuth()
-  @SerializeOptions({
-    groups: ['me'],
-  })
   @Post('refresh')
   @UseGuards(AuthGuard('jwt-refresh'))
   @HttpCode(HttpStatus.OK)
@@ -131,20 +119,6 @@ export class AuthController {
     await this.service.logout({
       sessionId: request.user.sessionId,
     });
-  }
-
-  @ApiBearerAuth()
-  @SerializeOptions({
-    groups: ['me'],
-  })
-  @Patch('me')
-  @UseGuards(AuthGuard('jwt'))
-  @HttpCode(HttpStatus.OK)
-  public update(
-    @Request() request,
-    @Body() userDto: AuthUpdateDto,
-  ): Promise<NullableType<User>> {
-    return this.service.update(request.user, userDto);
   }
 
   @ApiBearerAuth()
