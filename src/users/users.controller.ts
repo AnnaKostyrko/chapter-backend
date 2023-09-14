@@ -29,6 +29,7 @@ import { BookInfoDto } from './dto/book-info.dto';
 import { CreateBookDto } from './dto/create-book.dto';
 import { Book } from './entities/book.entity';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { GuestUserInfoResponse } from 'src/response-example/GuestUserInfoResponse';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
@@ -68,7 +69,7 @@ export class UsersController {
   @Get('me')
   @HttpCode(HttpStatus.OK)
   async me(@Request() request): Promise<Partial<User>> {
-    return this.usersService.me(request.user.id);
+    return await this.usersService.me(request.user.id);
   }
 
   @Patch('me')
@@ -84,6 +85,27 @@ export class UsersController {
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: number): Promise<void> {
     return this.usersService.softDelete(id);
+  }
+
+  @Post('subscribe-unsubscribe/:userId')
+  @HttpCode(HttpStatus.OK)
+  async subscribe(
+    @Param('userId') userId: number,
+    @Request() req,
+  ): Promise<User> {
+    const currentUserId = req.user.id;
+    return await this.usersService.toggleSubscription(currentUserId, userId);
+  }
+
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'User information for guests',
+    type: GuestUserInfoResponse,
+  })
+  @Get('profile/:userId')
+  async getGuestUserInfo(@Param('userId') userId: number) {
+    return await this.usersService.getGuestsUserInfo(userId);
   }
 
   @Get(':id/books/:bookId')

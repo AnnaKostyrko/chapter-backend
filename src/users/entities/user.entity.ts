@@ -11,6 +11,8 @@ import {
   BeforeInsert,
   BeforeUpdate,
   OneToMany,
+  JoinTable,
+  ManyToMany,
 } from 'typeorm';
 import { Role } from '../../roles/entities/role.entity';
 import { Status } from '../../statuses/entities/status.entity';
@@ -100,18 +102,25 @@ export class User extends EntityHelper {
   })
   status?: Status;
 
+  @ManyToMany(() => User, (user) => user.subscribers)
+  @JoinTable({ name: 'User2user(friends)' })
+  subscribers: User[];
+
   @Column({ type: String, nullable: true })
   @Index()
   @Exclude({ toPlainOnly: true })
   hash: string | null;
 
   @CreateDateColumn()
+  @Exclude({ toPlainOnly: true })
   createdAt: Date;
 
   @UpdateDateColumn()
+  @Exclude({ toPlainOnly: true })
   updatedAt: Date;
 
   @DeleteDateColumn()
+  @Exclude({ toPlainOnly: true })
   deletedAt: Date;
 
   @OneToMany(() => PostEntity, (post) => post.author)
