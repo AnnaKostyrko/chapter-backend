@@ -47,6 +47,14 @@ export class UsersService {
 
 //like - пошук подібного рядка 
 
+
+  async findAllUsers(fields: EntityCondition<User>): Promise<User[]> {
+    const users = await this.usersRepository.find({
+      where: fields,
+    });
+    return users;
+  }
+
   findManyWithPagination(
     paginationOptions: IPaginationOptions,
   ): Promise<User[]> {

@@ -263,22 +263,7 @@ export class AuthService {
     await user.save();
     return {id: user.id}
   }
-  async resendConfirmationCode(email: string): Promise<boolean> {
-    const user = await this.usersService.findOne(email);
-  
-    if (user && !user.isConfirmed) {
-      const confirmationCode = generateConfirmationCode(); // Функция для генерации кода
-      user.confirmationCode = confirmationCode;
-      await this.userService.saveUser(user);
-  
-      // Здесь добавьте код для отправки сообщения с кодом подтверждения
-      // Например, отправка по электронной почте или SMS
-  
-      return true;
-    } else {
-      return false;
-    }
-  }
+
   async completeRegistration(
     userId: number,
     completeDto: UpdateUserRegisterDto,
@@ -288,20 +273,19 @@ export class AuthService {
       id: userId,
     });
       
-    if (!completeDto.nickName.startsWith('@')) {
-      throw new BadRequestException('Nickname should start with "@"');
-    }
+    // if (!completeDto.nickName.startsWith('@')) {
+    //   throw new BadRequestException('Nickname should start with "@"');
+    // }
 
    if(completeDto.password !== completeDto.confirmPassword){
     throw new BadRequestException('Passwords do not match');
    }
   
-    const userNickName = await this.usersService.findOne({
+    const userNickName = await this.usersService.findAllUsers({
       nickName: completeDto.nickName
     })
-    //return all users
     
-    if(userNickName){
+    if(userNickName.length > 0){
       
       throw new HttpException(
         {

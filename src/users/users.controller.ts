@@ -78,6 +78,12 @@ export class UsersController {
     return this.usersService.findOne({ id: +id });
   }
 
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  findAllUsers(@Query() query: Record<string, any>): Promise<User[]> {
+    return this.usersService.findAllUsers(query);
+  }
+  
   @SerializeOptions({
     groups: ['admin'],
   })
