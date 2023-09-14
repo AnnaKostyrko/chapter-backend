@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, MinLength } from 'class-validator';
+import { IsNotEmpty, Matches, MinLength } from 'class-validator';
+import { passwordRegexp } from 'src/helpers/regex/password-regex';
 
 export class UpdatePasswordDto {
   @ApiProperty({ example: '1111111' })
@@ -8,6 +9,10 @@ export class UpdatePasswordDto {
 
   @ApiProperty({ example: '1111111' })
   @MinLength(8)
+  @Matches(passwordRegexp, {
+    message:
+      ' Password must contain min 8 characters, min 1 digit, min 1 uppercase letter and only Latin alphabet. ',
+  })
   @IsNotEmpty()
   newPassword: string;
 
