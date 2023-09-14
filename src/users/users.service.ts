@@ -15,6 +15,9 @@ import { NullableType } from '../utils/types/nullable.type';
 import { BookInfoDto } from './dto/book-info.dto';
 import { Book } from './entities/book.entity';
 import { CreateBookDto } from './dto/create-book.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
+import bcrypt from 'bcryptjs';
+import { createResponse } from 'src/helpers/response-helpers';
 
 @Injectable()
 export class UsersService {
@@ -209,5 +212,51 @@ export class UsersService {
     await this.usersRepository.save(user);
 
     return book;
+  }
+
+  async updatePassword(userId: number, updtePasswordDto: UpdatePasswordDto) {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw createResponse(HttpStatus.NOT_FOUND, 'User not found.');
+    }
+
+    const isValidPassword = await bcrypt.compare(
+      updtePasswordDto.oldPassword,
+      user.password,
+    );
+
+    if (!isValidPassword) {
+      throw createResponse(HttpStatus.BAD_REQUEST, 'Incorrect old password!');
+    }
+
+    const samePassword = await bcrypt.compare(
+      updtePasswordDto.newPassword,
+      user.password,
+    );
+
+    if (samePassword) {
+      throw createResponse(
+        HttpStatus.BAD_REQUEST,
+        'The new password must be different from the old one!',
+      );
+    }
+
+    if (updtePasswordDto.newPassword !== updtePasswordDto.repeatNewPassword) {
+      throw createResponse(
+        HttpStatus.BAD_REQUEST,
+        'Both passwords must match!',
+      );
+    }
+
+    user.password = updtePasswordDto.newPassword;
+    await this.usersRepository.save(user);
+
+    // Успішна відповідь
+    return createResponse(
+      HttpStatus.OK,
+      'Password updated successfully',
+      false,
+    );
   }
 }

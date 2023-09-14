@@ -17,6 +17,7 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+
 import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -27,6 +28,7 @@ import { InfinityPaginationResultType } from '../utils/types/infinity-pagination
 import { BookInfoDto } from './dto/book-info.dto';
 import { CreateBookDto } from './dto/create-book.dto';
 import { Book } from './entities/book.entity';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 import { GuestUserInfoResponse } from 'src/response-example/GuestUserInfoResponse';
 
 @ApiBearerAuth()
@@ -128,5 +130,16 @@ export class UsersController {
       request.user.id,
       createBookDto,
     );
+  }
+
+  @Post('update-password')
+  @ApiResponse({
+    status: HttpStatus.OK,
+  })
+  async updatePassword(
+    @Request() request,
+    @Body() updatePasswordDto: UpdatePasswordDto,
+  ) {
+    return this.usersService.updatePassword(request.user.id, updatePasswordDto);
   }
 }
