@@ -270,20 +270,20 @@ export class AuthService {
       },
     });
 
-    // if (user.hash !== null) {
-    //   throw new BadRequestException("after 15 minutes, the confirmation code is canceled");
-    // }
-
+    if (user.hash !== null) {
+      throw new BadRequestException("after 15 minutes, the confirmation code is canceled");
+    }
+  
     // Delay setting user.hash to null
     setTimeout(async() => {
-   
+
       const delay = (ms) => new Promise(res => setTimeout(res, ms));
       await delay(15000); // Wait for 15 seconds
-    
+
       user.hash = null;
       await user.save();
 
-    }, 15000);}
+    }, 15000)}
  
 
   async confirmEmail(uniqueToken: string): Promise<{id:number}> {
