@@ -259,4 +259,30 @@ export class UsersService {
       false,
     );
   }
+
+  async getMyFollowWithPagination(
+    userId: number,
+    page: number,
+    limit: number,
+  ): Promise<object> {
+    const user = await this.findOne(
+      {
+        id: userId,
+      },
+      ['subscribers'],
+    );
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    const paginatedFollow = user.subscribers.slice(startIndex, endIndex);
+    return {
+      myFollow: paginatedFollow,
+      page,
+      limit,
+      total: user.subscribers.length,
+    };
+  }
 }

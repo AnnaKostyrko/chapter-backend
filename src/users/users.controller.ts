@@ -142,4 +142,35 @@ export class UsersController {
   ) {
     return this.usersService.updatePassword(request.user.id, updatePasswordDto);
   }
+
+  @Get('my-follow')
+  @ApiResponse({
+    content: {
+      'application/json': {
+        example: [
+          {
+            id: 1,
+            firstName: 'firstName',
+            lastName: 'lastName',
+          },
+          {
+            id: 2,
+            firstName: 'firstName',
+            lastName: 'lastName',
+          },
+        ],
+      },
+    },
+  })
+  async getMyFollow(
+    @Request() request,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ) {
+    return this.usersService.getMyFollowWithPagination(
+      request.user.id,
+      page,
+      limit,
+    );
+  }
 }
