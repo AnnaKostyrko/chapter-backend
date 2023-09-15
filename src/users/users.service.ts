@@ -34,6 +34,12 @@ export class UsersService {
     );
   }
 
+  async findMany(relations: string[]): Promise<User[]> {
+    return await this.usersRepository.find({
+      relations,
+    });
+  }
+
   findManyWithPagination(
     paginationOptions: IPaginationOptions,
   ): Promise<User[]> {
@@ -136,11 +142,17 @@ export class UsersService {
       {
         id: userId,
       },
-      ['posts'],
+      ['posts', 'subscribers', 'books'],
     );
     if (!user) {
       throw new Error('User not found');
     }
+
+    const users = await this.findMany(['subscribers']);
+    const mySubsribers = users.filter((user) =>
+      user.subscribers.some((subscriber) => subscriber.id === userId),
+    );
+
     return {
       avatarUrl: user.avatarUrl,
       firstName: user.firstName,
@@ -148,6 +160,9 @@ export class UsersService {
       nickName: user.nickName,
       location: user.location,
       userStatus: user.userStatus,
+      myFollowersCount: mySubsribers.length,
+      myFollowingCount: user.subscribers.length,
+      userBooks: user.books,
     };
   }
 
