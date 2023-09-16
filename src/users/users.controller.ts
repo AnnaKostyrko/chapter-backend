@@ -36,7 +36,7 @@ import { NullableType } from '../utils/types/nullable.type';
   version: '1',
 })
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @SerializeOptions({
     groups: ['admin'],
@@ -83,7 +83,7 @@ export class UsersController {
   findAllUsers(@Query() query: Record<string, any>): Promise<User[]> {
     return this.usersService.findAllUsers(query);
   }
-  
+
   @SerializeOptions({
     groups: ['admin'],
   })
