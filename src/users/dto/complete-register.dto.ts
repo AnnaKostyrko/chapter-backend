@@ -21,8 +21,8 @@ export class UpdateUserRegisterDto {
 
   @IsNotEmpty()
   @ApiProperty({example: 'string'})
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/, {
-    message: 'The password must contain 8 characters, one capital letter and one number, also password should be only Latin letters',
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]$/, {
+    message: 'one capital letter and one number, also password should be only Latin letters',
    })
   @MinLength(8)
   password: string;
