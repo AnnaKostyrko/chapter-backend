@@ -148,10 +148,18 @@ export class UsersService {
       throw new Error('User not found');
     }
 
-    const users = await this.findMany(['subscribers']);
-    const mySubsribers = users.filter((user) =>
-      user.subscribers.some((subscriber) => subscriber.id === userId),
-    );
+    // const users = await this.findMany(['subscribers']);
+    // const mySubsribers = users.filter((user) =>
+    //   user.subscribers.some((subscriber) => subscriber.id === userId),
+    // );
+
+    const mySubsсribers = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.subscribers', 'subscriber')
+      .where('subscriber.id=:userId', { userId })
+      .getMany();
+
+    console.log('mySubsribers', mySubsсribers);
 
     return {
       avatarUrl: user.avatarUrl,
@@ -160,7 +168,7 @@ export class UsersService {
       nickName: user.nickName,
       location: user.location,
       userStatus: user.userStatus,
-      myFollowersCount: mySubsribers.length,
+      myFollowersCount: mySubsсribers.length,
       myFollowingCount: user.subscribers.length,
       userBooks: user.books,
     };
