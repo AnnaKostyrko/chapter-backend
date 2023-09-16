@@ -2,13 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
-import { DeepPartial, Repository } from 'typeorm';
+import { DeepPartial, IsNull, Not, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { NullableType } from '../utils/types/nullable.type';
 
 @Injectable()
 export class UsersService {
+  
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
@@ -32,6 +33,16 @@ export class UsersService {
   findOne(fields: EntityCondition<User>): Promise<NullableType<User>> {
     return this.usersRepository.findOne({
       where: fields,
+    });
+  }
+
+
+  async findOneByDelite(email: string): Promise<User | null> {
+    return this.usersRepository.findOne({
+      where: {
+        email: email,
+        deletedAt: Not(IsNull()),
+      },
     });
   }
 
