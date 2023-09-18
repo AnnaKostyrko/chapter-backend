@@ -238,7 +238,9 @@ export class AuthService {
     });
   }
 
+
   async confirmEmail(uniqueToken: string): Promise<{ id: number }> {
+
     const user = await this.usersService.findOne({
       hash: uniqueToken,
     });
@@ -269,6 +271,7 @@ export class AuthService {
     const user = await this.usersService.findOne({
       id: userId,
     });
+
 
     if (!completeDto.nickName.startsWith('@')) {
       throw new BadRequestException('Nickname should start with "@"');
