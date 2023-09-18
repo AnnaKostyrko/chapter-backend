@@ -142,4 +142,17 @@ export class UsersController {
   ) {
     return this.usersService.updatePassword(request.user.id, updatePasswordDto);
   }
+
+  @Get('my-followers')
+  async getMyFollowers(
+    @Request() request,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ): Promise<object> {
+    return await this.usersService.getMyFollowersWithPagination(
+      request.user.id,
+      page,
+      limit,
+    );
+  }
 }
