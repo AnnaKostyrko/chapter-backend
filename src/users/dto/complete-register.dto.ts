@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import { IsNotEmpty, MinLength, Validate } from 'class-validator';
-import { IsNotExist } from 'src/utils/validators/is-not-exists.validator';
+import { IsNotEmpty, Matches, MinLength, Validate } from 'class-validator';
 
 export class UpdateUserRegisterDto {
   @IsNotEmpty()
@@ -18,12 +17,15 @@ export class UpdateUserRegisterDto {
   nickName: string;
 
   @IsNotEmpty()
+  @Matches(/^(?=.*\d)(?=.*[A-Z])[A-Za-z\d]*$/, {
+    message: 'Пароль должен содержать минимум одну цифру и одну заглавную латинскую букву',
+  })
   @ApiProperty({example: 'string'})
-  @MinLength(6)
+  @MinLength(8)
   password: string;
 
   @IsNotEmpty()
   @ApiProperty()
-  @MinLength(6)
+  @MinLength(8)
   confirmPassword: string;
 }
