@@ -11,6 +11,8 @@ import {
   BeforeInsert,
   BeforeUpdate,
   OneToMany,
+  JoinTable,
+  ManyToMany,
 } from 'typeorm';
 import { Role } from '../../roles/entities/role.entity';
 import { Status } from '../../statuses/entities/status.entity';
@@ -21,6 +23,7 @@ import { AuthProvidersEnum } from 'src/auth/auth-providers.enum';
 import { Exclude, Expose } from 'class-transformer';
 import { PostEntity } from '../../post/entities/post.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { Book } from './book.entity';
 
 @Entity()
 export class User extends EntityHelper {
@@ -71,11 +74,15 @@ export class User extends EntityHelper {
   @Column({ type: String, nullable: true })
   lastName: string | null;
 
+  @Index()
   @Column({ type: String, nullable: true })
   nickName: string;
 
   @Column({ type: String, nullable: true })
-  location: string;
+  userStatus: string | null;
+
+  @Column({ type: String, nullable: true })
+  location: string | null;
 
   @Column({ type: String, nullable: true })
   avatarUrl: string | null;
@@ -95,20 +102,30 @@ export class User extends EntityHelper {
   })
   status?: Status;
 
+  @ManyToMany(() => User, (user) => user.subscribers)
+  @JoinTable({ name: 'User2user(friends)' })
+  subscribers: User[];
+
   @Column({ type: String, nullable: true })
   @Index()
   @Exclude({ toPlainOnly: true })
   hash: string | null;
 
   @CreateDateColumn()
+  @Exclude({ toPlainOnly: true })
   createdAt: Date;
 
   @UpdateDateColumn()
+  @Exclude({ toPlainOnly: true })
   updatedAt: Date;
 
   @DeleteDateColumn()
+  @Exclude({ toPlainOnly: true })
   deletedAt: Date;
 
   @OneToMany(() => PostEntity, (post) => post.author)
   posts: PostEntity[];
+
+  @OneToMany(() => Book, (book) => book.user)
+  books: Book[];
 }

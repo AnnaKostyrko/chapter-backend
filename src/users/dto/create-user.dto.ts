@@ -7,7 +7,6 @@ import {
   IsOptional,
   MinLength,
   Validate,
-  isNotEmpty,
 } from 'class-validator';
 import { Status } from 'src/statuses/entities/status.entity';
 import { IsNotExist } from 'src/utils/validators/is-not-exists.validator';
@@ -41,7 +40,9 @@ export class CreateUserDto {
   @IsNotEmpty()
   lastName?: string | null;
 
-
+  @ApiProperty({ example: 'Doe' })
+  @IsOptional()
+  nickName?: string;
 
   @ApiProperty({ type: () => FileEntity })
   @IsOptional()
@@ -63,5 +64,4 @@ export class CreateUserDto {
   status?: Status;
 
   hash?: string | null;
-  
 }

@@ -4,7 +4,6 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import ms from 'ms';
@@ -12,7 +11,7 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from '../users/entities/user.entity';
 import bcrypt from 'bcryptjs';
 import { AuthEmailLoginDto } from './dto/auth-email-login.dto';
-import { AuthUpdateDto } from './dto/auth-update.dto';
+
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
 import { RoleEnum } from 'src/roles/roles.enum';
 import { StatusEnum } from 'src/statuses/statuses.enum';
@@ -203,22 +202,22 @@ export class AuthService {
       user,
     };
   }
+
   async register(dto: AuthRegisterLoginDto): Promise<void> {
     const hash = crypto
       .createHash('sha256')
       .update(randomStringGenerator())
       .digest('hex')
       .slice(-6);
-      const existingUser = await this.usersService.findOne({ email: dto.email });
-      if (existingUser) {
-        const emailStatus = existingUser.status?.name;
-        throw new ConflictException(
-          {
+
+    const existingUser = await this.usersService.findOne({ email: dto.email });
+    if (existingUser) {
+      const emailStatus = existingUser.status?.name;
+      throw new ConflictException({
         error: `User with this email already exists. Email status:${emailStatus}`,
-        status: HttpStatus.UNPROCESSABLE_ENTITY        
-      } 
-        );
-      }
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
+    }
     await this.usersService.create({
       ...dto,
       email: dto.email,
@@ -228,20 +227,20 @@ export class AuthService {
       status: {
         id: StatusEnum.inactive,
       } as Status,
+      hash,
     });
-   
+
     await this.mailService.userSignUp({
       to: dto.email,
       data: {
         hash,
       },
-      
     });
-
   }
 
-  async confirmEmail(uniqueToken: string): Promise<{id:number}> {
-    
+
+  async confirmEmail(uniqueToken: string): Promise<{ id: number }> {
+
     const user = await this.usersService.findOne({
       hash: uniqueToken,
     });
@@ -259,44 +258,41 @@ export class AuthService {
     user.status = plainToClass(Status, {
       id: StatusEnum.active,
     });
-    user.hash = null; 
+    user.hash = null;
     await user.save();
-    return {id: user.id}
+    return { id: user.id };
   }
 
   async completeRegistration(
     userId: number,
     completeDto: UpdateUserRegisterDto,
   ): Promise<void> {
-    /// Знайдіть користувача за його id, з фільтром на статус реєстрації
+    /// Find a user by their id, with a filter based on registration status
     const user = await this.usersService.findOne({
       id: userId,
     });
-      
-    // if (!completeDto.nickName.startsWith('@')) {
-    //   throw new BadRequestException('Nickname should start with "@"');
-    // }
 
-   if(completeDto.password !== completeDto.confirmPassword){
-    throw new BadRequestException('Passwords do not match');
-   }
-  
-    const userNickName = await this.usersService.findAllUsers({
-      nickName: completeDto.nickName
-    })
-    
-    if(userNickName.length > 0){
-      
-      throw new HttpException(
-        {
-          error: 'User with this nickname already exists.',
-          status: HttpStatus.UNPROCESSABLE_ENTITY,
-        },
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
+
+    if (!completeDto.nickName.startsWith('@')) {
+      throw new BadRequestException('Nickname should start with "@"');
     }
 
-  if (!user) {
+    if (completeDto.password !== completeDto.confirmPassword) {
+      throw new BadRequestException('Passwords do not match');
+    }
+
+    const userNickName = await this.usersService.findOne({
+      nickName: completeDto.nickName,
+    });
+
+    if (userNickName) {
+      throw new ConflictException({
+        error: `User with this nickname already exists.`,
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
+    }
+
+    if (!user) {
       throw new HttpException(
         {
           status: HttpStatus.NOT_FOUND,
@@ -306,25 +302,16 @@ export class AuthService {
       );
     }
 
+    user.nickName = completeDto.nickName;
 
-    
-    if (completeDto.nickName !== undefined ) {
-      user.nickName = completeDto.nickName;
-    }
- 
-    if (completeDto.firstName !== undefined) {
-      user.firstName = completeDto.firstName;
-    }
-    if (completeDto.lastName !== undefined) {
-      user.lastName = completeDto.lastName;
-    }
-    if (completeDto.password !== undefined) {
-      user.password = completeDto.password;
-    }
- 
+    user.firstName = completeDto.firstName;
+
+    user.lastName = completeDto.lastName;
+
+    user.password = completeDto.password;
+
     await user.save();
   }
-   
 
   async forgotPassword(email: string): Promise<void> {
     const user = await this.usersService.findOne({
@@ -394,71 +381,6 @@ export class AuthService {
   }
 
   async me(userJwtPayload: JwtPayloadType): Promise<NullableType<User>> {
-    return this.usersService.findOne({
-      id: userJwtPayload.id,
-    });
-  }
-
-  async update(
-    userJwtPayload: JwtPayloadType,
-    userDto: AuthUpdateDto,
-  ): Promise<NullableType<User>> {
-    if (userDto.password) {
-      if (userDto.oldPassword) {
-        const currentUser = await this.usersService.findOne({
-          id: userJwtPayload.id,
-        });
-
-        if (!currentUser) {
-          throw new HttpException(
-            {
-              status: HttpStatus.UNPROCESSABLE_ENTITY,
-              errors: {
-                user: 'userNotFound',
-              },
-            },
-            HttpStatus.UNPROCESSABLE_ENTITY,
-          );
-        }
-
-        const isValidOldPassword = await bcrypt.compare(
-          userDto.oldPassword,
-          currentUser.password,
-        );
-
-        if (!isValidOldPassword) {
-          throw new HttpException(
-            {
-              status: HttpStatus.UNPROCESSABLE_ENTITY,
-              errors: {
-                oldPassword: 'incorrectOldPassword',
-              },
-            },
-            HttpStatus.UNPROCESSABLE_ENTITY,
-          );
-        } else {
-          await this.sessionService.softDelete({
-            user: {
-              id: currentUser.id,
-            },
-            excludeId: userJwtPayload.sessionId,
-          });
-        }
-      } else {
-        throw new HttpException(
-          {
-            status: HttpStatus.UNPROCESSABLE_ENTITY,
-            errors: {
-              oldPassword: 'missingOldPassword',
-            },
-          },
-          HttpStatus.UNPROCESSABLE_ENTITY,
-        );
-      }
-    }
-
-    await this.usersService.update(userJwtPayload.id, userDto);
-
     return this.usersService.findOne({
       id: userJwtPayload.id,
     });

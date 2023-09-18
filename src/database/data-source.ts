@@ -16,8 +16,8 @@ export const AppDataSource = new DataSource({
   keepConnectionAlive: true,
   logging: process.env.NODE_ENV !== 'production',
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-  migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
   migrationsRun: true,
+  migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
   cli: {
     entitiesDir: 'src',
     migrationsDir: 'src/database/migrations',
@@ -32,12 +32,12 @@ export const AppDataSource = new DataSource({
     ssl:
       process.env.DATABASE_SSL_ENABLED === 'true'
         ? {
-          rejectUnauthorized:
-            process.env.DATABASE_REJECT_UNAUTHORIZED === 'true',
-          ca: process.env.DATABASE_CA ?? undefined,
-          key: process.env.DATABASE_KEY ?? undefined,
-          cert: process.env.DATABASE_CERT ?? undefined,
-        }
+            rejectUnauthorized:
+              process.env.DATABASE_REJECT_UNAUTHORIZED === 'true',
+            ca: process.env.DATABASE_CA ?? undefined,
+            key: process.env.DATABASE_KEY ?? undefined,
+            cert: process.env.DATABASE_CERT ?? undefined,
+          }
         : undefined,
   },
 } as DataSourceOptions);
