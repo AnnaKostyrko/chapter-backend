@@ -17,15 +17,14 @@ export class UpdateUserRegisterDto {
   nickName: string;
 
   @IsNotEmpty()
-  @Matches(/^(?=.*\d)(?=.*[A-Z])[A-Za-z\d]*$/, {
-    message: 'Пароль должен содержать минимум одну цифру и одну заглавную латинскую букву',
-  })
+  @Matches(/^(?=.*\d)(?=.*[A-Z])[A-Za-z\d]+$/, {
+    message: 'Password must contain min 1 digit, min 1 uppercase letter and only Latin alphabet.'
+   })
   @ApiProperty({example: 'string'})
   @MinLength(8)
   password: string;
 
   @IsNotEmpty()
   @ApiProperty()
-  @MinLength(8)
   confirmPassword: string;
 }
