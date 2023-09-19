@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
-import { DeepPartial, Repository } from 'typeorm';
+import { DeepPartial, IsNull, Not, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { NullableType } from '../utils/types/nullable.type';
@@ -35,7 +35,14 @@ export class UsersService {
     });
   }
 
-
+  async findOneByDelete(email: string): Promise<User | null> {
+    return await this.usersRepository.findOne({
+      where: {
+        email: email,
+        deletedAt: Not(IsNull())
+      }
+    });
+  }
 
   update(id: User['id'], payload: DeepPartial<User>): Promise<User> {
     return this.usersRepository.save(

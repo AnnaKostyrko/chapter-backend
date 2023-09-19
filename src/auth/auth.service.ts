@@ -4,6 +4,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -33,11 +34,9 @@ import { SessionService } from 'src/session/session.service';
 import { JwtRefreshPayloadType } from './strategies/types/jwt-refresh-payload.type';
 import { Session } from 'src/session/entities/session.entity';
 import { JwtPayloadType } from './strategies/types/jwt-payload.type';
-// import { session } from 'passport';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
-import { async } from 'rxjs';
-import { error } from 'console';
+
 
 @Injectable()
 export class AuthService {
@@ -207,46 +206,57 @@ export class AuthService {
   }
 
   async register(dto: AuthRegisterLoginDto): Promise<void> {
-
     const hash = crypto
       .createHash('sha256')
       .update(randomStringGenerator())
       .digest('hex')
       .slice(-6);
 
-      const existingUser = await this.usersService.findOne({ email: dto.email });
+    const userWithDelData = await this.usersService.findOneByDelete(dto.email);
 
-      if (existingUser) {
-        const emailStatus = existingUser.status?.name;
-        throw new ConflictException(
-          {
-        error: `User with this email already exists. Email status:${emailStatus}`,
-        status: HttpStatus.UNPROCESSABLE_ENTITY        
-          } 
-        );
-      }
-      
-    await this.usersService.create({
-      ...dto,
-      email: dto.email,
-      role: {
-        id: RoleEnum.user,
-      } as Role,
-      status: {
-        id: StatusEnum.inactive,
-      } as Status,
-      hash
-    });
-   
-    await this.mailService.userSignUp({
-      to: dto.email,
-      data: {
-        hash,
-      },
-      
-    });
+    if (userWithDelData && userWithDelData.deletedAt)  { 
+        throw new BadRequestException('Registration with this email is not possible because the account has been deleted, please restore your account or select another email');
+    }
 
-  }
+    try {
+        const existingUser = await this.usersService.findOne({ email: dto.email });
+
+        if (existingUser) {
+            const emailStatus = existingUser.status?.name;
+            throw new ConflictException({
+                error: `User with this email already exists. Email status: ${emailStatus}`,
+                status: HttpStatus.UNPROCESSABLE_ENTITY        
+            });
+        }
+
+        await this.usersService.create({
+          ...dto,
+          email: dto.email,
+          role: {
+            id: RoleEnum.user,
+          } as Role,
+          status: {
+            id: StatusEnum.inactive,
+          } as Status,
+          hash
+        });
+
+        await this.mailService.userSignUp({
+          to: dto.email,
+          data: {
+            hash,
+          },
+        });
+    } catch (error) {
+        if (error.code === '23505') {
+           
+            throw new BadRequestException('Registration with this email is not possible because the account has been deleted, please restore your account or select another email');
+        }
+        throw error; 
+    }
+}
+
+
   async resendConfirmationCode(email: string): Promise<void> {
     const user = await this.usersService.findOne({ email });
   
