@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
-import { DeepPartial, Repository } from 'typeorm';
+import { DeepPartial, IsNull, Not, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { NullableType } from '../utils/types/nullable.type';
@@ -34,10 +34,11 @@ export class UsersService {
     );
   }
 
-  async findMany(relations: string[]): Promise<User[]> {
-    return await this.usersRepository.find({
-      relations,
+  async findAllUsers(fields: EntityCondition<User>): Promise<User[]> {
+    const users = await this.usersRepository.find({
+      where: fields,
     });
+    return users;
   }
 
   findManyWithPagination(
@@ -97,6 +98,15 @@ export class UsersService {
 
   async softDelete(id: User['id']): Promise<void> {
     await this.usersRepository.softDelete(id);
+  }
+
+  async findAllDeletedUsers(): Promise<User[]> {
+    return this.usersRepository.find({
+      withDeleted: true,
+      where: {
+        deletedAt: Not(IsNull()),
+      },
+    });
   }
 
   async toggleSubscription(
@@ -281,5 +291,14 @@ export class UsersService {
       'Password updated successfully',
       false,
     );
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    const user = await this.findOne({ id: id });
+    if (!user) {
+      throw createResponse(HttpStatus.NOT_FOUND, 'User not found.');
+    }
+
+    await this.usersRepository.remove(user);
   }
 }

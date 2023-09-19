@@ -30,6 +30,9 @@ import { CreateBookDto } from './dto/create-book.dto';
 import { Book } from './entities/book.entity';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { GuestUserInfoResponse } from 'src/response-example/GuestUserInfoResponse';
+import { Roles } from 'src/roles/roles.decorator';
+import { RoleEnum } from 'src/roles/roles.enum';
+import { RolesGuard } from 'src/roles/roles.guard';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
@@ -39,7 +42,7 @@ import { GuestUserInfoResponse } from 'src/response-example/GuestUserInfoRespons
   version: '1',
 })
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) { }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -71,6 +74,7 @@ export class UsersController {
   async me(@Request() request): Promise<Partial<User>> {
     return await this.usersService.me(request.user.id);
   }
+
 
   @Patch('me')
   @HttpCode(HttpStatus.OK)
@@ -141,5 +145,13 @@ export class UsersController {
     @Body() updatePasswordDto: UpdatePasswordDto,
   ) {
     return this.usersService.updatePassword(request.user.id, updatePasswordDto);
+  }
+
+  @Delete('delete-by-admin/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(RolesGuard)
+  @Roles(RoleEnum.admin)
+  async deleteUser(@Param('id') userId: number): Promise<void> {
+    return await this.usersService.deleteUser(userId);
   }
 }
