@@ -275,4 +275,13 @@ export class UsersService {
       false,
     );
   }
+
+  async deleteUser(id: number): Promise<void> {
+    const user = await this.findOne({ id: id });
+    if (!user) {
+      throw createResponse(HttpStatus.NOT_FOUND, 'User not found.');
+    }
+
+    await this.usersRepository.remove(user);
+  }
 }
