@@ -19,7 +19,6 @@ import { UpdatePasswordDto } from './dto/update-password.dto';
 import bcrypt from 'bcryptjs';
 import { createResponse } from 'src/helpers/response-helpers';
 
-
 @Injectable()
 export class UsersService {
   constructor(
@@ -34,7 +33,6 @@ export class UsersService {
       this.usersRepository.create(createProfileDto),
     );
   }
-
 
   async findAllUsers(fields: EntityCondition<User>): Promise<User[]> {
     const users = await this.usersRepository.find({
@@ -154,11 +152,25 @@ export class UsersService {
       {
         id: userId,
       },
-      ['posts'],
+      ['posts', 'subscribers', 'books'],
     );
     if (!user) {
       throw new Error('User not found');
     }
+
+    // const users = await this.findMany(['subscribers']);
+    // const mySubsribers = users.filter((user) =>
+    //   user.subscribers.some((subscriber) => subscriber.id === userId),
+    // );
+
+    const mySubsсribers = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.subscribers', 'subscriber')
+      .where('subscriber.id=:userId', { userId })
+      .getMany();
+
+    console.log('mySubsribers', mySubsсribers);
+
     return {
       avatarUrl: user.avatarUrl,
       firstName: user.firstName,
@@ -166,6 +178,9 @@ export class UsersService {
       nickName: user.nickName,
       location: user.location,
       userStatus: user.userStatus,
+      myFollowersCount: mySubsсribers.length,
+      myFollowingCount: user.subscribers.length,
+      userBooks: user.books,
     };
   }
 
