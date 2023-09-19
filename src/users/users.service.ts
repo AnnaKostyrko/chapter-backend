@@ -37,6 +37,7 @@ export class UsersService {
 
   async findOneByDelete(email: string): Promise<User | null> {
     return await this.usersRepository.findOne({
+      withDeleted:true,
       where: {
         email: email,
         deletedAt: Not(IsNull())

@@ -214,11 +214,10 @@ export class AuthService {
 
     const userWithDelData = await this.usersService.findOneByDelete(dto.email);
 
-    if (userWithDelData && userWithDelData.deletedAt)  { 
+    if (userWithDelData)  { 
         throw new BadRequestException('Registration with this email is not possible because the account has been deleted, please restore your account or select another email');
     }
 
-    try {
         const existingUser = await this.usersService.findOne({ email: dto.email });
 
         if (existingUser) {
@@ -247,13 +246,7 @@ export class AuthService {
             hash,
           },
         });
-    } catch (error) {
-        if (error.code === '23505') {
-           
-            throw new BadRequestException('Registration with this email is not possible because the account has been deleted, please restore your account or select another email');
-        }
-        throw error; 
-    }
+
 }
 
   async resendConfirmationCode(email: string): Promise<void> {
