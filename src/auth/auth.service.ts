@@ -228,7 +228,7 @@ export class AuthService {
                 status: HttpStatus.UNPROCESSABLE_ENTITY        
             });
         }
-
+ 
         await this.usersService.create({
           ...dto,
           email: dto.email,
@@ -255,7 +255,6 @@ export class AuthService {
         throw error; 
     }
 }
-
 
   async resendConfirmationCode(email: string): Promise<void> {
     const user = await this.usersService.findOne({ email });
