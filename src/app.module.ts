@@ -27,6 +27,7 @@ import { AllConfigType } from './config/config.type';
 import { SessionModule } from './session/session.module';
 import { MailerModule } from './mailer/mailer.module';
 import { PostModule } from './post/post.module';
+import { TaskModule } from './task/task.module';
 
 @Module({
   imports: [
@@ -85,6 +86,7 @@ import { PostModule } from './post/post.module';
     MailerModule,
     HomeModule,
     PostModule,
+    TaskModule,
   ],
 })
 export class AppModule {}
