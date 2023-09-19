@@ -39,7 +39,7 @@ import { GuestUserInfoResponse } from 'src/response-example/GuestUserInfoRespons
   version: '1',
 })
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -71,7 +71,6 @@ export class UsersController {
   async me(@Request() request): Promise<Partial<User>> {
     return await this.usersService.me(request.user.id);
   }
-
 
   @Patch('me')
   @HttpCode(HttpStatus.OK)

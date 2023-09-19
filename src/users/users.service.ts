@@ -19,7 +19,6 @@ import { UpdatePasswordDto } from './dto/update-password.dto';
 import bcrypt from 'bcryptjs';
 import { createResponse } from 'src/helpers/response-helpers';
 
-
 @Injectable()
 export class UsersService {
   constructor(
@@ -34,7 +33,6 @@ export class UsersService {
       this.usersRepository.create(createProfileDto),
     );
   }
-
 
   async findAllUsers(fields: EntityCondition<User>): Promise<User[]> {
     const users = await this.usersRepository.find({
