@@ -283,11 +283,10 @@ export class AuthService {
 
   async confirmEmail(uniqueToken: string): Promise<{id:number}> {
     
-    const user = await this.usersService.findOne({ 
+    const user = await this.usersService.findOne({
       hash: uniqueToken,
     });
 
-    
     if (!user) {
       throw new HttpException(
         {
