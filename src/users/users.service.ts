@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
@@ -45,13 +51,40 @@ export class UsersService {
     });
   }
 
-  update(id: User['id'], payload: DeepPartial<User>): Promise<User> {
-    return this.usersRepository.save(
-      this.usersRepository.create({
-        id,
-        ...payload,
-      }),
-    );
+  async update(
+    userId: number,
+    updateProfileDto: DeepPartial<User>,
+  ): Promise<User> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: 'User not found.',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (userId !== user.id) {
+      throw new HttpException(
+        {
+          status: HttpStatus.FORBIDDEN,
+          error: 'You do not have permission to update this user.',
+        },
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    user.firstName = updateProfileDto.firstName ?? user.firstName;
+    user.lastName = updateProfileDto.lastName ?? user.lastName;
+    user.nickName = updateProfileDto.nickName ?? user.nickName;
+    user.location = updateProfileDto.location ?? user.location;
+    user.avatarUrl = updateProfileDto.avatarUrl ?? user.avatarUrl;
+    user.userStatus = updateProfileDto.userStatus ?? user.userStatus;
+
+    return this.usersRepository.save(user);
   }
 
   async softDelete(id: User['id']): Promise<void> {

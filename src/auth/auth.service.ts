@@ -4,7 +4,6 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -351,22 +350,14 @@ export class AuthService {
       );
     }
 
+    user.nickName = completeDto.nickName;
 
-    
-    if (completeDto.nickName !== undefined ) {
-      user.nickName = completeDto.nickName;
-    }
- 
-    if (completeDto.firstName !== undefined) {
-      user.firstName = completeDto.firstName;
-    }
-    if (completeDto.lastName !== undefined) {
-      user.lastName = completeDto.lastName;
-    }
-    if (completeDto.password !== undefined) {
-      user.password = completeDto.password;
-    }
- 
+    user.firstName = completeDto.firstName;
+
+    user.lastName = completeDto.lastName;
+
+    user.password = completeDto.password;
+
     await user.save();
   }
    

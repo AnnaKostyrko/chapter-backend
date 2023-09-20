@@ -89,12 +89,11 @@ export class AuthController {
     return await this.service.confirmEmail(confirmEmailDto.hash);
   }
 
-  
-    @Patch('email/register/finaly/:id')
-    async completeRegistration(
-      @Param('id') userId: number, // Отримуємо id з параметра маршруту
-      @Body() completeDto: UpdateUserRegisterDto,
-    ): Promise<void> {
+  @Patch('email/register/finaly/:id')
+  async completeRegistration(
+    @Param('id') userId: number, // Отримуємо id з параметра маршруту
+    @Body() completeDto: UpdateUserRegisterDto,
+  ): Promise<void> {
     return await this.service.completeRegistration(userId, completeDto);
     }
 
