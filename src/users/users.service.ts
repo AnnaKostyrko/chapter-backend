@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
-import { DeepPartial, Repository } from 'typeorm';
+import { DeepPartial, IsNull, Not, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { NullableType } from '../utils/types/nullable.type';
@@ -32,6 +32,13 @@ export class UsersService {
     return this.usersRepository.save(
       this.usersRepository.create(createProfileDto),
     );
+  }
+
+  async findAllUsers(fields: EntityCondition<User>): Promise<User[]> {
+    const users = await this.usersRepository.find({
+      where: fields,
+    });
+    return users;
   }
 
   findManyWithPagination(
@@ -93,6 +100,15 @@ export class UsersService {
     await this.usersRepository.softDelete(id);
   }
 
+  async findAllDeletedUsers(): Promise<User[]> {
+    return this.usersRepository.find({
+      withDeleted: true,
+      where: {
+        deletedAt: Not(IsNull()),
+      },
+    });
+  }
+
   async toggleSubscription(
     currentUserId: number,
     targetUserId: number,
@@ -136,11 +152,25 @@ export class UsersService {
       {
         id: userId,
       },
-      ['posts'],
+      ['posts', 'subscribers', 'books'],
     );
     if (!user) {
       throw new Error('User not found');
     }
+
+    // const users = await this.findMany(['subscribers']);
+    // const mySubsribers = users.filter((user) =>
+    //   user.subscribers.some((subscriber) => subscriber.id === userId),
+    // );
+
+    const mySubsсribers = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.subscribers', 'subscriber')
+      .where('subscriber.id=:userId', { userId })
+      .getMany();
+
+    console.log('mySubsribers', mySubsсribers);
+
     return {
       avatarUrl: user.avatarUrl,
       firstName: user.firstName,
@@ -148,6 +178,9 @@ export class UsersService {
       nickName: user.nickName,
       location: user.location,
       userStatus: user.userStatus,
+      myFollowersCount: mySubsсribers.length,
+      myFollowingCount: user.subscribers.length,
+      userBooks: user.books,
     };
   }
 
@@ -266,6 +299,7 @@ export class UsersService {
     limit: number,
   ): Promise<object> {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
+
     if (!user) {
       throw createResponse(HttpStatus.NOT_FOUND, 'User not found.');
     }
@@ -282,9 +316,30 @@ export class UsersService {
 
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
-
     const paginatedFollowers = myFollowers.slice(startIndex, endIndex);
 
     return { myFollowers: paginatedFollowers };
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    const user = await this.findOne({ id: id });
+
+    if (!user) {
+      throw createResponse(HttpStatus.NOT_FOUND, 'User not found.');
+    }
+    const userSubscribers = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.subscribers', 'subscriber')
+      .where('subscriber.id=:userId', { userId: id })
+      .getMany();
+
+    for (const subscriber of userSubscribers) {
+      await this.usersRepository
+        .createQueryBuilder('user')
+        .relation(User, 'subscribers')
+        .of(subscriber)
+        .remove('user');
+    }
+    await this.usersRepository.remove(user);
   }
 }

@@ -30,6 +30,9 @@ import { CreateBookDto } from './dto/create-book.dto';
 import { Book } from './entities/book.entity';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { GuestUserInfoResponse } from 'src/response-example/GuestUserInfoResponse';
+import { Roles } from 'src/roles/roles.decorator';
+import { RoleEnum } from 'src/roles/roles.enum';
+import { RolesGuard } from 'src/roles/roles.guard';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
@@ -154,5 +157,13 @@ export class UsersController {
       page,
       limit,
     );
+  }
+
+  @Delete('delete-by-admin/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(RolesGuard)
+  @Roles(RoleEnum.admin)
+  async deleteUser(@Param('id') userId: number): Promise<void> {
+    return await this.usersService.deleteUser(userId);
   }
 }
