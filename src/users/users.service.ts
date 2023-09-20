@@ -280,12 +280,6 @@ export class UsersService {
       .where('subscriber.id=:userId', { userId })
       .getMany();
 
-    if (myFollowers.length === 0) {
-      throw createResponse(
-        HttpStatus.BAD_REQUEST,
-        'You do not have followers yet',
-      );
-    }
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
 
