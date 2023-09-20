@@ -317,7 +317,6 @@ export class AuthService {
     const user = await this.usersService.findOne({
       id: userId,
     });
-      
     if (!completeDto.nickName.startsWith('@')) {
       throw new BadRequestException('Nickname should start with "@"');
     }

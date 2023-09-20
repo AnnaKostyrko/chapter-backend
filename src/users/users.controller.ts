@@ -78,10 +78,7 @@ export class UsersController {
     return this.usersService.findOne({ id: +id });
   }
 
-  @SerializeOptions({
-    groups: ['admin'],
-  })
-  @Patch(':id')
+  @Patch('me')
   @HttpCode(HttpStatus.OK)
   update(
     @Param('id') id: number,
