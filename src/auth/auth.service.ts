@@ -315,7 +315,6 @@ export class AuthService {
       id: userId,
     });
 
-
     if (!completeDto.nickName.startsWith('@')) {
       throw new BadRequestException('Nickname should start with "@"');
     }

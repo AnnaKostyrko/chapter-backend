@@ -42,7 +42,7 @@ import { RolesGuard } from 'src/roles/roles.guard';
   version: '1',
 })
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -74,7 +74,6 @@ export class UsersController {
   async me(@Request() request): Promise<Partial<User>> {
     return await this.usersService.me(request.user.id);
   }
-
 
   @Patch('me')
   @HttpCode(HttpStatus.OK)
@@ -145,6 +144,19 @@ export class UsersController {
     @Body() updatePasswordDto: UpdatePasswordDto,
   ) {
     return this.usersService.updatePassword(request.user.id, updatePasswordDto);
+  }
+
+  @Get('my-followers')
+  async getMyFollowers(
+    @Request() request,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ): Promise<object> {
+    return await this.usersService.getMyFollowersWithPagination(
+      request.user.id,
+      page,
+      limit,
+    );
   }
 
   @Delete('delete-by-admin/:id')
