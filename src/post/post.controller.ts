@@ -10,6 +10,7 @@ import { PostDto } from './dto/post.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { PostEntity } from './entities/post.entity';
 import { User } from '../users/entities/user.entity';
+import { UpdatePostDto } from './dto/updatePost.dto';
 @ApiBearerAuth()
 @ApiTags('posts')
 @Controller()
@@ -28,4 +29,17 @@ export class PostController {
 
     return await this.postService.create(currentUser, createPostDto);
   }
+
+  @ApiOperation({ summary: 'Update a post' })
+  @ApiResponse({ status: 201, description: 'Updated.' })
+  @Post('Update')
+  async updatePost(
+    @Req() req: any,
+    @Body() updatePostDto: UpdatePostDto, postId:number
+  ): Promise<PostEntity> {
+    
+    const currentUser: User = req.user;
+    return await this.postService.update(postId, currentUser, updatePostDto);
+  }
+
 }

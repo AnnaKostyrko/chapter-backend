@@ -12,6 +12,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
 export class PostEntity {
+  
   @PrimaryGeneratedColumn()
   @ApiProperty()
   id: number;
