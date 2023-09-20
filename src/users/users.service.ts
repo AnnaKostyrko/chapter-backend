@@ -299,6 +299,19 @@ export class UsersService {
       throw createResponse(HttpStatus.NOT_FOUND, 'User not found.');
     }
 
+    const userSubscribers = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.subscribers', 'subscriber')
+      .where('subscriber.id=:userId', { userId: id })
+      .getMany();
+
+    for (const subscriber of userSubscribers) {
+      await this.usersRepository
+        .createQueryBuilder('user')
+        .relation(User, 'subscribers')
+        .of(subscriber)
+        .remove('user');
+    }
     await this.usersRepository.remove(user);
   }
 }
