@@ -4,6 +4,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import ms from 'ms';
@@ -35,6 +36,8 @@ import { JwtPayloadType } from './strategies/types/jwt-payload.type';
 // import { session } from 'passport';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
+import { async } from 'rxjs';
+import { error } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -204,20 +207,25 @@ export class AuthService {
   }
 
   async register(dto: AuthRegisterLoginDto): Promise<void> {
+
     const hash = crypto
       .createHash('sha256')
       .update(randomStringGenerator())
       .digest('hex')
       .slice(-6);
 
-    const existingUser = await this.usersService.findOne({ email: dto.email });
-    if (existingUser) {
-      const emailStatus = existingUser.status?.name;
-      throw new ConflictException({
+      const existingUser = await this.usersService.findOne({ email: dto.email });
+
+      if (existingUser) {
+        const emailStatus = existingUser.status?.name;
+        throw new ConflictException(
+          {
         error: `User with this email already exists. Email status:${emailStatus}`,
-        status: HttpStatus.UNPROCESSABLE_ENTITY,
-      });
-    }
+        status: HttpStatus.UNPROCESSABLE_ENTITY        
+          } 
+        );
+      }
+      
     await this.usersService.create({
       ...dto,
       email: dto.email,
@@ -227,7 +235,7 @@ export class AuthService {
       status: {
         id: StatusEnum.inactive,
       } as Status,
-      hash,
+      hash
     });
 
     await this.mailService.userSignUp({
@@ -235,10 +243,46 @@ export class AuthService {
       data: {
         hash,
       },
+      
     });
   }
+  async resendConfirmationCode(email: string): Promise<void> {
+    const user = await this.usersService.findOne({ email });
+  
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+  
+    const hash = crypto
+    .createHash('sha256')
+    .update(randomStringGenerator())
+    .digest('hex')
+    .slice(-6);
 
-  async confirmEmail(uniqueToken: string): Promise<{ id: number }> {
+      user.hash = hash;
+      await user.save();
+  
+    await this.mailService.userSignUp({
+      to: email,
+      data: {
+        hash,
+      },
+    });
+    // Delay setting user.hash to null
+    setTimeout(async() => {
+
+      const delay = (ms) => new Promise(res => setTimeout(res, ms));
+
+      await delay(15 * 60 * 1000); 
+
+      user.hash = null;
+      await user.save();
+
+    }, 15 * 60 * 1000)}
+ 
+
+  async confirmEmail(uniqueToken: string): Promise<{id:number}> {
+    
     const user = await this.usersService.findOne({
       hash: uniqueToken,
     });
@@ -256,16 +300,17 @@ export class AuthService {
     user.status = plainToClass(Status, {
       id: StatusEnum.active,
     });
-    user.hash = null;
+    user.hash = null; 
     await user.save();
-    return { id: user.id };
+    return {id: user.id}
   }
 
   async completeRegistration(
     userId: number,
     completeDto: UpdateUserRegisterDto,
   ): Promise<void> {
-    /// Find a user by their id, with a filter based on registration status
+
+  // Find a user by their id, with a filter on registration status
     const user = await this.usersService.findOne({
       id: userId,
     });
@@ -309,6 +354,7 @@ export class AuthService {
 
     await user.save();
   }
+   
 
   async forgotPassword(email: string): Promise<void> {
     const user = await this.usersService.findOne({

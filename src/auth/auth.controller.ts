@@ -61,7 +61,15 @@ export class AuthController {
     return this.service.register(createUserDto);
   }
 
-  ///////////////
+  @Patch('refresh-unique-token')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async refreshToken(
+    @Body() createUserDto: AuthRegisterLoginDto
+    ): Promise<void> {
+  await this.service.resendConfirmationCode(createUserDto.email);
+  }
+  
+
   @Post('email/confirm')
   @HttpCode(HttpStatus.OK)
   @ApiResponse({
@@ -69,6 +77,7 @@ export class AuthController {
     description: 'Ok',
     type: User,
   })
+  
   async confirmEmail(
     @Body() confirmEmailDto: AuthConfirmEmailDto,
   ): Promise<{ id: number }> {
