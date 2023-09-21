@@ -13,11 +13,12 @@ import {
   HttpStatus,
   HttpCode,
   SerializeOptions,
+  Put,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/roles/roles.decorator';
 import { RoleEnum } from 'src/roles/roles.enum';
 import { AuthGuard } from '@nestjs/passport';
@@ -26,6 +27,7 @@ import { infinityPagination } from 'src/utils/infinity-pagination';
 import { User } from './entities/user.entity';
 import { InfinityPaginationResultType } from '../utils/types/infinity-pagination-result.type';
 import { NullableType } from '../utils/types/nullable.type';
+import { Book } from './entities/book.entity';
 
 @ApiBearerAuth()
 @Roles(RoleEnum.admin)
@@ -136,6 +138,13 @@ export class UsersController {
       request.user.id,
       createBookDto,
     );
+  }
+  @Put(':bookId')
+  async updateBook(
+    @Param('bookId') bookId: number,
+    @Body() updateData: Partial<Book>,
+  ): Promise<Book> {
+    return this.usersService.updateBook(bookId, updateData);
   }
 
   @Post('update-password')

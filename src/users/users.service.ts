@@ -6,12 +6,15 @@ import { DeepPartial, IsNull, Not, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { NullableType } from '../utils/types/nullable.type';
+import { Book } from './entities/book.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(Book)
+    private bookRepository: Repository<Book>,
   ) {}
 
   create(createProfileDto: CreateUserDto): Promise<User> {
@@ -211,6 +214,16 @@ export class UsersService {
     await this.usersRepository.save(user);
 
     return book;
+  }
+
+  async updateBook(id: number, updateData: Partial<Book>): Promise<Book> {
+    await this.bookRepository.update(id, updateData);
+
+    const updatedBook = await this.bookRepository.findOne(id);
+    if (!updatedBook) {
+      throw new Error('Book not found');
+    }
+    return updatedBook;
   }
 
   async updatePassword(userId: number, updtePasswordDto: UpdatePasswordDto) {
