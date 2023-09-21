@@ -1,10 +1,4 @@
-import {
-  ConflictException,
-  HttpException,
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
@@ -26,6 +20,13 @@ export class UsersService {
     );
   }
 
+  async findAllUsers(fields: EntityCondition<User>): Promise<User[]> {
+    const users = await this.usersRepository.find({
+      where: fields,
+    });
+    return users;
+  }
+
   findManyWithPagination(
     paginationOptions: IPaginationOptions,
   ): Promise<User[]> {
@@ -43,11 +44,11 @@ export class UsersService {
 
   async findOneByDelete(email: string): Promise<User | null> {
     return await this.usersRepository.findOne({
-      withDeleted:true,
+      withDeleted: true,
       where: {
         email: email,
-        deletedAt: Not(IsNull())
-      }
+        deletedAt: Not(IsNull()),
+      },
     });
   }
 

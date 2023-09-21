@@ -36,7 +36,6 @@ import { JwtPayloadType } from './strategies/types/jwt-payload.type';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
 
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -213,57 +212,58 @@ export class AuthService {
 
     const userWithDelData = await this.usersService.findOneByDelete(dto.email);
 
-    if (userWithDelData)  { 
-        throw new BadRequestException('Registration with this email is not possible because the account has been deleted, please restore your account or select another email');
+    if (userWithDelData) {
+      throw new BadRequestException(
+        'Registration with this email is not possible because the account has been deleted, please restore your account or select another email',
+      );
     }
 
-        const existingUser = await this.usersService.findOne({ email: dto.email });
+    const existingUser = await this.usersService.findOne({ email: dto.email });
 
-        if (existingUser) {
-            const emailStatus = existingUser.status?.name;
-            throw new ConflictException({
-                error: `User with this email already exists. Email status: ${emailStatus}`,
-                status: HttpStatus.UNPROCESSABLE_ENTITY        
-            });
-        }
- 
-        await this.usersService.create({
-          ...dto,
-          email: dto.email,
-          role: {
-            id: RoleEnum.user,
-          } as Role,
-          status: {
-            id: StatusEnum.inactive,
-          } as Status,
-          hash
-        });
+    if (existingUser) {
+      const emailStatus = existingUser.status?.name;
+      throw new ConflictException({
+        error: `User with this email already exists. Email status: ${emailStatus}`,
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
+    }
 
-        await this.mailService.userSignUp({
-          to: dto.email,
-          data: {
-            hash,
-          },
-        });
+    await this.usersService.create({
+      ...dto,
+      email: dto.email,
+      role: {
+        id: RoleEnum.user,
+      } as Role,
+      status: {
+        id: StatusEnum.inactive,
+      } as Status,
+      hash,
+    });
 
-}
+    await this.mailService.userSignUp({
+      to: dto.email,
+      data: {
+        hash,
+      },
+    });
+  }
 
   async resendConfirmationCode(email: string): Promise<void> {
     const user = await this.usersService.findOne({ email });
-  
+
     if (!user) {
       throw new NotFoundException('User not found');
     }
-  
-    const hash = crypto
-    .createHash('sha256')
-    .update(randomStringGenerator())
-    .digest('hex')
-    .slice(-6);
 
-      user.hash = hash;
-      await user.save();
-  
+    const hash = crypto
+      .createHash('sha256')
+      .update(randomStringGenerator())
+      .digest('hex')
+      .slice(-6);
+
+    user.hash = hash;
+    await user.save();
+
     await this.mailService.userSignUp({
       to: email,
       data: {
@@ -271,20 +271,17 @@ export class AuthService {
       },
     });
     // Delay setting user.hash to null
-    setTimeout(async() => {
+    setTimeout(async () => {
+      const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 
-      const delay = (ms) => new Promise(res => setTimeout(res, ms));
-
-      await delay(15 * 60 * 1000); 
+      await delay(15 * 60 * 1000);
 
       user.hash = null;
       await user.save();
+    }, 15 * 60 * 1000);
+  }
 
-    }, 15 * 60 * 1000)}
- 
-
-  async confirmEmail(uniqueToken: string): Promise<{id:number}> {
-    
+  async confirmEmail(uniqueToken: string): Promise<{ id: number }> {
     const user = await this.usersService.findOne({
       hash: uniqueToken,
     });
@@ -302,17 +299,16 @@ export class AuthService {
     user.status = plainToClass(Status, {
       id: StatusEnum.active,
     });
-    user.hash = null; 
+    user.hash = null;
     await user.save();
-    return {id: user.id}
+    return { id: user.id };
   }
 
   async completeRegistration(
     userId: number,
     completeDto: UpdateUserRegisterDto,
   ): Promise<void> {
-
-  // Find a user by their id, with a filter on registration status
+    // Find a user by their id, with a filter on registration status
     const user = await this.usersService.findOne({
       id: userId,
     });
@@ -320,17 +316,16 @@ export class AuthService {
       throw new BadRequestException('Nickname should start with "@"');
     }
 
-   if(completeDto.password !== completeDto.confirmPassword){
-    throw new BadRequestException('Passwords do not match');
-   }
-  
+    if (completeDto.password !== completeDto.confirmPassword) {
+      throw new BadRequestException('Passwords do not match');
+    }
+
     const userNickName = await this.usersService.findOne({
-      nickName: completeDto.nickName
-    })
+      nickName: completeDto.nickName,
+    });
     //return all users
-    
-    if(userNickName){
-      
+
+    if (userNickName) {
       throw new HttpException(
         {
           error: 'User with this nickname already exists.',
@@ -340,7 +335,7 @@ export class AuthService {
       );
     }
 
-  if (!user) {
+    if (!user) {
       throw new HttpException(
         {
           status: HttpStatus.NOT_FOUND,
@@ -360,7 +355,6 @@ export class AuthService {
 
     await user.save();
   }
-   
 
   async forgotPassword(email: string): Promise<void> {
     const user = await this.usersService.findOne({
