@@ -11,6 +11,7 @@ import {
   Delete,
   SerializeOptions,
   Param,
+  Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -26,6 +27,7 @@ import { NullableType } from '../utils/types/nullable.type';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
 
+import { Response, Request as req } from 'express';
 
 @ApiTags('Auth')
 @Controller({
@@ -33,19 +35,27 @@ import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
   version: '1',
 })
 export class AuthController {
-  constructor(
-    private readonly service: AuthService
-    ) {}
+  constructor(private readonly service: AuthService) {}
 
   @SerializeOptions({
     groups: ['me'],
   })
   @Post('email/login')
   @HttpCode(HttpStatus.OK)
-  public login(
+  public async login(
     @Body() loginDto: AuthEmailLoginDto,
-  ): Promise<LoginResponseType> {
-    return this.service.validateLogin(loginDto, false);
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<object> {
+    const loginResponse = await this.service.validateLogin(loginDto, false);
+    response.cookie('refresh_token', loginResponse.refreshToken, {
+      httpOnly: true,
+    });
+
+    return {
+      token: loginResponse.token,
+      tokenExpires: loginResponse.tokenExpires,
+      user: loginResponse.user,
+    };
   }
 
   @SerializeOptions({
@@ -68,24 +78,21 @@ export class AuthController {
   @Patch('refresh-unique-token')
   @HttpCode(HttpStatus.NO_CONTENT)
   async refreshToken(
-    @Body() createUserDto: AuthRegisterLoginDto
-    ): Promise<void> {
-  await this.service.resendConfirmationCode(createUserDto.email);
+    @Body() createUserDto: AuthRegisterLoginDto,
+  ): Promise<void> {
+    await this.service.resendConfirmationCode(createUserDto.email);
   }
-  
 
   @Post('email/confirm')
   @HttpCode(HttpStatus.OK)
-
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Ok',
     type: User,
   })
-  
   async confirmEmail(
     @Body() confirmEmailDto: AuthConfirmEmailDto,
-  ): Promise<{id:number}> {
+  ): Promise<{ id: number }> {
     return await this.service.confirmEmail(confirmEmailDto.hash);
   }
 
@@ -95,7 +102,7 @@ export class AuthController {
     @Body() completeDto: UpdateUserRegisterDto,
   ): Promise<void> {
     return await this.service.completeRegistration(userId, completeDto);
-    }
+  }
 
   @Post('forgot/password')
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -125,23 +132,30 @@ export class AuthController {
     return this.service.me(request.user);
   }
 
-  
-  @ApiBearerAuth()
   @SerializeOptions({
     groups: ['me'],
   })
   @Post('refresh')
-  @UseGuards(AuthGuard('jwt-refresh'))
   @HttpCode(HttpStatus.OK)
-  public refresh(@Request() request): Promise<Omit<LoginResponseType, 'user'>> {
-    return this.service.refreshToken(request.user.sessionId);
+  public async refresh(@Request() request: req) {
+    const refreshToken = request.cookies.refresh_token;
+    const refreshResponse = await this.service.refreshToken(refreshToken);
+    return {
+      token: refreshResponse.token,
+      tokenExpires: refreshResponse.tokenExpires,
+    };
   }
 
   @ApiBearerAuth()
   @Post('logout')
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.NO_CONTENT)
-  public async logout(@Request() request): Promise<void> {
+  public async logout(
+    @Request() request,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<void> {
+    response.clearCookie('refresh_token');
+
     await this.service.logout({
       sessionId: request.user.sessionId,
     });

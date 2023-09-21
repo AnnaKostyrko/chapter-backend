@@ -35,7 +35,7 @@ import { Session } from 'src/session/entities/session.entity';
 import { JwtPayloadType } from './strategies/types/jwt-payload.type';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
-
+import * as jwt from 'jsonwebtoken';
 @Injectable()
 export class AuthService {
   constructor(
@@ -497,6 +497,29 @@ export class AuthService {
   async refreshToken(
     data: Pick<JwtRefreshPayloadType, 'sessionId'>,
   ): Promise<Omit<LoginResponseType, 'user'>> {
+    if (!data) {
+      throw new HttpException(
+        {
+          status: HttpStatus.UNAUTHORIZED,
+          errors: {
+            user: 'must be autorized',
+          },
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const verifyToken = jwt.verify(
+      data.toString(),
+      this.configService.getOrThrow('auth.refreshSecret', {
+        infer: true,
+      }),
+    );
+
+    if (!verifyToken) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+
     const session = await this.sessionService.findOne({
       where: {
         id: data.sessionId,
