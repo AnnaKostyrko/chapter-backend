@@ -17,7 +17,7 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/roles/roles.decorator';
 import { RoleEnum } from 'src/roles/roles.enum';
 import { AuthGuard } from '@nestjs/passport';
@@ -136,6 +136,11 @@ export class UsersController {
       request.user.id,
       createBookDto,
     );
+  }
+
+  @Delete(':bookId')
+  async deleteBook(@Param('bookId') bookId: number): Promise<void> {
+    return await this.usersService.deleteBook(bookId);
   }
 
   @Post('update-password')
