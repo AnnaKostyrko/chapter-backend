@@ -92,4 +92,91 @@ export class UsersController {
   remove(@Param('id') id: number): Promise<void> {
     return this.usersService.softDelete(id);
   }
+
+  @Post('subscribe-unsubscribe/:userId')
+  @HttpCode(HttpStatus.OK)
+  async subscribe(
+    @Param('userId') userId: number,
+    @Request() req,
+  ): Promise<User> {
+    const currentUserId = req.user.id;
+    return await this.usersService.toggleSubscription(currentUserId, userId);
+  }
+
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'User information for guests',
+    type: GuestUserInfoResponse,
+  })
+  @Get('profile/:userId')
+  async getGuestUserInfo(@Param('userId') userId: number) {
+    return await this.usersService.getGuestsUserInfo(userId);
+  }
+
+  @Get(':id/books/:bookId')
+  async getBookInfoByUser(
+    @Param('id') userId: number,
+    @Param('bookId') bookId: number,
+  ): Promise<BookInfoDto> {
+    return await this.usersService.getBookInfoByUser(userId, bookId);
+  }
+
+  @Post('books')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: Book,
+  })
+  @ApiBody({ type: CreateBookDto, description: 'Create book' })
+  async addBookToUser(
+    @Request() request: Express.Request & { user: User },
+    @Body() createBookDto: CreateBookDto,
+  ) {
+    return await this.usersService.addBookToUser(
+      request.user.id,
+      createBookDto,
+    );
+  }
+
+  @Post('update-password')
+  @ApiResponse({
+    status: HttpStatus.OK,
+  })
+  async updatePassword(
+    @Request() request,
+    @Body() updatePasswordDto: UpdatePasswordDto,
+  ) {
+    return this.usersService.updatePassword(request.user.id, updatePasswordDto);
+  }
+
+  @Get('my-follow')
+  @ApiResponse({
+    content: {
+      'application/json': {
+        example: [
+          {
+            id: 1,
+            firstName: 'firstName',
+            lastName: 'lastName',
+          },
+          {
+            id: 2,
+            firstName: 'firstName',
+            lastName: 'lastName',
+          },
+        ],
+      },
+    },
+  })
+  async getMyFollow(
+    @Request() request,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ) {
+    return this.usersService.getMyFollowWithPagination(
+      request.user.id,
+      page,
+      limit,
+    );
+  }
 }
