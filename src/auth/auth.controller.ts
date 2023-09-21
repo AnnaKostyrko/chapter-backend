@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Get,
   HttpCode,
   HttpStatus,
   Request,
@@ -18,14 +17,13 @@ import { AuthEmailLoginDto } from './dto/auth-email-login.dto';
 import { AuthForgotPasswordDto } from './dto/auth-forgot-password.dto';
 import { AuthConfirmEmailDto } from './dto/auth-confirm-email.dto';
 import { AuthResetPasswordDto } from './dto/auth-reset-password.dto';
-import { AuthUpdateDto } from './dto/auth-update.dto';
+
 import { AuthGuard } from '@nestjs/passport';
 import { LoginResponseType } from './types/login-response.type';
 import { User } from '../users/entities/user.entity';
-import { NullableType } from '../utils/types/nullable.type';
+
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
-
 
 @ApiTags('Auth')
 @Controller({
@@ -33,9 +31,7 @@ import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
   version: '1',
 })
 export class AuthController {
-  constructor(
-    private readonly service: AuthService
-    ) {}
+  constructor(private readonly service: AuthService) {}
 
   @SerializeOptions({
     groups: ['me'],
@@ -65,27 +61,17 @@ export class AuthController {
     return this.service.register(createUserDto);
   }
 
-  @Patch('refresh-unique-token')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async refreshToken(
-    @Body() createUserDto: AuthRegisterLoginDto
-    ): Promise<void> {
-  await this.service.resendConfirmationCode(createUserDto.email);
-  }
-  
-
+  ///////////////
   @Post('email/confirm')
   @HttpCode(HttpStatus.OK)
-
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Ok',
     type: User,
   })
-  
   async confirmEmail(
     @Body() confirmEmailDto: AuthConfirmEmailDto,
-  ): Promise<{id:number}> {
+  ): Promise<{ id: number }> {
     return await this.service.confirmEmail(confirmEmailDto.hash);
   }
 
@@ -95,7 +81,7 @@ export class AuthController {
     @Body() completeDto: UpdateUserRegisterDto,
   ): Promise<void> {
     return await this.service.completeRegistration(userId, completeDto);
-    }
+  }
 
   @Post('forgot/password')
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -118,18 +104,6 @@ export class AuthController {
   @SerializeOptions({
     groups: ['me'],
   })
-  @Get('me')
-  @UseGuards(AuthGuard('jwt'))
-  @HttpCode(HttpStatus.OK)
-  public me(@Request() request): Promise<NullableType<User>> {
-    return this.service.me(request.user);
-  }
-
-  
-  @ApiBearerAuth()
-  @SerializeOptions({
-    groups: ['me'],
-  })
   @Post('refresh')
   @UseGuards(AuthGuard('jwt-refresh'))
   @HttpCode(HttpStatus.OK)
@@ -145,20 +119,6 @@ export class AuthController {
     await this.service.logout({
       sessionId: request.user.sessionId,
     });
-  }
-
-  @ApiBearerAuth()
-  @SerializeOptions({
-    groups: ['me'],
-  })
-  @Patch('me')
-  @UseGuards(AuthGuard('jwt'))
-  @HttpCode(HttpStatus.OK)
-  public update(
-    @Request() request,
-    @Body() userDto: AuthUpdateDto,
-  ): Promise<NullableType<User>> {
-    return this.service.update(request.user, userDto);
   }
 
   @ApiBearerAuth()
