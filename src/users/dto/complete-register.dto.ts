@@ -3,13 +3,14 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, Matches, MinLength } from 'class-validator';
 
 export class UpdateUserRegisterDto {
+
   @IsNotEmpty()
   @ApiProperty({ example: 'John' })
   firstName: string;
 
   @IsNotEmpty()
   @ApiProperty({ example: 'Doe' })
-  lastName: string;
+  lastName: string; 
 
   @ApiProperty({ example: '@Jojo2323' })
   @IsNotEmpty()
