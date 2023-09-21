@@ -1,29 +1,63 @@
+import { PartialType } from '@nestjs/swagger';
+import { CreateUserDto } from './create-user.dto';
+
+import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+import { Role } from '../../roles/entities/role.entity';
+import { IsEmail, IsOptional, MinLength, Validate } from 'class-validator';
+import { Status } from 'src/statuses/entities/status.entity';
+import { IsNotExist } from 'src/utils/validators/is-not-exists.validator';
+import { FileEntity } from 'src/files/entities/file.entity';
+import { IsExist } from 'src/utils/validators/is-exists.validator';
+import { lowerCaseTransformer } from 'src/utils/transformers/lower-case.transformer';
 
-import { IsOptional } from 'class-validator';
+export class UpdateUserDto extends PartialType(CreateUserDto) {
+  @ApiProperty({ example: 'test1@example.com' })
+  @Transform(lowerCaseTransformer)
+  @IsOptional()
+  @Validate(IsNotExist, ['User'], {
+    message: 'emailAlreadyExists',
+  })
+  @IsEmail()
+  email?: string | null;
 
-export class UpdateUserDto {
+  @ApiProperty()
+  @IsOptional()
+  @MinLength(6)
+  password?: string;
+
+  provider?: string;
+
+  socialId?: string | null;
+
   @ApiProperty({ example: 'John' })
   @IsOptional()
-  firstName?: string;
+  firstName?: string | null;
 
   @ApiProperty({ example: 'Doe' })
   @IsOptional()
-  lastName?: string;
+  lastName?: string | null;
 
-  @ApiProperty({ example: '@innekto' })
+  @ApiProperty({ type: () => FileEntity })
   @IsOptional()
-  nickName?: string;
+  @Validate(IsExist, ['FileEntity', 'id'], {
+    message: 'imageNotExists',
+  })
+  photo?: FileEntity | null;
 
-  @ApiProperty({ example: 'Kyiv' })
+  @ApiProperty({ type: Role })
   @IsOptional()
-  location?: string;
+  @Validate(IsExist, ['Role', 'id'], {
+    message: 'roleNotExists',
+  })
+  role?: Role | null;
 
-  @ApiProperty({ example: 'http//.....' })
+  @ApiProperty({ type: Status })
   @IsOptional()
-  avatarUrl?: string;
+  @Validate(IsExist, ['Status', 'id'], {
+    message: 'statusNotExists',
+  })
+  status?: Status;
 
-  @ApiProperty({ example: 'http//.....' })
-  @IsOptional()
-  userStatus?: string;
+  hash?: string | null;
 }
