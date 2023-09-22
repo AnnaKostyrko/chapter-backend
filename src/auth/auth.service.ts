@@ -35,7 +35,6 @@ import { Session } from 'src/session/entities/session.entity';
 import { JwtPayloadType } from './strategies/types/jwt-payload.type';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
-import * as jwt from 'jsonwebtoken';
 @Injectable()
 export class AuthService {
   constructor(
@@ -509,13 +508,14 @@ export class AuthService {
       );
     }
 
-    const verifyToken = jwt.verify(
-      data.toString(),
-      this.configService.getOrThrow('auth.refreshSecret', {
-        infer: true,
-      }),
-    );
+    const secretKey = this.configService.getOrThrow('auth.refreshSecret', {
+      infer: true,
+    });
+    const verifyToken = this.jwtService.verify(data.toString(), {
+      secret: secretKey,
+    });
 
+    console.log('verifyToken', verifyToken);
     if (!verifyToken) {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
