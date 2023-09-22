@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req, Patch, Delete, Param } from '@nestjs/common';
 import { PostService } from './post.service';
 import {
   ApiBearerAuth,
@@ -11,6 +11,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { PostEntity } from './entities/post.entity';
 import { User } from '../users/entities/user.entity';
 import { UpdatePostDto } from './dto/updatePost.dto';
+
 @ApiBearerAuth()
 @ApiTags('posts')
 @Controller()
@@ -32,14 +33,22 @@ export class PostController {
 
   @ApiOperation({ summary: 'Update a post' })
   @ApiResponse({ status: 201, description: 'Updated.' })
-  @Post('Update')
+  @Patch('update/:id')
   async updatePost(
-    @Req() req: any,
-    @Body() updatePostDto: UpdatePostDto, postId:number
-  ): Promise<PostEntity> {
+    @Param('id') postId: number,
+    @Body() updatePostDto: UpdatePostDto
+  ): Promise<void> {
     
-    const currentUser: User = req.user;
-    return await this.postService.update(postId, currentUser, updatePostDto);
+   await this.postService.updatePost(postId, updatePostDto);
   }
+
+  @ApiOperation({ summary: 'delete a post' })
+  @ApiResponse({ status: 201, description: 'delete.' })
+  @Delete('delete/:id')
+  async deletePost(@Param('id') postId: number): Promise<void> {
+    return await this.postService.deletePost(postId);
+  }
+
+
 
 }
