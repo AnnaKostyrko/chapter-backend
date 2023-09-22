@@ -515,7 +515,6 @@ export class AuthService {
       secret: secretKey,
     });
 
-    console.log('verifyToken', verifyToken);
     if (!verifyToken) {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
