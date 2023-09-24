@@ -441,7 +441,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
 
-    const currentTime = new Date().getTime() / 1000;
+    const currentTime = new Date().getTime();
     if (verifyToken.exp <= currentTime) {
       await this.logout(data);
       throw new UnauthorizedException('Refresh token has expired');
