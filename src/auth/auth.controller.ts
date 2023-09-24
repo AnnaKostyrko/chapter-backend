@@ -9,7 +9,7 @@ import {
   Patch,
   Delete,
   SerializeOptions,
-  Param,
+  Param, Get,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -24,6 +24,7 @@ import { User } from '../users/entities/user.entity';
 
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
+import {NullableType} from "../utils/types/nullable.type";
 
 @ApiTags('Auth')
 @Controller({

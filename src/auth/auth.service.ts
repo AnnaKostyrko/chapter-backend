@@ -3,7 +3,7 @@ import {
   ConflictException,
   HttpException,
   HttpStatus,
-  Injectable,
+  Injectable, NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import ms from 'ms';
@@ -236,6 +236,40 @@ export class AuthService {
         hash,
       },
     });
+  }
+
+  async resendConfirmationCode(email: string): Promise<void> {
+    const user = await this.usersService.findOne({ email });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const hash = crypto
+      .createHash('sha256')
+      .update(randomStringGenerator())
+      .digest('hex')
+      .slice(-6);
+
+    user.hash = hash;
+    await user.save();
+
+    await this.mailService.userSignUp({
+      to: email,
+      data: {
+        hash,
+      },
+    });
+    // Delay setting user.hash to null
+    setTimeout(async() => {
+
+      const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+
+      await delay(15 * 60 * 1000);
+
+      user.hash = null;
+      await user.save();
+    }, 15 * 60 * 1000);
   }
 
   async confirmEmail(uniqueToken: string): Promise<{ id: number }> {
