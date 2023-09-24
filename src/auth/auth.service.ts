@@ -3,7 +3,8 @@ import {
   ConflictException,
   HttpException,
   HttpStatus,
-  Injectable, NotFoundException,
+  Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import ms from 'ms';
@@ -261,8 +262,7 @@ export class AuthService {
       },
     });
     // Delay setting user.hash to null
-    setTimeout(async() => {
-
+    setTimeout(async () => {
       const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 
       await delay(15 * 60 * 1000);
