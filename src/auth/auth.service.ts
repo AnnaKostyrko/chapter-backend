@@ -437,9 +437,14 @@ export class AuthService {
     const verifyToken = this.jwtService.verify(data.toString(), {
       secret: secretKey,
     });
-
     if (!verifyToken) {
       throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+
+    const currentTime = new Date().getTime() / 1000;
+    if (verifyToken.exp <= currentTime) {
+      await this.logout(data);
+      throw new UnauthorizedException('Refresh token has expired');
     }
 
     const session = await this.sessionService.findOne({
@@ -447,7 +452,6 @@ export class AuthService {
         id: data.sessionId,
       },
     });
-
     if (!session) {
       throw new UnauthorizedException();
     }
