@@ -12,24 +12,27 @@ import {
   ParseIntPipe,
   HttpStatus,
   HttpCode,
-  SerializeOptions,
+  Request,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { Roles } from 'src/roles/roles.decorator';
-import { RoleEnum } from 'src/roles/roles.enum';
+
+import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import { RolesGuard } from 'src/roles/roles.guard';
+
 import { infinityPagination } from 'src/utils/infinity-pagination';
 import { User } from './entities/user.entity';
 import { InfinityPaginationResultType } from '../utils/types/infinity-pagination-result.type';
-import { NullableType } from '../utils/types/nullable.type';
+
+import { BookInfoDto } from './dto/book-info.dto';
+import { CreateBookDto } from './dto/create-book.dto';
+import { Book } from './entities/book.entity';
+import { UpdatePasswordDto } from './dto/update-password.dto';
+import { GuestUserInfoResponse } from 'src/response-example/GuestUserInfoResponse';
 
 @ApiBearerAuth()
-@Roles(RoleEnum.admin)
-@UseGuards(AuthGuard('jwt'), RolesGuard)
+@UseGuards(AuthGuard('jwt'))
 @ApiTags('Users')
 @Controller({
   path: 'users',
@@ -38,18 +41,12 @@ import { NullableType } from '../utils/types/nullable.type';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @SerializeOptions({
-    groups: ['admin'],
-  })
   @Post()
   @HttpCode(HttpStatus.CREATED)
   create(@Body() createProfileDto: CreateUserDto): Promise<User> {
     return this.usersService.create(createProfileDto);
   }
 
-  @SerializeOptions({
-    groups: ['admin'],
-  })
   @Get()
   @HttpCode(HttpStatus.OK)
   async findAll(
@@ -69,22 +66,19 @@ export class UsersController {
     );
   }
 
-  @SerializeOptions({
-    groups: ['admin'],
-  })
-  @Get(':id')
+  @Get('me')
   @HttpCode(HttpStatus.OK)
-  findOne(@Param('id') id: string): Promise<NullableType<User>> {
-    return this.usersService.findOne({ id: +id });
+  async me(@Request() request): Promise<Partial<User>> {
+    return await this.usersService.me(request.user.id);
   }
 
   @Patch('me')
   @HttpCode(HttpStatus.OK)
   update(
-    @Param('id') id: number,
+    @Request() request,
     @Body() updateProfileDto: UpdateUserDto,
   ): Promise<User> {
-    return this.usersService.update(id, updateProfileDto);
+    return this.usersService.update(request.user.id, updateProfileDto);
   }
 
   @Delete(':id')
