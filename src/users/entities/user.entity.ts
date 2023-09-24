@@ -72,15 +72,14 @@ export class User extends EntityHelper {
   @Column({ type: String, nullable: true })
   lastName: string | null;
 
-  @Index()
   @Column({ type: String, nullable: true })
   nickName: string;
 
   @Column({ type: String, nullable: true })
-  userStatus: string | null;
+  userStatus: string;
 
   @Column({ type: String, nullable: true })
-  location: string | null;
+  location: string;
 
   @Column({ type: String, nullable: true })
   avatarUrl: string | null;

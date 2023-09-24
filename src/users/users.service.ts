@@ -2,27 +2,29 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
-import { DeepPartial, Repository } from 'typeorm';
+import { DeepPartial, IsNull, Not, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { NullableType } from '../utils/types/nullable.type';
-import { BookInfoDto } from './dto/book-info.dto';
-import { Book } from './entities/book.entity';
-import { CreateBookDto } from './dto/create-book.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-    @InjectRepository(Book)
-    private bookRepository: Repository<Book>,
   ) {}
 
   create(createProfileDto: CreateUserDto): Promise<User> {
     return this.usersRepository.save(
       this.usersRepository.create(createProfileDto),
     );
+  }
+
+  async findAllUsers(fields: EntityCondition<User>): Promise<User[]> {
+    const users = await this.usersRepository.find({
+      where: fields,
+    });
+    return users;
   }
 
   findManyWithPagination(
@@ -34,13 +36,19 @@ export class UsersService {
     });
   }
 
-  findOne(
-    fields: EntityCondition<User>,
-    relations: string[] = [],
-  ): Promise<NullableType<User>> {
+  findOne(fields: EntityCondition<User>): Promise<NullableType<User>> {
     return this.usersRepository.findOne({
       where: fields,
-      relations,
+    });
+  }
+
+  async findOneByDelete(email: string): Promise<User | null> {
+    return await this.usersRepository.findOne({
+      withDeleted: true,
+      where: {
+        email: email,
+        deletedAt: Not(IsNull()),
+      },
     });
   }
 
@@ -84,6 +92,44 @@ export class UsersService {
     await this.usersRepository.softDelete(id);
   }
 
+  async toggleSubscription(
+    currentUserId: number,
+    targetUserId: number,
+  ): Promise<User> {
+    const targetUser = await this.findOne({ id: targetUserId });
+    const currentUser = await this.findOne({ id: currentUserId }, [
+      'subscribers',
+    ]);
+
+    if (!targetUser || !currentUser) {
+      throw new NotFoundException({
+        error: 'User not found',
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
+    }
+
+    if (currentUserId === targetUserId) {
+      throw new ConflictException({
+        error: 'You cannot subscribe to yourself!',
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
+    }
+
+    const isSubscribed = currentUser.subscribers.some(
+      (subscriber) => subscriber.id === targetUserId,
+    );
+
+    currentUser.subscribers = isSubscribed
+      ? currentUser.subscribers.filter(
+          (subscriber) => subscriber.id !== targetUserId,
+        )
+      : [...currentUser.subscribers, targetUser];
+
+    await currentUser.save();
+
+    return currentUser;
+  }
+
   async me(userId: number): Promise<Partial<object>> {
     const user = await this.findOne(
       {
@@ -93,6 +139,21 @@ export class UsersService {
     );
     if (!user) {
       throw new Error('User not found');
+    }
+    return {
+      avatarUrl: user.avatarUrl,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      nickName: user.nickName,
+      location: user.location,
+      userStatus: user.userStatus,
+    };
+  }
+
+  async getGuestsUserInfo(userId: number): Promise<Partial<User>> {
+    const user = await this.findOne({ id: userId });
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
     return {
       avatarUrl: user.avatarUrl,
@@ -150,5 +211,77 @@ export class UsersService {
     await this.usersRepository.save(user);
 
     return book;
+  }
+
+  async updatePassword(userId: number, updtePasswordDto: UpdatePasswordDto) {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw createResponse(HttpStatus.NOT_FOUND, 'User not found.');
+    }
+
+    const isValidPassword = await bcrypt.compare(
+      updtePasswordDto.oldPassword,
+      user.password,
+    );
+
+    if (!isValidPassword) {
+      throw createResponse(HttpStatus.BAD_REQUEST, 'Incorrect old password!');
+    }
+
+    const samePassword = await bcrypt.compare(
+      updtePasswordDto.newPassword,
+      user.password,
+    );
+
+    if (samePassword) {
+      throw createResponse(
+        HttpStatus.BAD_REQUEST,
+        'The new password must be different from the old one!',
+      );
+    }
+
+    if (updtePasswordDto.newPassword !== updtePasswordDto.repeatNewPassword) {
+      throw createResponse(
+        HttpStatus.BAD_REQUEST,
+        'Both passwords must match!',
+      );
+    }
+
+    user.password = updtePasswordDto.newPassword;
+    await this.usersRepository.save(user);
+
+    // Успішна відповідь
+    return createResponse(
+      HttpStatus.OK,
+      'Password updated successfully',
+      false,
+    );
+  }
+
+  async getMyFollowWithPagination(
+    userId: number,
+    page: number,
+    limit: number,
+  ): Promise<object> {
+    const user = await this.findOne(
+      {
+        id: userId,
+      },
+      ['subscribers'],
+    );
+    if (!user) {
+      throw new Error('User not found');
+    }
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    const paginatedFollow = user.subscribers.slice(startIndex, endIndex);
+    return {
+      myFollow: paginatedFollow,
+      page,
+      limit,
+      total: user.subscribers.length,
+    };
   }
 }

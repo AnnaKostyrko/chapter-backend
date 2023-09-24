@@ -40,10 +40,6 @@ export class CreateUserDto {
   @IsNotEmpty()
   lastName?: string | null;
 
-  @ApiProperty({ example: 'Doe' })
-  @IsOptional()
-  nickName?: string;
-
   @ApiProperty({ type: () => FileEntity })
   @IsOptional()
   @Validate(IsExist, ['FileEntity', 'id'], {
