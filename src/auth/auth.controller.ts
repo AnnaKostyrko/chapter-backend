@@ -26,16 +26,13 @@ import { NullableType } from '../utils/types/nullable.type';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
 
-
 @ApiTags('Auth')
 @Controller({
   path: 'auth',
   version: '1',
 })
 export class AuthController {
-  constructor(
-    private readonly service: AuthService
-    ) {}
+  constructor(private readonly service: AuthService) {}
 
   @SerializeOptions({
     groups: ['me'],
@@ -68,24 +65,21 @@ export class AuthController {
   @Patch('refresh-unique-token')
   @HttpCode(HttpStatus.NO_CONTENT)
   async refreshToken(
-    @Body() createUserDto: AuthRegisterLoginDto
-    ): Promise<void> {
-  await this.service.resendConfirmationCode(createUserDto.email);
+    @Body() createUserDto: AuthRegisterLoginDto,
+  ): Promise<void> {
+    await this.service.resendConfirmationCode(createUserDto.email);
   }
-  
 
   @Post('email/confirm')
   @HttpCode(HttpStatus.OK)
-
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Ok',
     type: User,
   })
-  
   async confirmEmail(
     @Body() confirmEmailDto: AuthConfirmEmailDto,
-  ): Promise<{id:number}> {
+  ): Promise<{ id: number }> {
     return await this.service.confirmEmail(confirmEmailDto.hash);
   }
 
@@ -95,7 +89,7 @@ export class AuthController {
     @Body() completeDto: UpdateUserRegisterDto,
   ): Promise<void> {
     return await this.service.completeRegistration(userId, completeDto);
-    }
+  }
 
   @Post('forgot/password')
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -125,7 +119,6 @@ export class AuthController {
     return this.service.me(request.user);
   }
 
-  
   @ApiBearerAuth()
   @SerializeOptions({
     groups: ['me'],
