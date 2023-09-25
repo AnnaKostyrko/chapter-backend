@@ -1,12 +1,23 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
-import { DeepPartial, IsNull, Not, Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { NullableType } from '../utils/types/nullable.type';
+import { BookInfoDto } from './dto/book-info.dto';
 import { Book } from './entities/book.entity';
+import { CreateBookDto } from './dto/create-book.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
+import bcrypt from 'bcryptjs';
+import { createResponse } from 'src/helpers/response-helpers';
 
 @Injectable()
 export class UsersService {
@@ -23,13 +34,6 @@ export class UsersService {
     );
   }
 
-  async findAllUsers(fields: EntityCondition<User>): Promise<User[]> {
-    const users = await this.usersRepository.find({
-      where: fields,
-    });
-    return users;
-  }
-
   findManyWithPagination(
     paginationOptions: IPaginationOptions,
   ): Promise<User[]> {
@@ -39,19 +43,13 @@ export class UsersService {
     });
   }
 
-  findOne(fields: EntityCondition<User>): Promise<NullableType<User>> {
+  findOne(
+    fields: EntityCondition<User>,
+    relations: string[] = [],
+  ): Promise<NullableType<User>> {
     return this.usersRepository.findOne({
       where: fields,
-    });
-  }
-
-  async findOneByDelete(email: string): Promise<User | null> {
-    return await this.usersRepository.findOne({
-      withDeleted: true,
-      where: {
-        email: email,
-        deletedAt: Not(IsNull()),
-      },
+      relations,
     });
   }
 
