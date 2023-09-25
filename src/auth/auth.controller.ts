@@ -138,9 +138,24 @@ export class AuthController {
   })
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  public async refresh(@Request() request: req) {
+  public async refresh(
+    @Request() request: req,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     const refreshToken = request.cookies.refresh_token;
     const refreshResponse = await this.service.refreshToken(refreshToken);
+    if (refreshResponse.refreshToken) {
+      response.cookie('refresh_token', refreshResponse.refreshToken, {
+        httpOnly: true,
+      });
+
+      return {
+        token: refreshResponse.token,
+        tokenExpires: refreshResponse.tokenExpires,
+      };
+    } else {
+      response.status(HttpStatus.UNAUTHORIZED).send('Failed to refresh token');
+    }
     return {
       token: refreshResponse.token,
       tokenExpires: refreshResponse.tokenExpires,
