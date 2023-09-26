@@ -28,6 +28,7 @@ import { SessionModule } from './session/session.module';
 import { MailerModule } from './mailer/mailer.module';
 import { PostModule } from './post/post.module';
 import { TaskModule } from './task/task.module';
+import { FeedModule } from './feed/feed.module';
 
 @Module({
   imports: [
@@ -86,6 +87,7 @@ import { TaskModule } from './task/task.module';
     MailerModule,
     HomeModule,
     PostModule,
+    FeedModule,
     TaskModule,
   ],
 })
