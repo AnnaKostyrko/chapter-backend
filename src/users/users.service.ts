@@ -189,11 +189,20 @@ export class UsersService {
       {
         id: userId,
       },
-      ['posts'],
+      ['posts', 'subscribers', 'books'],
     );
     if (!user) {
       throw new Error('User not found');
     }
+
+    const mySubsсribers = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.subscribers', 'subscriber')
+      .where('subscriber.id=:userId', { userId })
+      .getMany();
+
+    console.log('mySubsribers', mySubsсribers);
+
     return {
       avatarUrl: user.avatarUrl,
       firstName: user.firstName,
@@ -201,6 +210,9 @@ export class UsersService {
       nickName: user.nickName,
       location: user.location,
       userStatus: user.userStatus,
+      myFollowersCount: mySubsсribers.length,
+      myFollowingCount: user.subscribers.length,
+      userBooks: user.books,
     };
   }
 
