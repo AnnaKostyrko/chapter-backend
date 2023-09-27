@@ -18,6 +18,9 @@ import { CreateBookDto } from './dto/create-book.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import bcrypt from 'bcryptjs';
 import { createResponse } from 'src/helpers/response-helpers';
+import { Session } from 'src/session/entities/session.entity';
+import { Forgot } from 'src/forgot/entities/forgot.entity';
+import { PostEntity } from 'src/post/entities/post.entity';
 
 @Injectable()
 export class UsersService {
@@ -26,6 +29,12 @@ export class UsersService {
     private usersRepository: Repository<User>,
     @InjectRepository(Book)
     private bookRepository: Repository<Book>,
+    @InjectRepository(Book)
+    private sessionRepository: Repository<Session>,
+    @InjectRepository(Book)
+    private forgotRepository: Repository<Forgot>,
+    @InjectRepository(Book)
+    private postRepository: Repository<PostEntity>,
   ) {}
 
   create(createProfileDto: CreateUserDto): Promise<User> {
@@ -284,5 +293,56 @@ export class UsersService {
       limit,
       total: user.subscribers.length,
     };
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    const user = await this.findOne({ id: id });
+
+    if (!user) {
+      throw createResponse(HttpStatus.NOT_FOUND, 'User not found.');
+    }
+    const userSubscribers = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.subscribers', 'subscriber')
+      .where('subscriber.id=:userId', { userId: id })
+      .getMany();
+
+    for (const subscriber of userSubscribers) {
+      await this.usersRepository
+        .createQueryBuilder('user')
+        .relation(User, 'subscribers')
+        .of(subscriber)
+        .remove('user');
+    }
+
+    await this.sessionRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Session)
+      .where('user = :userId', { userId: id })
+      .execute();
+
+    await this.bookRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Book)
+      .where('user=:userId', { userId: id })
+      .execute();
+
+    await this.forgotRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Forgot)
+      .where('user=:userId', { userId: id })
+      .execute();
+
+    await this.postRepository
+      .createQueryBuilder()
+      .delete()
+      .from(PostEntity)
+      .where('authorId=:userId', { userId: id })
+      .execute();
+
+    await this.usersRepository.remove(user);
   }
 }
