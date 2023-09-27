@@ -177,6 +177,19 @@ export class UsersController {
     );
   }
 
+  @Get('my-followers')
+  async getMyFollowers(
+    @Request() request,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ): Promise<object> {
+    return await this.usersService.getMyFollowersWithPagination(
+      request.user.id,
+      page,
+      limit,
+    );
+  }
+
   @Delete('delete-by-admin/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(RolesGuard)

@@ -339,6 +339,34 @@ export class UsersService {
     };
   }
 
+  async getMyFollowersWithPagination(
+    userId: number,
+    page: number,
+    limit: number,
+  ): Promise<object> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw createResponse(HttpStatus.NOT_FOUND, 'User not found.');
+    }
+
+    if (page <= 0 || limit <= 0) {
+      throw createResponse(HttpStatus.BAD_REQUEST, 'Invalid page or limit.');
+    }
+
+    const myFollowers = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.subscribers', 'subscriber')
+      .where('subscriber.id=:userId', { userId })
+      .getMany();
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const paginatedFollowers = myFollowers.slice(startIndex, endIndex);
+
+    return { myFollowers: paginatedFollowers };
+  }
+
   async deleteUser(id: number): Promise<void> {
     const user = await this.findOne({ id: id });
 
