@@ -84,10 +84,10 @@ export class UsersController {
     return this.usersService.update(request.user.id, updateProfileDto);
   }
 
-  @Delete(':id')
+  @Delete('me')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id') id: number): Promise<void> {
-    return this.usersService.softDelete(id);
+  remove(@Request() req): Promise<void> {
+    return this.usersService.softDelete(req.user.id);
   }
 
   @Post('subscribe-unsubscribe/:userId')

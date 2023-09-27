@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
-import { DeepPartial, Repository } from 'typeorm';
+import { DeepPartial, IsNull, Not, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { NullableType } from '../utils/types/nullable.type';
@@ -29,11 +29,11 @@ export class UsersService {
     private usersRepository: Repository<User>,
     @InjectRepository(Book)
     private bookRepository: Repository<Book>,
-    @InjectRepository(Book)
+    @InjectRepository(Session)
     private sessionRepository: Repository<Session>,
-    @InjectRepository(Book)
+    @InjectRepository(Forgot)
     private forgotRepository: Repository<Forgot>,
-    @InjectRepository(Book)
+    @InjectRepository(PostEntity)
     private postRepository: Repository<PostEntity>,
   ) {}
 
@@ -41,6 +41,50 @@ export class UsersService {
     return this.usersRepository.save(
       this.usersRepository.create(createProfileDto),
     );
+  }
+
+  async deleteUserRelatedData(user: User): Promise<void> {
+    const userSubscribers = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.subscribers', 'subscriber')
+      .where('subscriber.id=:userId', { userId: user.id })
+      .getMany();
+
+    for (const subscriber of userSubscribers) {
+      await this.usersRepository
+        .createQueryBuilder('user')
+        .relation(User, 'subscribers')
+        .of(subscriber)
+        .remove(user);
+    }
+
+    await this.sessionRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Session)
+      .where('user = :userId', { userId: user.id })
+      .execute();
+
+    await this.bookRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Book)
+      .where('user=:userId', { userId: user.id })
+      .execute();
+
+    await this.forgotRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Forgot)
+      .where('user=:userId', { userId: user.id })
+      .execute();
+
+    await this.postRepository
+      .createQueryBuilder()
+      .delete()
+      .from(PostEntity)
+      .where('authorId=:userId', { userId: user.id })
+      .execute();
   }
 
   findManyWithPagination(
@@ -301,48 +345,17 @@ export class UsersService {
     if (!user) {
       throw createResponse(HttpStatus.NOT_FOUND, 'User not found.');
     }
-    const userSubscribers = await this.usersRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.subscribers', 'subscriber')
-      .where('subscriber.id=:userId', { userId: id })
-      .getMany();
-
-    for (const subscriber of userSubscribers) {
-      await this.usersRepository
-        .createQueryBuilder('user')
-        .relation(User, 'subscribers')
-        .of(subscriber)
-        .remove('user');
-    }
-
-    await this.sessionRepository
-      .createQueryBuilder()
-      .delete()
-      .from(Session)
-      .where('user = :userId', { userId: id })
-      .execute();
-
-    await this.bookRepository
-      .createQueryBuilder()
-      .delete()
-      .from(Book)
-      .where('user=:userId', { userId: id })
-      .execute();
-
-    await this.forgotRepository
-      .createQueryBuilder()
-      .delete()
-      .from(Forgot)
-      .where('user=:userId', { userId: id })
-      .execute();
-
-    await this.postRepository
-      .createQueryBuilder()
-      .delete()
-      .from(PostEntity)
-      .where('authorId=:userId', { userId: id })
-      .execute();
+    await this.deleteUserRelatedData(user);
 
     await this.usersRepository.remove(user);
+  }
+
+  async findAllDeletedUsers(): Promise<User[]> {
+    return this.usersRepository.find({
+      withDeleted: true,
+      where: {
+        deletedAt: Not(IsNull()),
+      },
+    });
   }
 }
