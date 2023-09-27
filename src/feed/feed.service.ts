@@ -1,23 +1,44 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { FeedEntity } from "./entities/feed.entities";
 import { Repository } from "typeorm";
-import { FeedDto } from "./dto/feed.dto";
+import { PostEntity } from "src/post/entities/post.entity";
+import { relative } from "path";
 
 @Injectable()
 export class FeedService {
     constructor(
-        @InjectRepository(FeedEntity)
-        private readonly feedReposity:  Repository<FeedEntity>,
-    ) {}
-        async GetPost(outputFeedDto: FeedDto ): Promise<FeedEntity[]>{
-            
-            return await this.feedReposity.find();
-
-        }
-
-
-
-
-
+        @InjectRepository(PostEntity)
+        private readonly postRepository: Repository<PostEntity>,
+      ) {}
+    
+      async getFeed() {
+        const feedItems = await this.postRepository.find({
+            order: { createdAt: 'DESC' },
+            relations: {
+                author: true,
+            },
+        });
+    
+        const formattedFeedItems = feedItems.map((item) => ({
+            id: item.id,
+            caption: item.caption,
+            imgUrl: item.imgUrl,
+            likeCount: Number,
+            commentsCount: Number,
+            createAt: item.createdAt,
+            author: {
+                id: item.author.id,
+                avatar: item.author.avatarUrl,
+                firstName: item.author.firstName,
+                lastName: item.author.lastName,
+            }
+        }));
+    console.log(formattedFeedItems)
+        return {
+            feedItems: formattedFeedItems,
+        };
+    }
+    
 }
+
+
