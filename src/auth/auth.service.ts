@@ -32,10 +32,10 @@ import { AllConfigType } from 'src/config/config.type';
 import { SessionService } from 'src/session/session.service';
 import { JwtRefreshPayloadType } from './strategies/types/jwt-refresh-payload.type';
 import { Session } from 'src/session/entities/session.entity';
-import { JwtPayloadType } from './strategies/types/jwt-payload.type';
-// import { session } from 'passport';
+
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
+import { createResponse } from 'src/helpers/response-helpers';
 
 @Injectable()
 export class AuthService {
@@ -52,6 +52,17 @@ export class AuthService {
     loginDto: AuthEmailLoginDto,
     onlyAdmin: boolean,
   ): Promise<LoginResponseType> {
+    const deletedUser = await this.usersService.findDeletedUserByCondition({
+      email: loginDto.email,
+    });
+
+    if (deletedUser) {
+      throw createResponse(
+        HttpStatus.FORBIDDEN,
+        'Account was deleted. Do you want to restore?',
+      );
+    }
+
     const user = await this.usersService.findOne({
       email: loginDto.email,
     });
@@ -411,12 +422,6 @@ export class AuthService {
     await this.forgotService.softDelete(forgot.id);
   }
 
-  async me(userJwtPayload: JwtPayloadType): Promise<NullableType<User>> {
-    return this.usersService.findOne({
-      id: userJwtPayload.id,
-    });
-  }
-
   async refreshToken(
     data: Pick<JwtRefreshPayloadType, 'sessionId'>,
   ): Promise<Omit<LoginResponseType, 'user'>> {
@@ -499,5 +504,55 @@ export class AuthService {
       refreshToken,
       tokenExpires,
     };
+  }
+
+  async restoringUser(data: AuthRegisterLoginDto) {
+    const deletedUser = await this.usersService.findDeletedUserByCondition({
+      email: data.email,
+    });
+
+    if (!deletedUser) {
+      throw createResponse(HttpStatus.FORBIDDEN, 'Account not found');
+    }
+
+    const hash = crypto
+      .createHash('sha256')
+      .update(randomStringGenerator())
+      .digest('hex')
+      .slice(-6);
+
+    await this.mailService.userSignUp({
+      to: data.email,
+      data: {
+        hash,
+      },
+    });
+    deletedUser.hash = hash;
+    await deletedUser.save();
+
+    return createResponse(
+      HttpStatus.OK,
+      'A recovery code was sent to your e-mail',
+      false,
+    );
+  }
+
+  async confirmRestoringUser(hash: string) {
+    const existingUser = await this.usersService.findDeletedUserByCondition({
+      hash: hash,
+    });
+
+    if (!existingUser) {
+      throw createResponse(HttpStatus.FORBIDDEN, 'Wrong hash');
+    }
+
+    await this.usersService.restoringUser(existingUser.id);
+    existingUser.hash = null;
+
+    return createResponse(
+      HttpStatus.OK,
+      'Account recovery was successful',
+      false,
+    );
   }
 }
