@@ -150,9 +150,14 @@ export class AuthService {
       const secret = this.configService.getOrThrow('auth.secret', {
         infer: true,
       });
+      const tokenExpiresIn = this.configService.getOrThrow('auth.expires', {
+        infer: true,
+      });
+      const tokenExpires = Date.now() + ms(tokenExpiresIn);
+
       const restoreToken = this.jwtService.signAsync(
         { id: deletedUser.id },
-        { secret },
+        { secret, expiresIn: tokenExpires },
       );
       return { response, restoreToken };
     }
