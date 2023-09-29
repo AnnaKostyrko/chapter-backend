@@ -10,6 +10,8 @@ import {
   Delete,
   SerializeOptions,
   Param,
+  Res,
+  Get,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -25,6 +27,9 @@ import { User } from '../users/entities/user.entity';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
 
+import { Response, Request as req } from 'express';
+import { NullableType } from '../utils/types/nullable.type';
+
 @ApiTags('Auth')
 @Controller({
   path: 'auth',
@@ -38,10 +43,20 @@ export class AuthController {
   })
   @Post('email/login')
   @HttpCode(HttpStatus.OK)
-  public login(
+  public async login(
     @Body() loginDto: AuthEmailLoginDto,
-  ): Promise<LoginResponseType> {
-    return this.service.validateLogin(loginDto, false);
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<object> {
+    const loginResponse = await this.service.validateLogin(loginDto, false);
+    response.cookie('refresh_token', loginResponse.refreshToken, {
+      httpOnly: true,
+    });
+
+    return {
+      token: loginResponse.token,
+      tokenExpires: loginResponse.tokenExpires,
+      user: loginResponse.user,
+    };
   }
 
   @SerializeOptions({
@@ -64,11 +79,10 @@ export class AuthController {
   @Patch('refresh-unique-token')
   @HttpCode(HttpStatus.NO_CONTENT)
   async refreshToken(
-    @Body() createUserDto: AuthRegisterLoginDto
-    ): Promise<void> {
-  await this.service.resendConfirmationCode(createUserDto.email);
+    @Body() createUserDto: AuthRegisterLoginDto,
+  ): Promise<void> {
+    await this.service.resendConfirmationCode(createUserDto.email);
   }
-  
 
   @Post('email/confirm')
   @HttpCode(HttpStatus.OK)
@@ -77,7 +91,6 @@ export class AuthController {
     description: 'Ok',
     type: User,
   })
-  
   async confirmEmail(
     @Body() confirmEmailDto: AuthConfirmEmailDto,
   ): Promise<{ id: number }> {
@@ -113,18 +126,52 @@ export class AuthController {
   @SerializeOptions({
     groups: ['me'],
   })
-  @Post('refresh')
-  @UseGuards(AuthGuard('jwt-refresh'))
+  @Get('me')
+  @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.OK)
-  public refresh(@Request() request): Promise<Omit<LoginResponseType, 'user'>> {
-    return this.service.refreshToken(request.user.sessionId);
+  public me(@Request() request): Promise<NullableType<User>> {
+    return this.service.me(request.user);
+  }
+
+  @SerializeOptions({
+    groups: ['me'],
+  })
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  public async refresh(
+    @Request() request: req,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const refreshToken = request.cookies.refresh_token;
+    const refreshResponse = await this.service.refreshToken(refreshToken);
+    if (refreshResponse.refreshToken) {
+      response.cookie('refresh_token', refreshResponse.refreshToken, {
+        httpOnly: true,
+      });
+
+      return {
+        token: refreshResponse.token,
+        tokenExpires: refreshResponse.tokenExpires,
+      };
+    } else {
+      response.status(HttpStatus.UNAUTHORIZED).send('Failed to refresh token');
+    }
+    return {
+      token: refreshResponse.token,
+      tokenExpires: refreshResponse.tokenExpires,
+    };
   }
 
   @ApiBearerAuth()
   @Post('logout')
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.NO_CONTENT)
-  public async logout(@Request() request): Promise<void> {
+  public async logout(
+    @Request() request,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<void> {
+    response.clearCookie('refresh_token');
+
     await this.service.logout({
       sessionId: request.user.sessionId,
     });

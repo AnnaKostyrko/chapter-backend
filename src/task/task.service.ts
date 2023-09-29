@@ -10,7 +10,7 @@ import { addDays } from 'date-fns';
 export class TaskService {
   constructor(
     @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    private usersRepository: Repository<User>,
     private usersService: UsersService,
   ) {}
 
@@ -19,15 +19,22 @@ export class TaskService {
     timeZone: 'Europe/Kyiv',
   })
   async handleCron(): Promise<void> {
-    const currentDate = new Date();
-    const thirtyDaysAgo = addDays(currentDate, -30);
+    try {
+      const currentDate = new Date();
 
-    const usersIncludingDeleted = await this.usersService.findAllDeletedUsers();
+      const thirtyDaysAgo = addDays(currentDate, -30);
 
-    for (const user of usersIncludingDeleted) {
-      if (user.deletedAt && user.deletedAt < thirtyDaysAgo) {
-        await this.userRepository.remove(user);
+      const usersIncludingDeleted =
+        await this.usersService.findAllDeletedUsers();
+
+      for (const user of usersIncludingDeleted) {
+        if (user.deletedAt && user.deletedAt < thirtyDaysAgo) {
+          await this.usersService.deleteUserRelatedData(user);
+          await this.usersRepository.remove(user);
+        }
       }
+    } catch (error) {
+      console.error('Error in handleCron:', error);
     }
   }
 }

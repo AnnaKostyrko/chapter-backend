@@ -13,6 +13,7 @@ import {
   HttpStatus,
   HttpCode,
   Request,
+  Put,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -84,10 +85,10 @@ export class UsersController {
     return this.usersService.update(request.user.id, updateProfileDto);
   }
 
-  @Delete(':id')
+  @Delete('me')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id') id: number): Promise<void> {
-    return this.usersService.softDelete(id);
+  remove(@Request() req): Promise<void> {
+    return this.usersService.softDelete(req.user.id);
   }
 
   @Post('subscribe-unsubscribe/:userId')
@@ -135,6 +136,14 @@ export class UsersController {
     );
   }
 
+  @Put(':bookId')
+  async updateBook(
+    @Param('bookId') bookId: number,
+    @Body() updateData: Partial<Book>,
+  ): Promise<Book> {
+    return this.usersService.updateBook(bookId, updateData);
+  }
+
   @Post('update-password')
   @ApiResponse({
     status: HttpStatus.OK,
@@ -144,6 +153,37 @@ export class UsersController {
     @Body() updatePasswordDto: UpdatePasswordDto,
   ) {
     return this.usersService.updatePassword(request.user.id, updatePasswordDto);
+  }
+
+  @Get('my-follow')
+  @ApiResponse({
+    content: {
+      'application/json': {
+        example: [
+          {
+            id: 1,
+            firstName: 'firstName',
+            lastName: 'lastName',
+          },
+          {
+            id: 2,
+            firstName: 'firstName',
+            lastName: 'lastName',
+          },
+        ],
+      },
+    },
+  })
+  async getMyFollow(
+    @Request() request,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ) {
+    return await this.usersService.getMyFollowWithPagination(
+      request.user.id,
+      page,
+      limit,
+    );
   }
 
   @Get('my-followers')

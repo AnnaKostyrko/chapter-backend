@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Req, Patch, Delete, Param } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req, Get, Patch, Delete, Param } from '@nestjs/common';
 import { PostService } from './post.service';
 import {
   ApiBearerAuth,
@@ -11,7 +11,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { PostEntity } from './entities/post.entity';
 import { User } from '../users/entities/user.entity';
 import { UpdatePostDto } from './dto/updatePost.dto';
-
 @ApiBearerAuth()
 @ApiTags('posts')
 @Controller()

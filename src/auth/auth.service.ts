@@ -36,9 +36,6 @@ import { JwtPayloadType } from './strategies/types/jwt-payload.type';
 // import { session } from 'passport';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
-import { async } from 'rxjs';
-import { error } from 'console';
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -207,7 +204,6 @@ export class AuthService {
   }
 
   async register(dto: AuthRegisterLoginDto): Promise<void> {
-
     const hash = crypto
       .createHash('sha256')
       .update(randomStringGenerator())
@@ -220,18 +216,14 @@ export class AuthService {
           throw new BadRequestException('Registration with this email is not possible because the account has been deleted, please restore your account or select another email');
       }
 
-      const existingUser = await this.usersService.findOne({ email: dto.email });
-
-      if (existingUser) {
-        const emailStatus = existingUser.status?.name;
-        throw new ConflictException(
-          {
+    const existingUser = await this.usersService.findOne({ email: dto.email });
+    if (existingUser) {
+      const emailStatus = existingUser.status?.name;
+      throw new ConflictException({
         error: `User with this email already exists. Email status:${emailStatus}`,
-        status: HttpStatus.UNPROCESSABLE_ENTITY        
-          } 
-        );
-      }
-      
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
+    }
     await this.usersService.create({
       ...dto,
       email: dto.email,
@@ -241,7 +233,7 @@ export class AuthService {
       status: {
         id: StatusEnum.inactive,
       } as Status,
-      hash
+      hash,
     });
 
     await this.mailService.userSignUp({
@@ -249,25 +241,25 @@ export class AuthService {
       data: {
         hash,
       },
-      
     });
   }
+
   async resendConfirmationCode(email: string): Promise<void> {
     const user = await this.usersService.findOne({ email });
-  
+
     if (!user) {
       throw new NotFoundException('User not found');
     }
-  
-    const hash = crypto
-    .createHash('sha256')
-    .update(randomStringGenerator())
-    .digest('hex')
-    .slice(-6);
 
-      user.hash = hash;
-      await user.save();
-  
+    const hash = crypto
+      .createHash('sha256')
+      .update(randomStringGenerator())
+      .digest('hex')
+      .slice(-6);
+
+    user.hash = hash;
+    await user.save();
+
     await this.mailService.userSignUp({
       to: email,
       data: {
@@ -275,20 +267,17 @@ export class AuthService {
       },
     });
     // Delay setting user.hash to null
-    setTimeout(async() => {
+    setTimeout(async () => {
+      const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 
-      const delay = (ms) => new Promise(res => setTimeout(res, ms));
-
-      await delay(15 * 60 * 1000); 
+      await delay(15 * 60 * 1000);
 
       user.hash = null;
       await user.save();
+    }, 15 * 60 * 1000);
+  }
 
-    }, 15 * 60 * 1000)}
- 
-
-  async confirmEmail(uniqueToken: string): Promise<{id:number}> {
-    
+  async confirmEmail(uniqueToken: string): Promise<{ id: number }> {
     const user = await this.usersService.findOne({
       hash: uniqueToken,
     });
@@ -306,17 +295,16 @@ export class AuthService {
     user.status = plainToClass(Status, {
       id: StatusEnum.active,
     });
-    user.hash = null; 
+    user.hash = null;
     await user.save();
-    return {id: user.id}
+    return { id: user.id };
   }
 
   async completeRegistration(
     userId: number,
     completeDto: UpdateUserRegisterDto,
   ): Promise<void> {
-
-  // Find a user by their id, with a filter on registration status
+    /// Find a user by their id, with a filter based on registration status
     const user = await this.usersService.findOne({
       id: userId,
     });
@@ -360,7 +348,6 @@ export class AuthService {
 
     await user.save();
   }
-   
 
   async forgotPassword(email: string): Promise<void> {
     const user = await this.usersService.findOne({
@@ -438,14 +425,42 @@ export class AuthService {
   async refreshToken(
     data: Pick<JwtRefreshPayloadType, 'sessionId'>,
   ): Promise<Omit<LoginResponseType, 'user'>> {
+    if (!data) {
+      throw new HttpException(
+        {
+          status: HttpStatus.UNAUTHORIZED,
+          errors: {
+            user: 'must be autorized',
+          },
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const secretKey = this.configService.getOrThrow('auth.refreshSecret', {
+      infer: true,
+    });
+    const verifyToken = this.jwtService.verify(data.toString(), {
+      secret: secretKey,
+    });
+    if (!verifyToken) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+
     const session = await this.sessionService.findOne({
       where: {
         id: data.sessionId,
       },
     });
-
     if (!session) {
       throw new UnauthorizedException();
+    }
+
+    const currentTime = Date.now() / 1000;
+
+    if (verifyToken.exp <= currentTime) {
+      await this.logout({ sessionId: session.id });
+      throw new UnauthorizedException('Refresh token has expired');
     }
 
     const { token, refreshToken, tokenExpires } = await this.getTokensData({
