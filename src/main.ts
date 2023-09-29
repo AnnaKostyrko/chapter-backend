@@ -11,13 +11,16 @@ import { AppModule } from './app.module';
 import validationOptions from './utils/validation-options';
 import { AllConfigType } from './config/config.type';
 
+import cookieParser from 'cookie-parser';
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use(cookieParser());
 
   app.enableCors({
-    origin: 'http://localhost:5173',
+    origin: ['https://localhost:5173', 'https://dev.chapter-web.com'],
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['*'],
     preflightContinue: false,
     optionsSuccessStatus: 204,
   });

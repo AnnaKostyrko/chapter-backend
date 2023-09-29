@@ -13,6 +13,7 @@ import {
   HttpStatus,
   HttpCode,
   Request,
+  Put,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -135,6 +136,14 @@ export class UsersController {
     );
   }
 
+  @Put(':bookId')
+  async updateBook(
+    @Param('bookId') bookId: number,
+    @Body() updateData: Partial<Book>,
+  ): Promise<Book> {
+    return this.usersService.updateBook(bookId, updateData);
+  }
+
   @Post('update-password')
   @ApiResponse({
     status: HttpStatus.OK,
@@ -170,7 +179,7 @@ export class UsersController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
   ) {
-    return this.usersService.getMyFollowWithPagination(
+    return await this.usersService.getMyFollowWithPagination(
       request.user.id,
       page,
       limit,

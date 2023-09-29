@@ -443,14 +443,42 @@ export class AuthService {
   async refreshToken(
     data: Pick<JwtRefreshPayloadType, 'sessionId'>,
   ): Promise<Omit<LoginResponseType, 'user'>> {
+    if (!data) {
+      throw new HttpException(
+        {
+          status: HttpStatus.UNAUTHORIZED,
+          errors: {
+            user: 'must be autorized',
+          },
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const secretKey = this.configService.getOrThrow('auth.refreshSecret', {
+      infer: true,
+    });
+    const verifyToken = this.jwtService.verify(data.toString(), {
+      secret: secretKey,
+    });
+    if (!verifyToken) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+
     const session = await this.sessionService.findOne({
       where: {
         id: data.sessionId,
       },
     });
-
     if (!session) {
       throw new UnauthorizedException();
+    }
+
+    const currentTime = Date.now() / 1000;
+
+    if (verifyToken.exp <= currentTime) {
+      await this.logout({ sessionId: session.id });
+      throw new UnauthorizedException('Refresh token has expired');
     }
 
     const { token, refreshToken, tokenExpires } = await this.getTokensData({

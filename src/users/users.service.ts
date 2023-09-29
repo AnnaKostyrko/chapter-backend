@@ -291,6 +291,16 @@ export class UsersService {
     return book;
   }
 
+  async updateBook(id: number, updateData: Partial<Book>): Promise<Book> {
+    await this.bookRepository.update(id, updateData);
+
+    const updatedBook = await this.bookRepository.findOne({ where: { id } });
+    if (!updatedBook) {
+      throw new Error('Book not found');
+    }
+    return updatedBook;
+  }
+
   async updatePassword(userId: number, updtePasswordDto: UpdatePasswordDto) {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
 
