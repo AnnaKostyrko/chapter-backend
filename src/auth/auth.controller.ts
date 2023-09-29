@@ -10,7 +10,6 @@ import {
   SerializeOptions,
   Param,
   Res,
-  Get,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
