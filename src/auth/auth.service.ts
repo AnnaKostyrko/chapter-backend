@@ -36,7 +36,6 @@ import { JwtPayloadType } from './strategies/types/jwt-payload.type';
 // import { session } from 'passport';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -420,12 +419,39 @@ export class AuthService {
   async refreshToken(
     data: Pick<JwtRefreshPayloadType, 'sessionId'>,
   ): Promise<Omit<LoginResponseType, 'user'>> {
+    if (!data) {
+      throw new HttpException(
+        {
+          status: HttpStatus.UNAUTHORIZED,
+          errors: {
+            user: 'must be autorized',
+          },
+        },
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const secretKey = this.configService.getOrThrow('auth.refreshSecret', {
+      infer: true,
+    });
+    const verifyToken = this.jwtService.verify(data.toString(), {
+      secret: secretKey,
+    });
+    if (!verifyToken) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+
+    const currentTime = new Date().getTime();
+    if (verifyToken.exp <= currentTime) {
+      await this.logout(data);
+      throw new UnauthorizedException('Refresh token has expired');
+    }
+
     const session = await this.sessionService.findOne({
       where: {
         id: data.sessionId,
       },
     });
-
     if (!session) {
       throw new UnauthorizedException();
     }
