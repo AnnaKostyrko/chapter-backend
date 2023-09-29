@@ -441,12 +441,6 @@ export class AuthService {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
 
-    const currentTime = new Date().getTime();
-    if (verifyToken.exp <= currentTime) {
-      await this.logout(data);
-      throw new UnauthorizedException('Refresh token has expired');
-    }
-
     const session = await this.sessionService.findOne({
       where: {
         id: data.sessionId,
@@ -454,6 +448,13 @@ export class AuthService {
     });
     if (!session) {
       throw new UnauthorizedException();
+    }
+
+    const currentTime = Date.now() / 1000;
+
+    if (verifyToken.exp <= currentTime) {
+      await this.logout({ sessionId: session.id });
+      throw new UnauthorizedException('Refresh token has expired');
     }
 
     const { token, refreshToken, tokenExpires } = await this.getTokensData({
