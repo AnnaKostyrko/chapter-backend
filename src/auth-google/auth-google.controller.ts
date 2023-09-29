@@ -20,7 +20,7 @@ export class AuthGoogleController {
   @HttpCode(HttpStatus.OK)
   async login(
     @Body() loginDto: AuthGoogleLoginDto,
-  ): Promise<LoginResponseType> {
+  ): Promise<LoginResponseType | object> {
     const socialData = await this.authGoogleService.getProfileByToken(loginDto);
     return this.authService.validateSocialLogin('google', socialData);
   }

@@ -135,9 +135,27 @@ export class AuthService {
   async validateSocialLogin(
     authProvider: string,
     socialData: SocialInterface,
-  ): Promise<LoginResponseType> {
+  ): Promise<LoginResponseType | object> {
     let user: NullableType<User>;
     const socialEmail = socialData.email?.toLowerCase();
+
+    const deletedUser = await this.usersService.findDeletedUserByCondition({
+      email: socialEmail,
+    });
+    if (deletedUser) {
+      const response = createResponse(
+        HttpStatus.FORBIDDEN,
+        'Account was deleted. Do you want to restore?',
+      );
+      const secret = this.configService.getOrThrow('auth.secret', {
+        infer: true,
+      });
+      const restoreToken = this.jwtService.signAsync(
+        { id: deletedUser.id },
+        { secret },
+      );
+      return { response, restoreToken };
+    }
 
     const userByEmail = await this.usersService.findOne({
       email: socialEmail,
@@ -548,6 +566,24 @@ export class AuthService {
 
     await this.usersService.restoringUser(existingUser.id);
     existingUser.hash = null;
+
+    return createResponse(
+      HttpStatus.OK,
+      'Account recovery was successful',
+      false,
+    );
+  }
+
+  async restoringUserByGoogle(id: number) {
+    const existingUser = await this.usersService.findDeletedUserByCondition({
+      id,
+    });
+
+    if (!existingUser) {
+      throw createResponse(HttpStatus.FORBIDDEN, 'User not found');
+    }
+
+    await this.usersService.restoringUser(existingUser.id);
 
     return createResponse(
       HttpStatus.OK,

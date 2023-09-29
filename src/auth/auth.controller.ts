@@ -138,4 +138,12 @@ export class AuthController {
   async confirmRestoringUser(@Body() data: AuthConfirmEmailDto) {
     return await this.service.confirmRestoringUser(data.hash);
   }
+
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @HttpCode(HttpStatus.OK)
+  @Post('restoring-user-by-google')
+  async restoringUserByGoogle(@Request() request) {
+    return await this.service.restoringUserByGoogle(request.user.id);
+  }
 }
