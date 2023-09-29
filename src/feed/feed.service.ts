@@ -33,7 +33,7 @@ export class FeedService {
                 lastName: item.author.lastName,
             }
         }));
-    console.log(formattedFeedItems)
+          console.log(formattedFeedItems)
         return {
             feedItems: formattedFeedItems,
         };

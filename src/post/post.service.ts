@@ -50,4 +50,10 @@ export class PostService {
      await this.postRepository.remove(post);
   }
   
+  async getPostsByAuthor(author: User): Promise<PostEntity[]> {
+    return await this.postRepository.find({
+      where: { author: author.posts },
+      order: { createdAt: 'DESC' },
+    });
+  }
 }
