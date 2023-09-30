@@ -36,6 +36,7 @@ import { Session } from 'src/session/entities/session.entity';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
 import { createResponse } from 'src/helpers/response-helpers';
+import { deletedAccountMessage } from 'src/helpers/messages/messages';
 
 @Injectable()
 export class AuthService {
@@ -57,10 +58,7 @@ export class AuthService {
     });
 
     if (deletedUser) {
-      throw createResponse(
-        HttpStatus.FORBIDDEN,
-        'Account was deleted. Do you want to restore?',
-      );
+      throw createResponse(HttpStatus.FORBIDDEN, deletedAccountMessage);
     }
 
     const user = await this.usersService.findOne({
@@ -142,10 +140,11 @@ export class AuthService {
     const deletedUser = await this.usersService.findDeletedUserByCondition({
       email: socialEmail,
     });
+
     if (deletedUser) {
       const response = createResponse(
         HttpStatus.FORBIDDEN,
-        'Account was deleted. Do you want to restore?',
+        deletedAccountMessage,
       );
       const secret = this.configService.getOrThrow('auth.secret', {
         infer: true,
