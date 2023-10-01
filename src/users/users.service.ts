@@ -106,6 +106,18 @@ export class UsersService {
     });
   }
 
+  async findDeletedUserByCondition(
+    fields: EntityCondition<User>,
+  ): Promise<User | null> {
+    return this.usersRepository.findOne({
+      withDeleted: true,
+      where: {
+        ...fields,
+        deletedAt: Not(IsNull()),
+      },
+    });
+  }
+
   async update(
     userId: number,
     updateProfileDto: DeepPartial<User>,
@@ -407,5 +419,9 @@ export class UsersService {
         deletedAt: Not(IsNull()),
       },
     });
+  }
+
+  async restoringUser(id: number) {
+    await this.usersRepository.restore(id);
   }
 }

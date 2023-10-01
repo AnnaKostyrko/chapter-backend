@@ -141,7 +141,7 @@ export class UsersController {
     @Param('bookId') bookId: number,
     @Body() updateData: Partial<Book>,
   ): Promise<Book> {
-    return this.usersService.updateBook(bookId, updateData);
+    return await this.usersService.updateBook(bookId, updateData);
   }
 
   @Post('update-password')

@@ -32,10 +32,12 @@ import { AllConfigType } from 'src/config/config.type';
 import { SessionService } from 'src/session/session.service';
 import { JwtRefreshPayloadType } from './strategies/types/jwt-refresh-payload.type';
 import { Session } from 'src/session/entities/session.entity';
-import { JwtPayloadType } from './strategies/types/jwt-payload.type';
-// import { session } from 'passport';
+
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
+import { createResponse } from 'src/helpers/response-helpers';
+import { deletedAccountMessage } from 'src/helpers/messages/messages';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -51,6 +53,14 @@ export class AuthService {
     loginDto: AuthEmailLoginDto,
     onlyAdmin: boolean,
   ): Promise<LoginResponseType> {
+    const deletedUser = await this.usersService.findDeletedUserByCondition({
+      email: loginDto.email,
+    });
+
+    if (deletedUser) {
+      throw createResponse(HttpStatus.FORBIDDEN, deletedAccountMessage);
+    }
+
     const user = await this.usersService.findOne({
       email: loginDto.email,
     });
@@ -123,9 +133,33 @@ export class AuthService {
   async validateSocialLogin(
     authProvider: string,
     socialData: SocialInterface,
-  ): Promise<LoginResponseType> {
+  ): Promise<LoginResponseType | object> {
     let user: NullableType<User>;
     const socialEmail = socialData.email?.toLowerCase();
+
+    const deletedUser = await this.usersService.findDeletedUserByCondition({
+      email: socialEmail,
+    });
+
+    if (deletedUser) {
+      const response = createResponse(
+        HttpStatus.FORBIDDEN,
+        deletedAccountMessage,
+      );
+      const secret = this.configService.getOrThrow('auth.secret', {
+        infer: true,
+      });
+      const tokenExpiresIn = this.configService.getOrThrow('auth.expires', {
+        infer: true,
+      });
+      const tokenExpires = Date.now() + ms(tokenExpiresIn);
+
+      const restoreToken = this.jwtService.signAsync(
+        { id: deletedUser.id },
+        { secret, expiresIn: tokenExpires },
+      );
+      return { response, restoreToken };
+    }
 
     const userByEmail = await this.usersService.findOne({
       email: socialEmail,
@@ -410,12 +444,6 @@ export class AuthService {
     await this.forgotService.softDelete(forgot.id);
   }
 
-  async me(userJwtPayload: JwtPayloadType): Promise<NullableType<User>> {
-    return this.usersService.findOne({
-      id: userJwtPayload.id,
-    });
-  }
-
   async refreshToken(
     data: Pick<JwtRefreshPayloadType, 'sessionId'>,
   ): Promise<Omit<LoginResponseType, 'user'>> {
@@ -526,5 +554,73 @@ export class AuthService {
       refreshToken,
       tokenExpires,
     };
+  }
+
+  async restoringUser(data: AuthRegisterLoginDto) {
+    const deletedUser = await this.usersService.findDeletedUserByCondition({
+      email: data.email,
+    });
+
+    if (!deletedUser) {
+      throw createResponse(HttpStatus.FORBIDDEN, 'Account not found');
+    }
+
+    const hash = crypto
+      .createHash('sha256')
+      .update(randomStringGenerator())
+      .digest('hex')
+      .slice(-6);
+
+    await this.mailService.userSignUp({
+      to: data.email,
+      data: {
+        hash,
+      },
+    });
+    deletedUser.hash = hash;
+    await deletedUser.save();
+
+    return createResponse(
+      HttpStatus.OK,
+      'A recovery code was sent to your e-mail',
+      false,
+    );
+  }
+
+  async confirmRestoringUser(hash: string) {
+    const existingUser = await this.usersService.findDeletedUserByCondition({
+      hash: hash,
+    });
+
+    if (!existingUser) {
+      throw createResponse(HttpStatus.FORBIDDEN, 'Wrong hash');
+    }
+
+    await this.usersService.restoringUser(existingUser.id);
+    existingUser.hash = null;
+
+    return createResponse(
+      HttpStatus.OK,
+      'Account recovery was successful',
+      false,
+    );
+  }
+
+  async restoringUserByGoogle(id: number) {
+    const existingUser = await this.usersService.findDeletedUserByCondition({
+      id,
+    });
+
+    if (!existingUser) {
+      throw createResponse(HttpStatus.FORBIDDEN, 'User not found');
+    }
+
+    await this.usersService.restoringUser(existingUser.id);
+
+    return createResponse(
+      HttpStatus.OK,
+      'Account recovery was successful',
+      false,
+    );
   }
 }
