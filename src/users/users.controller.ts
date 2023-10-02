@@ -13,7 +13,6 @@ import {
   HttpStatus,
   HttpCode,
   Request,
-  Put,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -136,7 +135,7 @@ export class UsersController {
     );
   }
 
-  @Put(':bookId')
+  @Patch(':bookId')
   async updateBook(
     @Param('bookId') bookId: number,
     @Body() updateData: Partial<Book>,
