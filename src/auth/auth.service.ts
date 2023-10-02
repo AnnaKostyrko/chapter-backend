@@ -281,7 +281,7 @@ export class AuthService {
     }, 15 * 60 * 1000)}
  
 
-  async confirmEmail(uniqueToken: string): Promise<{id:number}> {
+  async confirmEmail(uniqueToken: string,): Promise<{token: string}> {
     
     const user = await this.usersService.findOne({
       hash: uniqueToken,
@@ -300,9 +300,26 @@ export class AuthService {
     user.status = plainToClass(Status, {
       id: StatusEnum.active,
     });
+
+
     user.hash = null; 
     await user.save();
-    return {id: user.id}
+    
+    // Is generated random JwT tokeb for security our path
+    const secret =  this.configService.getOrThrow('auth.secret', { infer: true }
+    )
+
+
+    const token = await this.jwtService.signAsync({
+       id: user.id, 
+       },{
+        secret: secret, // Use the secret key here
+        expiresIn:  "1h"  // Set an expiration time for the token (e.g., 1 hour)
+      }); 
+
+    return {
+       token
+    }
   }
 
   async completeRegistration(

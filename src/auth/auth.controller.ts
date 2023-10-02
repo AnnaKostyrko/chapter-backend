@@ -80,16 +80,18 @@ export class AuthController {
   
   async confirmEmail(
     @Body() confirmEmailDto: AuthConfirmEmailDto,
-  ): Promise<{ id: number }> {
+  ): Promise<{ token: string }> {
     return await this.service.confirmEmail(confirmEmailDto.hash);
   }
 
+  @ApiBearerAuth()
   @Patch('email/register/finaly/:id')
+  @UseGuards(AuthGuard('jwt'))
   async completeRegistration(
-    @Param('id') userId: number, // Отримуємо id з параметра маршруту
     @Body() completeDto: UpdateUserRegisterDto,
+    @Request() req,
   ): Promise<void> {
-    return await this.service.completeRegistration(userId, completeDto);
+    return await this.service.completeRegistration(req.user.id, completeDto);
   }
 
   @Post('forgot/password')
