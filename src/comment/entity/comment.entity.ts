@@ -6,11 +6,13 @@ import {
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { PostEntity } from '../../post/entities/post.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
 import { EntityHelper } from '../../utils/entity-helper';
+import { Like } from '../../like/entity/like.entity';
 
 @Entity()
 export class CommentEntity extends EntityHelper {
@@ -49,4 +51,7 @@ export class CommentEntity extends EntityHelper {
   @UpdateDateColumn()
   @ApiProperty()
   updatedAt: Date;
+
+  @OneToMany(() => Like, (like) => like.post)
+  likes: Like[];
 }

@@ -11,6 +11,7 @@ import { PostEntity } from '../../post/entities/post.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
 import { EntityHelper } from '../../utils/entity-helper';
+import { CommentEntity } from '../../comment/entity/comment.entity';
 
 @Entity()
 export class Like extends EntityHelper {
@@ -21,6 +22,12 @@ export class Like extends EntityHelper {
   @ManyToOne(() => PostEntity, (post) => post.likes, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'postId' })
   post: PostEntity;
+
+  @ManyToOne(() => CommentEntity, (comment) => comment.likes, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'postId' })
+  comment: PostEntity;
 
   @Column()
   @ApiProperty()
