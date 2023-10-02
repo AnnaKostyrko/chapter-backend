@@ -154,7 +154,7 @@ export class AuthService {
       });
       const tokenExpires = Date.now() + ms(tokenExpiresIn);
 
-      const restoreToken = this.jwtService.signAsync(
+      const restoreToken = await this.jwtService.signAsync(
         { id: deletedUser.id },
         { secret, expiresIn: tokenExpires },
       );
