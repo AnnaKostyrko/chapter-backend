@@ -23,9 +23,9 @@ export class UpdateUserRegisterDto {
   @ApiProperty({example: 'string'})
   @MinLength(8)
   password: string;
-  
+
   @IsNotEmpty()
   @ApiProperty()
-  @MinLength(6)
+  @MinLength(8)
   confirmPassword: string;
 }
