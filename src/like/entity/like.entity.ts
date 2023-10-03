@@ -26,7 +26,7 @@ export class Like extends EntityHelper {
   @ManyToOne(() => CommentEntity, (comment) => comment.likes, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn({ name: 'postId' })
+  @JoinColumn({ name: 'comment' })
   comment: PostEntity;
 
   @Column()

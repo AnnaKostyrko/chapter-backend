@@ -52,6 +52,6 @@ export class CommentEntity extends EntityHelper {
   @ApiProperty()
   updatedAt: Date;
 
-  @OneToMany(() => Like, (like) => like.post)
+  @OneToMany(() => Like, (like) => like.comment)
   likes: Like[];
 }
