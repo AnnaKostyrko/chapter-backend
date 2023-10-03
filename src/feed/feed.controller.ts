@@ -1,7 +1,7 @@
 import { Body, Controller, Get} from "@nestjs/common";
-import { FeedService } from "./feed.service";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
-
+import { FeedService } from "./feed.service";
+// import { FeedGateway } from "./feed.gateway";
 @ApiTags('feed')
 @Controller()
 export class FeedController{
@@ -11,6 +11,10 @@ export class FeedController{
   @ApiOperation({ summary: 'Get a feed' })
   @Get('feed')
   getFeed() {
-    return this.feedService.getFeed();
+
+    // const feed = this.feedService.getFeed();
+    // this.FeedGateway.emit("FeedUpdate", feed)
+
+    return this.feedService.getFeed()
   }
 }
