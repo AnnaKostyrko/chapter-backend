@@ -112,7 +112,18 @@ export class UsersService {
       where: {
         email: email,
         deletedAt: Not(IsNull())
-      }
+      }})
+    }
+    
+  async findDeletedUserByCondition(
+    fields: EntityCondition<User>,
+  ): Promise<User | null> {
+    return this.usersRepository.findOne({
+      withDeleted: true,
+      where: {
+        ...fields,
+        deletedAt: Not(IsNull()),
+      },
     });
   }
 
@@ -417,5 +428,9 @@ export class UsersService {
         deletedAt: Not(IsNull()),
       },
     });
+  }
+
+  async restoringUser(id: number) {
+    await this.usersRepository.restore(id);
   }
 }

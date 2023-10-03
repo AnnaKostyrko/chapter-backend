@@ -7,11 +7,9 @@ import {
   Post,
   UseGuards,
   Patch,
-  Delete,
   SerializeOptions,
   Param,
   Res,
-  Get,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -28,7 +26,6 @@ import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
 
 import { Response, Request as req } from 'express';
-import { NullableType } from '../utils/types/nullable.type';
 
 @ApiTags('Auth')
 @Controller({
@@ -126,16 +123,6 @@ export class AuthController {
   @SerializeOptions({
     groups: ['me'],
   })
-  @Get('me')
-  @UseGuards(AuthGuard('jwt'))
-  @HttpCode(HttpStatus.OK)
-  public me(@Request() request): Promise<NullableType<User>> {
-    return this.service.me(request.user);
-  }
-
-  @SerializeOptions({
-    groups: ['me'],
-  })
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   public async refresh(
@@ -177,11 +164,23 @@ export class AuthController {
     });
   }
 
+  @HttpCode(HttpStatus.OK)
+  @Post('restoring-user')
+  async restoringUser(@Body() restoringDto: AuthRegisterLoginDto) {
+    return await this.service.restoringUser(restoringDto);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('confirm-restoring-user')
+  async confirmRestoringUser(@Body() data: AuthConfirmEmailDto) {
+    return await this.service.confirmRestoringUser(data.hash);
+  }
+
   @ApiBearerAuth()
-  @Delete('me')
   @UseGuards(AuthGuard('jwt'))
-  @HttpCode(HttpStatus.NO_CONTENT)
-  public async delete(@Request() request): Promise<void> {
-    return this.service.softDelete(request.user);
+  @HttpCode(HttpStatus.OK)
+  @Post('restoring-user-by-google')
+  async restoringUserByGoogle(@Request() request) {
+    return await this.service.restoringUserByGoogle(request.user.id);
   }
 }
