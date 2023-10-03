@@ -6,7 +6,7 @@ export const createResponse = (
   isError: boolean = true,
 ) => {
   if (isError) {
-    return new HttpException({ status, error: message }, status);
+    throw new HttpException({ status, error: message }, status);
   } else {
     return {
       status,
