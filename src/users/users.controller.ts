@@ -143,6 +143,11 @@ export class UsersController {
     return await this.usersService.updateBook(bookId, updateData);
   }
 
+  @Delete(':bookId')
+  async deleteBook(@Param('bookId') bookId: number): Promise<void> {
+    return await this.usersService.deleteBook(bookId);
+  }
+
   @Post('update-password')
   @ApiResponse({
     status: HttpStatus.OK,

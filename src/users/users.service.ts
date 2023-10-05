@@ -314,6 +314,13 @@ export class UsersService {
     return updatedBook;
   }
 
+  async deleteBook(id: number): Promise<void> {
+    const result = await this.bookRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException('Book not found');
+    }
+  }
+
   async updatePassword(userId: number, updtePasswordDto: UpdatePasswordDto) {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
 
