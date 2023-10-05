@@ -28,7 +28,6 @@ import { SessionModule } from './session/session.module';
 import { MailerModule } from './mailer/mailer.module';
 import { PostModule } from './post/post.module';
 import { TaskModule } from './task/task.module';
-import { FeedModule } from './feed/feed.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
@@ -89,7 +88,6 @@ import { ScheduleModule } from '@nestjs/schedule';
     MailerModule,
     HomeModule,
     PostModule,
-    FeedModule,
     TaskModule,
   ],
 })
