@@ -30,6 +30,9 @@ import { CreateBookDto } from './dto/create-book.dto';
 import { Book } from './entities/book.entity';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { GuestUserInfoResponse } from 'src/response-example/GuestUserInfoResponse';
+import { Roles } from 'src/roles/roles.decorator';
+import { RoleEnum } from 'src/roles/roles.enum';
+import { RolesGuard } from 'src/roles/roles.guard';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
@@ -81,10 +84,10 @@ export class UsersController {
     return this.usersService.update(request.user.id, updateProfileDto);
   }
 
-  @Delete(':id')
+  @Delete('me')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id') id: number): Promise<void> {
-    return this.usersService.softDelete(id);
+  remove(@Request() req): Promise<void> {
+    return this.usersService.softDelete(req.user.id);
   }
 
   @Post('subscribe-unsubscribe/:userId')
@@ -132,6 +135,14 @@ export class UsersController {
     );
   }
 
+  @Patch(':bookId')
+  async updateBook(
+    @Param('bookId') bookId: number,
+    @Body() updateData: Partial<Book>,
+  ): Promise<Book> {
+    return await this.usersService.updateBook(bookId, updateData);
+  }
+
   @Delete(':bookId')
   async deleteBook(@Param('bookId') bookId: number): Promise<void> {
     return await this.usersService.deleteBook(bookId);
@@ -172,10 +183,31 @@ export class UsersController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
   ) {
-    return this.usersService.getMyFollowWithPagination(
+    return await this.usersService.getMyFollowWithPagination(
       request.user.id,
       page,
       limit,
     );
+  }
+
+  @Get('my-followers')
+  async getMyFollowers(
+    @Request() request,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ): Promise<object> {
+    return await this.usersService.getMyFollowersWithPagination(
+      request.user.id,
+      page,
+      limit,
+    );
+  }
+
+  @Delete('delete-by-admin/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(RolesGuard)
+  @Roles(RoleEnum.admin)
+  async deleteUser(@Param('id') userId: number): Promise<void> {
+    return await this.usersService.deleteUser(userId);
   }
 }
