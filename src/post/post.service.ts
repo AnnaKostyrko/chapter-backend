@@ -11,6 +11,8 @@ export class PostService {
   constructor(
     @InjectRepository(PostEntity)
     private readonly postRepository: Repository<PostEntity>,
+    @InjectRepository(User)
+    private usersRepository: Repository<User>,
   ) {}
 
   async create(author: User, createPostDto: PostDto) {
@@ -25,35 +27,34 @@ export class PostService {
   }
 
   async updatePost(
-     postId:number,
-     updatePostDto: UpdatePostDto
-      ): Promise<void> {
+    postId: number,
+    updatePostDto: UpdatePostDto,
+  ): Promise<void> {
+    const post = await this.postRepository.findOne({ where: { id: postId } });
 
-    const post = await this.postRepository.findOne( {where: { id: postId}})
-    
-    if (!post) { 
+    if (!post) {
       throw new NotFoundException(`Post with ID ${postId} not found`);
     }
- 
+
     post.caption = updatePostDto.caption;
 
-     await this.postRepository.save(post);
+    await this.postRepository.save(post);
   }
-  
+
   async deletePost(postId: number): Promise<void> {
-    const post = await this.postRepository.findOne({where: { id: postId}});
-  
+    const post = await this.postRepository.findOne({ where: { id: postId } });
+
     if (!post) {
       throw createResponse(HttpStatus.NOT_FOUND, 'Post not found.');
     }
-  
-     await this.postRepository.remove(post);
+
+    await this.postRepository.remove(post);
   }
-  
-  async getPostsByAuthor(author: User): Promise<PostEntity[]> {
-    return await this.postRepository.find({
-      where: { author: author.posts },
-      order: { createdAt: 'DESC' },
-    });
-  }
+
+  // async getPostsByAuthor(author: User): Promise<PostEntity[]> {
+  //   return await this.postRepository.find({
+  //     where: { author: author.posts },
+  //     order: { createdAt: 'DESC' },
+  //   });
+  // }
 }

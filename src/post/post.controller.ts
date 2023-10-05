@@ -1,4 +1,13 @@
-import { Controller, Post, Body, UseGuards, Req, Get, Patch, Delete, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Req,
+  Patch,
+  Delete,
+  Param,
+} from '@nestjs/common';
 import { PostService } from './post.service';
 import {
   ApiBearerAuth,
@@ -35,10 +44,9 @@ export class PostController {
   @Patch('update/:id')
   async updatePost(
     @Param('id') postId: number,
-    @Body() updatePostDto: UpdatePostDto
+    @Body() updatePostDto: UpdatePostDto,
   ): Promise<void> {
-    
-   await this.postService.updatePost(postId, updatePostDto);
+    await this.postService.updatePost(postId, updatePostDto);
   }
 
   @ApiOperation({ summary: 'delete a post' })
@@ -48,6 +56,14 @@ export class PostController {
     return await this.postService.deletePost(postId);
   }
 
-
-
+  // @ApiOperation({ summary: 'Get posts by author' })
+  // @ApiResponse({ status: 200, description: 'OK', type: [PostEntity] })
+  // @Get('by-author')
+  // @UseGuards(AuthGuard('jwt'))
+  // async getPostsByAuthor(@Req() req: Request): Promise<PostEntity[]> {
+  //   const currentUser: User = req.user as User;
+  //   console.log(currentUser);
+  //   const userId = currentUser.id;
+  //   return await this.postService.getPostsByAuthor(userId);
+  // }
 }
