@@ -7,6 +7,7 @@ import {
   Patch,
   Delete,
   Param,
+  Get,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import {
@@ -56,14 +57,13 @@ export class PostController {
     return await this.postService.deletePost(postId);
   }
 
-  // @ApiOperation({ summary: 'Get posts by author' })
-  // @ApiResponse({ status: 200, description: 'OK', type: [PostEntity] })
-  // @Get('by-author')
-  // @UseGuards(AuthGuard('jwt'))
-  // async getPostsByAuthor(@Req() req: Request): Promise<PostEntity[]> {
-  //   const currentUser: User = req.user as User;
-  //   console.log(currentUser);
-  //   const userId = currentUser.id;
-  //   return await this.postService.getPostsByAuthor(userId);
-  // }
+  @ApiOperation({ summary: 'Get posts by author' })
+  @ApiResponse({ status: 200, description: 'OK', type: [PostEntity] })
+  @Get('by-author')
+  @UseGuards(AuthGuard('jwt'))
+  async getPostsByAuthor(@Req() req): Promise<PostEntity[]> {
+    const currentUser: User = req.user as User;
+
+    return await this.postService.getPostsByAuthor(currentUser);
+  }
 }
