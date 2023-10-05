@@ -207,13 +207,13 @@ export class UsersService {
       throw new Error('User not found');
     }
 
-    const mySubsсribers = await this.usersRepository
+    const mySubscribers = await this.usersRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.subscribers', 'subscriber')
       .where('subscriber.id=:userId', { userId })
       .getMany();
 
-    console.log('mySubsribers', mySubsсribers);
+    console.log('mySubscribers', mySubscribers);
 
     return {
       avatarUrl: user.avatarUrl,
@@ -222,7 +222,7 @@ export class UsersService {
       nickName: user.nickName,
       location: user.location,
       userStatus: user.userStatus,
-      myFollowersCount: mySubsсribers.length,
+      myFollowersCount: mySubscribers.length,
       myFollowingCount: user.subscribers.length,
       userBooks: user.books,
     };
@@ -243,9 +243,12 @@ export class UsersService {
     };
   }
 
-  async getBookInfoByUser(id: number, bookId: number): Promise<BookInfoDto> {
+  async getBookInfoByUser(
+    userId: number,
+    bookId: number,
+  ): Promise<BookInfoDto> {
     const book = await this.bookRepository.findOne({
-      where: { id: bookId, user: { id: id } },
+      where: { id: bookId },
       relations: ['status'],
     });
 
@@ -291,7 +294,7 @@ export class UsersService {
     return book;
   }
 
-  async updateBook(id: number, updateData: Partial<Book>): Promise<Book> {
+  async updateBook(id: number, updateData): Promise<Book> {
     await this.bookRepository.update(id, updateData);
 
     const updatedBook = await this.bookRepository.findOne({ where: { id } });
