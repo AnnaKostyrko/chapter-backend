@@ -244,6 +244,14 @@ export class AuthService {
       .digest('hex')
       .slice(-6);
 
+    const userWithDelData = await this.usersService.findOneByDelete(dto.email);
+
+    if (userWithDelData) {
+      throw new BadRequestException(
+        'Registration with this email is not possible because the account has been deleted, please restore your account or select another email',
+      );
+    }
+
     const existingUser = await this.usersService.findOne({ email: dto.email });
     if (existingUser) {
       const emailStatus = existingUser.status?.name;
