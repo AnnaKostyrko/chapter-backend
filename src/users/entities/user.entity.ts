@@ -83,8 +83,17 @@ export class User extends EntityHelper {
   @Column({ type: String, nullable: true })
   userStatus: string | null;
 
+  // @Column({ type: String, nullable: true })
+  // location: string | null;
+
   @Column({ type: String, nullable: true })
-  location: string | null;
+  country: string | null;
+
+  @Column({ type: String, nullable: true })
+  region: string | null;
+
+  @Column({ type: String, nullable: true })
+  city: string | null;
 
   @Column({ type: String, nullable: true })
   avatarUrl: string | null;
