@@ -11,11 +11,12 @@ import { Book } from './entities/book.entity';
 import { Session } from 'src/session/entities/session.entity';
 import { Forgot } from 'src/forgot/entities/forgot.entity';
 import { PostEntity } from 'src/post/entities/post.entity';
+import { Like } from 'src/like/entity/like.entity';
 
 @Module({
   imports: [
     JwtModule.register({}),
-    TypeOrmModule.forFeature([User, Book, Session, Forgot, PostEntity]),
+    TypeOrmModule.forFeature([User, Book, Session, Forgot, PostEntity, Like]),
   ],
   controllers: [UsersController],
   providers: [IsExist, IsNotExist, UsersService, JwtStrategy],

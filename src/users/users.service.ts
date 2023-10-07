@@ -21,6 +21,7 @@ import { createResponse } from 'src/helpers/response-helpers';
 import { Session } from 'src/session/entities/session.entity';
 import { Forgot } from 'src/forgot/entities/forgot.entity';
 import { PostEntity } from 'src/post/entities/post.entity';
+import { Like } from 'src/like/entity/like.entity';
 
 @Injectable()
 export class UsersService {
@@ -35,6 +36,8 @@ export class UsersService {
     private forgotRepository: Repository<Forgot>,
     @InjectRepository(PostEntity)
     private postRepository: Repository<PostEntity>,
+    @InjectRepository(Like)
+    private likeRepository: Repository<Like>,
   ) {}
 
   create(createProfileDto: CreateUserDto): Promise<User> {
@@ -449,5 +452,37 @@ export class UsersService {
 
   async restoringUser(id: number) {
     await this.usersRepository.restore(id);
+  }
+
+  async togglePostLike(postId: number, userId: number) {
+    const post = await this.postRepository.findOne({ where: { id: postId } });
+
+    if (!post) {
+      throw createResponse(HttpStatus.NOT_FOUND, 'Post not found.');
+    }
+
+    const existingLike = await this.likeRepository.findOne({
+      where: { postId, userId },
+    });
+
+    if (existingLike) {
+      await this.likeRepository.remove(existingLike);
+      return await this.getLikedUsers(postId);
+    } else {
+      const like = new Like();
+      like.postId = postId;
+      like.userId = userId;
+      await this.likeRepository.save(like);
+      return await this.getLikedUsers(postId);
+    }
+  }
+
+  async getLikedUsers(postId: number) {
+    const likes = await this.likeRepository.find({
+      where: { postId },
+      relations: ['user'],
+    });
+
+    return likes.map((like) => like.user.id);
   }
 }
