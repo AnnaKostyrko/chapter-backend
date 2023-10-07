@@ -210,9 +210,4 @@ export class UsersController {
   async deleteUser(@Param('id') userId: number): Promise<void> {
     return await this.usersService.deleteUser(userId);
   }
-
-  @Post('like-unlike-post/:id')
-  async togglePostLike(@Param('id') postId: number, @Request() request) {
-    return await this.usersService.togglePostLike(postId, request.user.id);
-  }
 }
