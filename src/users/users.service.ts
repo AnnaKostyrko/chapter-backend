@@ -21,7 +21,6 @@ import { createResponse } from 'src/helpers/response-helpers';
 import { Session } from 'src/session/entities/session.entity';
 import { Forgot } from 'src/forgot/entities/forgot.entity';
 import { PostEntity } from 'src/post/entities/post.entity';
-import { Like } from 'src/like/entity/like.entity';
 
 @Injectable()
 export class UsersService {
@@ -36,8 +35,6 @@ export class UsersService {
     private forgotRepository: Repository<Forgot>,
     @InjectRepository(PostEntity)
     private postRepository: Repository<PostEntity>,
-    @InjectRepository(Like)
-    private likeRepository: Repository<Like>,
   ) {}
 
   create(createProfileDto: CreateUserDto): Promise<User> {
