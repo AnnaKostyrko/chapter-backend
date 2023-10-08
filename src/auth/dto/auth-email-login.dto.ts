@@ -10,6 +10,7 @@ export class AuthEmailLoginDto {
   @Validate(IsExist, ['User'], {
     message: 'emailNotExists',
   })
+  @IsNotEmpty()
   email: string;
 
   @ApiProperty()

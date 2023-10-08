@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
-import { DeepPartial, Repository } from 'typeorm';
+import { DeepPartial, IsNull, Not, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
 import { NullableType } from '../utils/types/nullable.type';
@@ -18,6 +18,9 @@ import { CreateBookDto } from './dto/create-book.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import bcrypt from 'bcryptjs';
 import { createResponse } from 'src/helpers/response-helpers';
+import { Session } from 'src/session/entities/session.entity';
+import { Forgot } from 'src/forgot/entities/forgot.entity';
+import { PostEntity } from 'src/post/entities/post.entity';
 
 @Injectable()
 export class UsersService {
@@ -26,12 +29,62 @@ export class UsersService {
     private usersRepository: Repository<User>,
     @InjectRepository(Book)
     private bookRepository: Repository<Book>,
+    @InjectRepository(Session)
+    private sessionRepository: Repository<Session>,
+    @InjectRepository(Forgot)
+    private forgotRepository: Repository<Forgot>,
+    @InjectRepository(PostEntity)
+    private postRepository: Repository<PostEntity>,
   ) {}
 
   create(createProfileDto: CreateUserDto): Promise<User> {
     return this.usersRepository.save(
       this.usersRepository.create(createProfileDto),
     );
+  }
+
+  async deleteUserRelatedData(user: User): Promise<void> {
+    const userSubscribers = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.subscribers', 'subscriber')
+      .where('subscriber.id=:userId', { userId: user.id })
+      .getMany();
+
+    for (const subscriber of userSubscribers) {
+      await this.usersRepository
+        .createQueryBuilder('user')
+        .relation(User, 'subscribers')
+        .of(subscriber)
+        .remove(user);
+    }
+
+    await this.sessionRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Session)
+      .where('user = :userId', { userId: user.id })
+      .execute();
+
+    await this.bookRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Book)
+      .where('user=:userId', { userId: user.id })
+      .execute();
+
+    await this.forgotRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Forgot)
+      .where('user=:userId', { userId: user.id })
+      .execute();
+
+    await this.postRepository
+      .createQueryBuilder()
+      .delete()
+      .from(PostEntity)
+      .where('authorId=:userId', { userId: user.id })
+      .execute();
   }
 
   findManyWithPagination(
@@ -50,6 +103,28 @@ export class UsersService {
     return this.usersRepository.findOne({
       where: fields,
       relations,
+    });
+  }
+
+  async findOneByDelete(email: string): Promise<User | null> {
+    return await this.usersRepository.findOne({
+      withDeleted: true,
+      where: {
+        email: email,
+        deletedAt: Not(IsNull()),
+      },
+    });
+  }
+
+  async findDeletedUserByCondition(
+    fields: EntityCondition<User>,
+  ): Promise<User | null> {
+    return this.usersRepository.findOne({
+      withDeleted: true,
+      where: {
+        ...fields,
+        deletedAt: Not(IsNull()),
+      },
     });
   }
 
@@ -82,7 +157,9 @@ export class UsersService {
     user.firstName = updateProfileDto.firstName ?? user.firstName;
     user.lastName = updateProfileDto.lastName ?? user.lastName;
     user.nickName = updateProfileDto.nickName ?? user.nickName;
-    user.location = updateProfileDto.location ?? user.location;
+    user.country = updateProfileDto.country ?? user.country;
+    user.region = updateProfileDto.region ?? user.region;
+    user.city = updateProfileDto.city ?? user.city;
     user.avatarUrl = updateProfileDto.avatarUrl ?? user.avatarUrl;
     user.userStatus = updateProfileDto.userStatus ?? user.userStatus;
 
@@ -136,18 +213,32 @@ export class UsersService {
       {
         id: userId,
       },
-      ['posts'],
+      ['posts', 'subscribers', 'books'],
     );
     if (!user) {
       throw new Error('User not found');
     }
+
+    const mySubscribers = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.subscribers', 'subscriber')
+      .where('subscriber.id=:userId', { userId })
+      .getMany();
+
+    console.log('mySubscribers', mySubscribers);
+
     return {
       avatarUrl: user.avatarUrl,
       firstName: user.firstName,
       lastName: user.lastName,
       nickName: user.nickName,
-      location: user.location,
+      country: user.country,
+      region: user.region,
+      city: user.city,
       userStatus: user.userStatus,
+      myFollowersCount: mySubscribers.length,
+      myFollowingCount: user.subscribers.length,
+      userBooks: user.books,
     };
   }
 
@@ -161,14 +252,19 @@ export class UsersService {
       firstName: user.firstName,
       lastName: user.lastName,
       nickName: user.nickName,
-      location: user.location,
+      country: user.country,
+      region: user.region,
+      city: user.city,
       userStatus: user.userStatus,
     };
   }
 
-  async getBookInfoByUser(id: number, bookId: number): Promise<BookInfoDto> {
+  async getBookInfoByUser(
+    userId: number,
+    bookId: number,
+  ): Promise<BookInfoDto> {
     const book = await this.bookRepository.findOne({
-      where: { id: bookId, user: { id: id } },
+      where: { id: bookId },
       relations: ['status'],
     });
 
@@ -212,6 +308,23 @@ export class UsersService {
     await this.usersRepository.save(user);
 
     return book;
+  }
+
+  async updateBook(id: number, updateData): Promise<Book> {
+    await this.bookRepository.update(id, updateData);
+
+    const updatedBook = await this.bookRepository.findOne({ where: { id } });
+    if (!updatedBook) {
+      throw new Error('Book not found');
+    }
+    return updatedBook;
+  }
+
+  async deleteBook(id: number): Promise<void> {
+    const result = await this.bookRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException('Book not found');
+    }
   }
 
   async updatePassword(userId: number, updtePasswordDto: UpdatePasswordDto) {
@@ -284,5 +397,57 @@ export class UsersService {
       limit,
       total: user.subscribers.length,
     };
+  }
+
+  async getMyFollowersWithPagination(
+    userId: number,
+    page: number,
+    limit: number,
+  ): Promise<object> {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw createResponse(HttpStatus.NOT_FOUND, 'User not found.');
+    }
+
+    if (page <= 0 || limit <= 0) {
+      throw createResponse(HttpStatus.BAD_REQUEST, 'Invalid page or limit.');
+    }
+
+    const myFollowers = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.subscribers', 'subscriber')
+      .where('subscriber.id=:userId', { userId })
+      .getMany();
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const paginatedFollowers = myFollowers.slice(startIndex, endIndex);
+
+    return { myFollowers: paginatedFollowers };
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    const user = await this.findOne({ id: id });
+
+    if (!user) {
+      throw createResponse(HttpStatus.NOT_FOUND, 'User not found.');
+    }
+    await this.deleteUserRelatedData(user);
+
+    await this.usersRepository.remove(user);
+  }
+
+  async findAllDeletedUsers(): Promise<User[]> {
+    return this.usersRepository.find({
+      withDeleted: true,
+      where: {
+        deletedAt: Not(IsNull()),
+      },
+    });
+  }
+
+  async restoringUser(id: number) {
+    await this.usersRepository.restore(id);
   }
 }

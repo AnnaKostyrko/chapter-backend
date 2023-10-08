@@ -27,10 +27,14 @@ import { AllConfigType } from './config/config.type';
 import { SessionModule } from './session/session.module';
 import { MailerModule } from './mailer/mailer.module';
 import { PostModule } from './post/post.module';
+import { TaskModule } from './task/task.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { LikeModule } from './like/like.module';
 import { CommentModule } from './comment/comment.module';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
       load: [
@@ -86,6 +90,8 @@ import { CommentModule } from './comment/comment.module';
     MailerModule,
     HomeModule,
     PostModule,
+    TaskModule,
+    LikeModule,
     CommentModule,
   ],
 })

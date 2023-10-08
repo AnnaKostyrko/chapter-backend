@@ -21,6 +21,7 @@ export class IsExist implements ValidatorConstraintInterface {
     const entity: unknown = await this.dataSource
       .getRepository(repository)
       .findOne({
+        withDeleted: true,
         where: {
           [pathToProperty ? pathToProperty : validationArguments.property]:
             pathToProperty ? value?.[pathToProperty] : value,
