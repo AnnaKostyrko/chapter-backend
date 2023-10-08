@@ -30,6 +30,7 @@ import { PostModule } from './post/post.module';
 import { TaskModule } from './task/task.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { LikeModule } from './like/like.module';
+import { CommentModule } from './comment/comment.module';
 
 @Module({
   imports: [
@@ -91,6 +92,7 @@ import { LikeModule } from './like/like.module';
     PostModule,
     TaskModule,
     LikeModule,
+    CommentModule,
   ],
 })
 export class AppModule {}
