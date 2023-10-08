@@ -15,4 +15,11 @@ export class LikeController {
   async togglePostLike(@Param('id') postId: number, @Request() request) {
     return await this.likeServise.togglePostLike(postId, request.user.id);
   }
+
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @Post('like-unlike-comment/:id')
+  async toggleCommentLike(@Param('id') commentId: number, @Request() request) {
+    return await this.likeServise.toggleCommentLike(commentId, request.user.id);
+  }
 }
