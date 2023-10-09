@@ -10,7 +10,7 @@ export class CommentService {
     private commentRepository: Repository<CommentEntity>,
   ) {}
 
-  async delete(commentId: number): Promise<void> {
+  async deleteComment(commentId: number): Promise<void> {
     const result = await this.commentRepository.delete(commentId);
     if (result.affected === 0) {
       throw new NotFoundException(`Comment with ID ${commentId} not found`);

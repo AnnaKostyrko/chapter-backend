@@ -10,8 +10,8 @@ export class CommentController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
-  @Delete(':id')
-  async delete(@Param('id') id: number): Promise<void> {
-    return await this.commentService.delete(id);
+  @Delete(':commentId')
+  async deleteComment(@Param('commentId') commentId: number): Promise<void> {
+    return this.commentService.deleteComment(commentId);
   }
 }
