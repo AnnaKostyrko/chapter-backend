@@ -63,13 +63,12 @@ export class LikeService {
 
     if (existingLike) {
       await this.likeRepository.remove(existingLike);
-      return await this.getLikedUsers(commentId); // Предполагается, что у вас есть метод getLikedUsers для комментариев
     } else {
       const like = new Like();
       like.comment.id = commentId;
       like.userId = userId;
       await this.likeRepository.save(like);
-      return await this.getLikedUsers(commentId);
     }
+    return this.getLikedUsers(commentId);
   }
 }
