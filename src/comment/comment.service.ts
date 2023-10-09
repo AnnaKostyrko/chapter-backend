@@ -15,13 +15,22 @@ export class CommentService {
     commentId: number,
     updateData: UpdateCommentDto,
   ): Promise<CommentEntity> {
+    const existingComment = await this.commentRepository.findOne({
+      where: { id: commentId },
+    });
+    if (!existingComment) {
+      throw new NotFoundException(`Comment with ID ${commentId} not found`);
+    }
+
     await this.commentRepository.update(commentId, updateData);
     const updatedComment = await this.commentRepository.findOne({
       where: { id: commentId },
     });
+
     if (!updatedComment) {
       throw new NotFoundException(`Comment with ID ${commentId} not found`);
     }
+
     return updatedComment;
   }
 }
