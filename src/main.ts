@@ -10,12 +10,14 @@ import { useContainer } from 'class-validator';
 import { AppModule } from './app.module';
 import validationOptions from './utils/validation-options';
 import { AllConfigType } from './config/config.type';
+import { EventsGateway } from './events/events.gateway';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
   const configService = app.get(ConfigService<AllConfigType>);
 
+  
   app.enableShutdownHooks();
   app.setGlobalPrefix(
     configService.getOrThrow('app.apiPrefix', { infer: true }),

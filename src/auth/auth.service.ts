@@ -12,7 +12,6 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from '../users/entities/user.entity';
 import bcrypt from 'bcryptjs';
 import { AuthEmailLoginDto } from './dto/auth-email-login.dto';
-
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
 import { RoleEnum } from 'src/roles/roles.enum';
 import { StatusEnum } from 'src/statuses/statuses.enum';
@@ -36,8 +35,7 @@ import { JwtPayloadType } from './strategies/types/jwt-payload.type';
 // import { session } from 'passport';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
-import { async } from 'rxjs';
-import { error } from 'console';
+
 
 @Injectable()
 export class AuthService {
@@ -314,9 +312,7 @@ export class AuthService {
        id: user.id, 
        },{
         secret: secret, // Use the secret key here
-        expiresIn:  "1h"  // Set an expiration time for the token (e.g., 1 hour)
       }); 
-
     return {
        token
     }

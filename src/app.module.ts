@@ -29,6 +29,7 @@ import { MailerModule } from './mailer/mailer.module';
 import { PostModule } from './post/post.module';
 import { TaskModule } from './task/task.module';
 import { FeedModule } from './feed/feed.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -89,6 +90,7 @@ import { FeedModule } from './feed/feed.module';
     PostModule,
     FeedModule,
     TaskModule,
+    EventsModule,
   ],
 })
 export class AppModule {}

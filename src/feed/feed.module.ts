@@ -3,7 +3,7 @@ import { FeedController } from "./feed.controller";
 import { PostEntity } from "src/post/entities/post.entity";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { FeedService } from "./feed.service";
-// import { FeedGateway } from "./feed.gateway";
+
 
 @Module({
     imports: [
@@ -11,7 +11,6 @@ import { FeedService } from "./feed.service";
 ],
     providers: [
         FeedService,
-        // FeedGateway
     ],
     controllers: [FeedController],
 })

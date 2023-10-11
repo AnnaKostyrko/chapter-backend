@@ -2,14 +2,12 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { PostEntity } from "src/post/entities/post.entity";
-import { Socket } from "socket.io";
 
 @Injectable()
 export class FeedService {
   constructor(
     @InjectRepository(PostEntity)
     private readonly postRepository: Repository<PostEntity>,
-    // private readonly soket  :Socket
   ) { }
 
   //searching feed items
@@ -19,8 +17,7 @@ export class FeedService {
       relations: {
         author: true,
       },
-      // the limits ou  tputing of posts
-      take: 3
+    
     });
       // method whitch reflects the past tense
     const timeDifference = (current, previous) => {
@@ -55,7 +52,7 @@ export class FeedService {
       imgUrl: item.imgUrl,
       likeCount: Number,
       commentsCount: Number,
-      follow: String, // Should showing follow-status (isFollow, don'tFollow)
+      follow: String, // Should showing follow-status (isFollow or unFollow)
       createAt: item.createdAt,
       author: {
         id: item.author.id,
@@ -68,5 +65,8 @@ export class FeedService {
     return {
       feedItems: formattedFeedItems,
     };
+    // when we clicked on like to us output user list with status follow  
+    // our return users array contains the following values [urlImg, FullName and following status]
+    // create endpoint for like 
   }
 }

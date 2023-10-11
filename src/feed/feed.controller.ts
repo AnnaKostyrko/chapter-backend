@@ -1,7 +1,9 @@
-import { Body, Controller, Get} from "@nestjs/common";
+import { Body, Controller, Get, Render} from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { FeedService } from "./feed.service";
-// import { FeedGateway } from "./feed.gateway";
+import { Socket } from "socket.io";
+import { ConnectedSocket } from "@nestjs/websockets";
+
 @ApiTags('feed')
 @Controller()
 export class FeedController{
@@ -10,11 +12,7 @@ export class FeedController{
 
   @ApiOperation({ summary: 'Get a feed' })
   @Get('feed')
-  getFeed() {
-
-    // const feed = this.feedService.getFeed();
-    // this.FeedGateway.emit("FeedUpdate", feed)
-
-    return this.feedService.getFeed()
+  async getFeed() {
+    return this.feedService.getFeed();
   }
 }
