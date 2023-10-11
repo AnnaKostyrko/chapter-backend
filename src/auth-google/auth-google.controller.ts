@@ -12,6 +12,7 @@ import { AuthGoogleService } from './auth-google.service';
 import { AuthGoogleLoginDto } from './dto/auth-google-login.dto';
 
 import { Response } from 'express';
+import { LoginResponseType } from 'src/auth/types/login-response.type';
 @ApiTags('Auth')
 @Controller({
   path: 'auth/google',
@@ -28,12 +29,12 @@ export class AuthGoogleController {
   async login(
     @Body() loginDto: AuthGoogleLoginDto,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<object> {
+  ): Promise<LoginResponseType | object> {
     const socialData = await this.authGoogleService.getProfileByToken(loginDto);
-    const loginResponse = await this.authService.validateSocialLogin(
+    const loginResponse = (await this.authService.validateSocialLogin(
       'google',
       socialData,
-    );
+    )) as LoginResponseType;
 
     response.cookie('refresh_token', loginResponse.refreshToken, {
       httpOnly: true,

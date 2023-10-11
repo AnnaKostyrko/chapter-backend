@@ -20,7 +20,7 @@ export class AuthFacebookController {
   @HttpCode(HttpStatus.OK)
   async login(
     @Body() loginDto: AuthFacebookLoginDto,
-  ): Promise<LoginResponseType> {
+  ): Promise<LoginResponseType | object> {
     const socialData = await this.authFacebookService.getProfileByToken(
       loginDto,
     );

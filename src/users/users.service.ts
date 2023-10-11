@@ -106,6 +106,28 @@ export class UsersService {
     });
   }
 
+  async findOneByDelete(email: string): Promise<User | null> {
+    return await this.usersRepository.findOne({
+      withDeleted: true,
+      where: {
+        email: email,
+        deletedAt: Not(IsNull()),
+      },
+    });
+  }
+
+  async findDeletedUserByCondition(
+    fields: EntityCondition<User>,
+  ): Promise<User | null> {
+    return this.usersRepository.findOne({
+      withDeleted: true,
+      where: {
+        ...fields,
+        deletedAt: Not(IsNull()),
+      },
+    });
+  }
+
   async update(
     userId: number,
     updateProfileDto: DeepPartial<User>,
@@ -135,7 +157,9 @@ export class UsersService {
     user.firstName = updateProfileDto.firstName ?? user.firstName;
     user.lastName = updateProfileDto.lastName ?? user.lastName;
     user.nickName = updateProfileDto.nickName ?? user.nickName;
-    user.location = updateProfileDto.location ?? user.location;
+    user.country = updateProfileDto.country ?? user.country;
+    user.region = updateProfileDto.region ?? user.region;
+    user.city = updateProfileDto.city ?? user.city;
     user.avatarUrl = updateProfileDto.avatarUrl ?? user.avatarUrl;
     user.userStatus = updateProfileDto.userStatus ?? user.userStatus;
 
@@ -195,22 +219,24 @@ export class UsersService {
       throw new Error('User not found');
     }
 
-    const mySubsсribers = await this.usersRepository
+    const mySubscribers = await this.usersRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.subscribers', 'subscriber')
       .where('subscriber.id=:userId', { userId })
       .getMany();
 
-    console.log('mySubsribers', mySubsсribers);
+    console.log('mySubscribers', mySubscribers);
 
     return {
       avatarUrl: user.avatarUrl,
       firstName: user.firstName,
       lastName: user.lastName,
       nickName: user.nickName,
-      location: user.location,
+      country: user.country,
+      region: user.region,
+      city: user.city,
       userStatus: user.userStatus,
-      myFollowersCount: mySubsсribers.length,
+      myFollowersCount: mySubscribers.length,
       myFollowingCount: user.subscribers.length,
       userBooks: user.books,
     };
@@ -226,14 +252,19 @@ export class UsersService {
       firstName: user.firstName,
       lastName: user.lastName,
       nickName: user.nickName,
-      location: user.location,
+      country: user.country,
+      region: user.region,
+      city: user.city,
       userStatus: user.userStatus,
     };
   }
 
-  async getBookInfoByUser(id: number, bookId: number): Promise<BookInfoDto> {
+  async getBookInfoByUser(
+    userId: number,
+    bookId: number,
+  ): Promise<BookInfoDto> {
     const book = await this.bookRepository.findOne({
-      where: { id: bookId, user: { id: id } },
+      where: { id: bookId },
       relations: ['status'],
     });
 
@@ -279,7 +310,7 @@ export class UsersService {
     return book;
   }
 
-  async updateBook(id: number, updateData: Partial<Book>): Promise<Book> {
+  async updateBook(id: number, updateData): Promise<Book> {
     await this.bookRepository.update(id, updateData);
 
     const updatedBook = await this.bookRepository.findOne({ where: { id } });
@@ -287,6 +318,13 @@ export class UsersService {
       throw new Error('Book not found');
     }
     return updatedBook;
+  }
+
+  async deleteBook(id: number): Promise<void> {
+    const result = await this.bookRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException('Book not found');
+    }
   }
 
   async updatePassword(userId: number, updtePasswordDto: UpdatePasswordDto) {
@@ -407,5 +445,9 @@ export class UsersService {
         deletedAt: Not(IsNull()),
       },
     });
+  }
+
+  async restoringUser(id: number) {
+    await this.usersRepository.restore(id);
   }
 }

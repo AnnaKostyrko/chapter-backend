@@ -3,10 +3,14 @@ import { HttpStatus, HttpException } from '@nestjs/common';
 export const createResponse = (
   status: HttpStatus,
   message: string,
-  isErrorMessage: boolean = true,
+  isError: boolean = true,
 ) => {
-  return new HttpException(
-    isErrorMessage ? { status, error: message } : { status, message },
-    status,
-  );
+  if (isError) {
+    throw new HttpException({ status, error: message }, status);
+  } else {
+    return {
+      status,
+      message,
+    };
+  }
 };

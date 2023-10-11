@@ -24,6 +24,8 @@ import { Exclude, Expose } from 'class-transformer';
 import { PostEntity } from '../../post/entities/post.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { Book } from './book.entity';
+import { Like } from '../../like/entity/like.entity';
+import { CommentEntity } from '../../comment/entity/comment.entity';
 
 @Entity()
 export class User extends EntityHelper {
@@ -81,8 +83,17 @@ export class User extends EntityHelper {
   @Column({ type: String, nullable: true })
   userStatus: string | null;
 
+  // @Column({ type: String, nullable: true })
+  // location: string | null;
+
   @Column({ type: String, nullable: true })
-  location: string | null;
+  country: string | null;
+
+  @Column({ type: String, nullable: true })
+  region: string | null;
+
+  @Column({ type: String, nullable: true })
+  city: string | null;
 
   @Column({ type: String, nullable: true })
   avatarUrl: string | null;
@@ -128,4 +139,10 @@ export class User extends EntityHelper {
 
   @OneToMany(() => Book, (book) => book.user)
   books: Book[];
+
+  @OneToMany(() => CommentEntity, (comment) => comment.user)
+  comments: CommentEntity[];
+
+  @OneToMany(() => Like, (like) => like.user)
+  likes: Like[];
 }

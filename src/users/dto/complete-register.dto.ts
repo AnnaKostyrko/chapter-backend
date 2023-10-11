@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import { IsNotEmpty, MinLength } from 'class-validator';
+import { IsNotEmpty, Matches, MinLength } from 'class-validator';
 
 export class UpdateUserRegisterDto {
   @IsNotEmpty()
@@ -17,12 +17,16 @@ export class UpdateUserRegisterDto {
   nickName: string;
 
   @IsNotEmpty()
+  @Matches(/^(?=.*\d)(?=.*[A-Z])[A-Za-z\d]+$/, {
+    message:
+      'Password must contain min 1 digit, min 1 uppercase letter and only Latin alphabet.',
+  })
   @ApiProperty({ example: 'string' })
-  @MinLength(6)
+  @MinLength(8)
   password: string;
 
   @IsNotEmpty()
   @ApiProperty()
-  @MinLength(6)
+  @MinLength(8)
   confirmPassword: string;
 }
