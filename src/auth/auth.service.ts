@@ -479,7 +479,7 @@ export class AuthService {
 
     const session = await this.sessionService.findOne({
       where: {
-        id: data.sessionId,
+        id: verifyToken.sessionId,
       },
     });
     if (!session) {
