@@ -66,4 +66,11 @@ export class PostController {
 
     return await this.postService.getPostsByAuthor(currentUser);
   }
+
+  @ApiOperation({ summary: 'get users who liked post' })
+  @Post('users-who-liked-post/:id')
+  @UseGuards(AuthGuard('jwt'))
+  async getUsersWhoLikedPost(@Param('id') postId: number): Promise<object> {
+    return await this.postService.getUsersWhoLikedPost(postId);
+  }
 }
