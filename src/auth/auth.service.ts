@@ -234,7 +234,7 @@ export class AuthService {
       token: jwtToken,
       tokenExpires,
       user,
-    };
+    } as LoginResponseType;
   }
 
   async register(dto: AuthRegisterLoginDto): Promise<void> {
