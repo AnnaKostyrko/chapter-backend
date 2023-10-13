@@ -23,6 +23,7 @@ async function bootstrap() {
     allowedHeaders: ['*'],
     preflightContinue: false,
     optionsSuccessStatus: 204,
+    credentials: true, 
   });
 
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
