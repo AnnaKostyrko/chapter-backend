@@ -17,14 +17,14 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(cookieParser());
 
-  app.enableCors({
-    origin: ['https://localhost:5173', 'https://dev.chapter-web.com'],
-    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
-    allowedHeaders: ['*'],
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
-    credentials: true, 
-  });
+app.enableCors({
+  origin: ['https://localhost:5173', 'https://dev.chapter-web.com'],
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'X-Frame-Options'],  
+ preflightContinue: false,
+  optionsSuccessStatus: 204,
+  credentials: true,
+});
 
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
   const configService = app.get(ConfigService<AllConfigType>);
