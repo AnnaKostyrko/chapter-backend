@@ -62,7 +62,7 @@ export class AuthService {
         {
           status: HttpStatus.FORBIDDEN,
           message: deletedAccountMessage,
-          deletedUserDate: deletedUser.deletedAt,
+          deletedUserDate: new Date(deletedUser.deletedAt).toISOString(),
         },
         HttpStatus.FORBIDDEN,
       );
