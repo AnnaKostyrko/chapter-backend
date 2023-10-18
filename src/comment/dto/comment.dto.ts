@@ -42,3 +42,13 @@ export class CreateCommentDto {
   @Min(1, { message: 'userId must be greater than 0' })
   userId: number;
 }
+
+export class UpdateCommentDto {
+  @ApiProperty({
+    description: 'Text of the comment to be updated',
+    example: 'This is an updated comment text.',
+  })
+  @IsNotEmpty()
+  @Length(1, 255)
+  text: string;
+}
