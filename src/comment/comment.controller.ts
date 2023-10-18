@@ -8,16 +8,16 @@ import { AuthGuard } from '@nestjs/passport';
 @ApiTags('Comment')
 @Controller('comment')
 export class CommentController {
-    constructor(private readonly commentService: CommentService) {}
+  constructor(private readonly commentService: CommentService) {}
 
-    @ApiBearerAuth()
-    @UseGuards(AuthGuard('jwt'))
-    @Post(':postId')
-    async create(
-        @Param('postId') postId: number,
-        @Body() commentData: CreateCommentDto,
-    ): Promise<CommentEntity> {
-        commentData.postId = postId;
-        return await this.commentService.create(commentData);
-    }
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':postId')
+  async create(
+    @Param('postId') postId: number,
+    @Body() commentData: CreateCommentDto,
+  ): Promise<CommentEntity> {
+    commentData.postId = postId;
+    return await this.commentService.create(commentData);
+  }
 }
