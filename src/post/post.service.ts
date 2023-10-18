@@ -6,6 +6,8 @@ import { PostDto } from './dto/post.dto';
 import { User } from '../users/entities/user.entity';
 import { UpdatePostDto } from './dto/updatePost.dto';
 import { createResponse } from 'src/helpers/response-helpers';
+import { Like } from 'src/like/entity/like.entity';
+
 @Injectable()
 export class PostService {
   constructor(
@@ -13,6 +15,8 @@ export class PostService {
     private readonly postRepository: Repository<PostEntity>,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(Like)
+    private likeRepository: Repository<Like>,
   ) {}
 
   async create(author: User, createPostDto: PostDto) {
@@ -56,5 +60,21 @@ export class PostService {
       where: { author: { id: author.id } },
       order: { createdAt: 'DESC' },
     });
+  }
+
+  async getUsersWhoLikedPost(postId: number): Promise<object> {
+    const post = await this.postRepository.findOne({ where: { id: postId } });
+
+    if (!post) {
+      throw new NotFoundException(`Post not found`);
+    }
+
+    const allUsers = await this.usersRepository
+      .createQueryBuilder('user')
+      .innerJoin(Like, 'like', 'like.userId=user.id')
+      .where('like.postId=:postId', { postId })
+      .getMany();
+
+    return allUsers;
   }
 }

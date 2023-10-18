@@ -43,8 +43,12 @@ export class AuthController {
   public async login(
     @Body() loginDto: AuthEmailLoginDto,
     @Res({ passthrough: true }) response: Response,
-  ): Promise<object> {
-    const loginResponse = await this.service.validateLogin(loginDto, false);
+  ): Promise<LoginResponseType | object> {
+    const loginResponse = (await this.service.validateLogin(
+      loginDto,
+      false,
+    )) as LoginResponseType;
+
     response.cookie('refresh_token', loginResponse.refreshToken, {
       httpOnly: true,
     });
@@ -63,7 +67,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   public adminLogin(
     @Body() loginDTO: AuthEmailLoginDto,
-  ): Promise<LoginResponseType> {
+  ): Promise<LoginResponseType | object> {
     return this.service.validateLogin(loginDTO, true);
   }
 

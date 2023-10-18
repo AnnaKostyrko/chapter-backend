@@ -20,9 +20,17 @@ async function bootstrap() {
   app.enableCors({
     origin: ['https://localhost:5173', 'https://dev.chapter-web.com'],
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
-    allowedHeaders: ['*'],
+    allowedHeaders: [
+      'Origin',
+      'X-Requested-With',
+      'Content-Type',
+      'Accept',
+      'Authorization',
+      'X-Frame-Options',
+    ],
     preflightContinue: false,
     optionsSuccessStatus: 204,
+    credentials: true,
   });
 
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
