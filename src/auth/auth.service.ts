@@ -52,13 +52,20 @@ export class AuthService {
   async validateLogin(
     loginDto: AuthEmailLoginDto,
     onlyAdmin: boolean,
-  ): Promise<LoginResponseType> {
+  ): Promise<LoginResponseType | object> {
     const deletedUser = await this.usersService.findDeletedUserByCondition({
       email: loginDto.email,
     });
 
     if (deletedUser) {
-      throw createResponse(HttpStatus.FORBIDDEN, deletedAccountMessage);
+      throw new HttpException(
+        {
+          status: HttpStatus.FORBIDDEN,
+          message: deletedAccountMessage,
+          deletedUserDate: new Date(deletedUser.deletedAt).toISOString(),
+        },
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     const user = await this.usersService.findOne({
@@ -127,7 +134,7 @@ export class AuthService {
       token,
       tokenExpires,
       user,
-    };
+    } as LoginResponseType;
   }
 
   async validateSocialLogin(
@@ -234,7 +241,7 @@ export class AuthService {
       token: jwtToken,
       tokenExpires,
       user,
-    };
+    } as LoginResponseType;
   }
 
   async register(dto: AuthRegisterLoginDto): Promise<void> {
@@ -479,7 +486,7 @@ export class AuthService {
 
     const session = await this.sessionService.findOne({
       where: {
-        id: data.sessionId,
+        id: verifyToken.sessionId,
       },
     });
     if (!session) {
