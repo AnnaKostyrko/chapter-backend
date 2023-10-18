@@ -23,24 +23,6 @@ export class CreateCommentDto {
     message: 'Comment text should be between 1 and 255 characters',
   })
   text: string;
-
-  @ApiProperty({
-    description: 'ID of the post to which the comment belongs',
-    example: 10,
-  })
-  @IsNotEmpty({ message: 'postId is required' })
-  @IsInt({ message: 'postId must be an integer' })
-  @Min(1, { message: 'postId must be greater than 0' })
-  postId: number;
-
-  @ApiProperty({
-    description: 'ID of the user who left the comment',
-    example: 5,
-  })
-  @IsNotEmpty({ message: 'userId is required' })
-  @IsInt({ message: 'userId must be an integer' })
-  @Min(1, { message: 'userId must be greater than 0' })
-  userId: number;
 }
 
 export class UpdateCommentDto {

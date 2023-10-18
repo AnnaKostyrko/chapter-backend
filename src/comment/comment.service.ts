@@ -17,12 +17,16 @@ export class CommentService {
     private postRepository: Repository<PostEntity>,
   ) {}
 
-  async create(commentData: CreateCommentDto): Promise<CommentEntity> {
+  async create(
+    commentData: CreateCommentDto,
+    postId: number,
+    userId: number,
+  ): Promise<CommentEntity> {
     const user = await this.userRepository.findOne({
-      where: { id: commentData.userId },
+      where: { id: userId },
     });
     const post = await this.postRepository.findOne({
-      where: { id: commentData.postId },
+      where: { id: postId },
     });
 
     if (!user) {
@@ -32,7 +36,12 @@ export class CommentService {
     if (!post) {
       throw new NotFoundException('Post not found');
     }
-    const comment = this.commentRepository.create(commentData);
+    const comment = this.commentRepository.create({
+      ...commentData,
+      user,
+      post,
+    });
+
     return this.commentRepository.save(comment);
   }
 }
