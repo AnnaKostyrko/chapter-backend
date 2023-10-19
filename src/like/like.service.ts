@@ -22,10 +22,11 @@ export class LikeService {
       relations: ['user'],
     });
 
-    return likes.map((like) => like.user.id);
+    return likes.map((like) => like.userId);
   }
 
   async togglePostLike(postId: number, userId: number) {
+    console.log('userId', userId);
     const post = await this.postRepository.findOne({ where: { id: postId } });
 
     if (!post) {
@@ -44,6 +45,7 @@ export class LikeService {
       like.postId = postId;
       like.userId = userId;
       await this.likeRepository.save(like);
+
       return await this.getLikedUsers(postId);
     }
   }
@@ -67,6 +69,7 @@ export class LikeService {
       const like = new Like();
       like.comment.id = commentId;
       like.userId = userId;
+
       await this.likeRepository.save(like);
     }
     return this.getLikedUsers(commentId);
