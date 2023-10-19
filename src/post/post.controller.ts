@@ -73,4 +73,12 @@ export class PostController {
   async getUsersWhoLikedPost(@Param('id') postId: number): Promise<object> {
     return await this.postService.getUsersWhoLikedPost(postId);
   }
+
+  @ApiOperation({ summary: 'get posts of user that he liked or comment' })
+  @Get('posts')
+  @UseGuards(AuthGuard('jwt'))
+  async getLikedAndComentedPosts(@Req() req) {
+    const user: User = req.user as User;
+    return this.postService.getLikedAndComentedPosts(user.id);
+  }
 }
