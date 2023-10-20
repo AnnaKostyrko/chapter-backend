@@ -1,4 +1,11 @@
-import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Param,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { CommentEntity } from './entity/comment.entity';
 import { CreateCommentDto } from './dto/comment.dto';
@@ -16,8 +23,8 @@ export class CommentController {
   async create(
     @Param('postId') postId: number,
     @Body() commentData: CreateCommentDto,
+    @Request() req,
   ): Promise<CommentEntity> {
-    commentData.postId = postId;
-    return await this.commentService.create(commentData);
+    return await this.commentService.create(commentData, postId, req.user.id);
   }
 }
