@@ -307,7 +307,6 @@ export class AuthService {
     const secret =  this.configService.getOrThrow('auth.secret', { infer: true }
     )
 
-
     const token = await this.jwtService.signAsync({
        id: user.id, 
        },{

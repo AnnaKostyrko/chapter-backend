@@ -109,6 +109,12 @@ export class UsersService {
     });
   }
 
+  // async getUserIdByUsername(username: string): Promise<number> {
+  //   const user = await this.usersRepository.findOne({ where: { username } });
+  //   return user ? user.id : null;
+  // }
+
+
   async toggleSubscription(
     currentUserId: number,
     targetUserId: number,

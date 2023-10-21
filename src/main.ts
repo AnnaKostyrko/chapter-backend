@@ -10,14 +10,23 @@ import { useContainer } from 'class-validator';
 import { AppModule } from './app.module';
 import validationOptions from './utils/validation-options';
 import { AllConfigType } from './config/config.type';
-import { EventsGateway } from './events/events.gateway';
+import cors from 'cors';
+import { IoAdapter } from '@nestjs/platform-socket.io';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule, {cors:true});
+  const httpServer = app.getHttpServer();
+  app.useWebSocketAdapter(new IoAdapter(httpServer));
+  const corsOptions = {
+    origin: ['*'], // Замените на ваш домен
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  }
+  app.use(cors(corsOptions));
+  
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
   const configService = app.get(ConfigService<AllConfigType>);
 
-  
   app.enableShutdownHooks();
   app.setGlobalPrefix(
     configService.getOrThrow('app.apiPrefix', { infer: true }),
@@ -40,6 +49,7 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('docs', app, document);
+  
 
   await app.listen(configService.getOrThrow('app.port', { infer: true }));
 }

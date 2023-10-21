@@ -65,8 +65,6 @@ export class FeedService {
     return {
       feedItems: formattedFeedItems,
     };
-    // when we clicked on like to us output user list with status follow  
-    // our return users array contains the following values [urlImg, FullName and following status]
-    // create endpoint for like 
   }
 }
+     
