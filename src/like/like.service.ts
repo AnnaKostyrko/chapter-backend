@@ -21,8 +21,27 @@ export class LikeService {
       where: { postId },
       relations: ['user'],
     });
+    const likesUsers = likes.map((like) => {
+      return Number(like.userId);
+    });
 
-    return likes.map((like) => like.user.id);
+    const uniqueUsersIds = [...new Set(likesUsers)];
+    return uniqueUsersIds;
+  }
+
+  async getLikedUsersComment(comment: any) {
+    const id = comment.id;
+
+    const likesUsers = await this.likeRepository
+      .createQueryBuilder('like')
+      .select('like.userId')
+      .where('comment=:id', { id })
+      .getMany();
+
+    const usersIds = likesUsers.map((likeUser) => Number(likeUser.userId));
+
+    const uniqueUsersIds = [...new Set(usersIds)];
+    return uniqueUsersIds;
   }
 
   async togglePostLike(postId: number, userId: number) {
@@ -43,6 +62,7 @@ export class LikeService {
       const like = new Like();
       like.postId = postId;
       like.userId = userId;
+
       await this.likeRepository.save(like);
       return await this.getLikedUsers(postId);
     }
@@ -65,10 +85,14 @@ export class LikeService {
       await this.likeRepository.remove(existingLike);
     } else {
       const like = new Like();
-      like.comment.id = commentId;
+
+      like.postId = comment.postId;
+      like.comment = comment;
       like.userId = userId;
+
       await this.likeRepository.save(like);
     }
-    return this.getLikedUsers(commentId);
+
+    return this.getLikedUsersComment(comment);
   }
 }
