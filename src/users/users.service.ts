@@ -228,6 +228,7 @@ export class UsersService {
     console.log('mySubscribers', mySubscribers);
 
     return {
+      userEmail: user.email,
       avatarUrl: user.avatarUrl,
       firstName: user.firstName,
       lastName: user.lastName,

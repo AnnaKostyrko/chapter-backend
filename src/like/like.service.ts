@@ -29,7 +29,7 @@ export class LikeService {
     return uniqueUsersIds;
   }
 
-  async getLikedUsersComment(comment: any) {
+  async getLikedUsersComment(comment: CommentEntity) {
     const id = comment.id;
 
     const likesUsers = await this.likeRepository
@@ -45,6 +45,7 @@ export class LikeService {
   }
 
   async togglePostLike(postId: number, userId: number) {
+    console.log('userId', userId);
     const post = await this.postRepository.findOne({ where: { id: postId } });
 
     if (!post) {
@@ -64,6 +65,7 @@ export class LikeService {
       like.userId = userId;
 
       await this.likeRepository.save(like);
+
       return await this.getLikedUsers(postId);
     }
   }
