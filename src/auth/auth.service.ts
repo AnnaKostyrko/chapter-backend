@@ -36,8 +36,8 @@ import { JwtPayloadType } from './strategies/types/jwt-payload.type';
 // import { session } from 'passport';
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
-import { async } from 'rxjs';
-import { error } from 'console';
+
+import { NicknameValidation } from 'src/users/dto/nickname-validation.dto';
 
 @Injectable()
 export class AuthService {
@@ -246,6 +246,27 @@ export class AuthService {
       
     });
   }
+
+  async validateNickname(nickname: string): Promise<void> {
+    if (!nickname.startsWith('@')) {
+      throw new BadRequestException('Nickname should start with "@"');
+    }
+    
+    const existingUser = await this.usersService.findOne({ nickName: nickname });
+    
+  
+    if (!existingUser) {
+      throw new NotFoundException('Nickname is aviable to used'); 
+    }
+    if (existingUser) {
+      throw new ConflictException({
+        error: `User with this nickname already exists.`,
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
+    } 
+  }
+
+
   async resendConfirmationCode(email: string): Promise<void> {
     const user = await this.usersService.findOne({ email });
   

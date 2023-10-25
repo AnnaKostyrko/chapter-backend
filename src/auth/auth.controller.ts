@@ -10,6 +10,7 @@ import {
   Delete,
   SerializeOptions,
   Param,
+  Get,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -24,6 +25,9 @@ import { User } from '../users/entities/user.entity';
 
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
+
+import { NicknameValidation } from 'src/users/dto/nickname-validation.dto';
+
 
 @ApiTags('Auth')
 @Controller({
@@ -59,6 +63,12 @@ export class AuthController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async register(@Body() createUserDto: AuthRegisterLoginDto): Promise<void> {
     return this.service.register(createUserDto);
+  }
+
+  @Post('nickname-validation/:nickname')
+  @HttpCode(HttpStatus.OK)
+  async nickValidation(@Param('nickname') nickname: string): Promise<void> {
+    return await this.service.validateNickname(nickname);
   }
 
   @Patch('refresh-unique-token')
