@@ -38,6 +38,9 @@ export class AuthGoogleController {
 
     response.cookie('refresh_token', loginResponse.refreshToken, {
       httpOnly: true,
+      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      sameSite: 'none',
+      secure: true,
     });
 
     return {
