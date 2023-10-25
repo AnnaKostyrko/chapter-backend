@@ -27,7 +27,7 @@ export class Like extends EntityHelper {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'comment' })
-  comment: CommentEntity;
+  comment: PostEntity;
 
   @Column()
   @ApiProperty()
