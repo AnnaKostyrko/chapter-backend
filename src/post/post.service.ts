@@ -1,18 +1,12 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { PostEntity } from './entities/post.entity';
 import { PostDto } from './dto/post.dto';
 import { User } from '../users/entities/user.entity';
 import { UpdatePostDto } from './dto/updatePost.dto';
 import { createResponse } from 'src/helpers/response-helpers';
 import { Like } from 'src/like/entity/like.entity';
-import { CommentEntity } from 'src/comment/entity/comment.entity';
 
 @Injectable()
 export class PostService {
@@ -23,8 +17,6 @@ export class PostService {
     private usersRepository: Repository<User>,
     @InjectRepository(Like)
     private likeRepository: Repository<Like>,
-    @InjectRepository(CommentEntity)
-    private commentRepository: Repository<CommentEntity>,
   ) {}
 
   async create(author: User, createPostDto: PostDto) {
@@ -84,83 +76,5 @@ export class PostService {
       .getMany();
 
     return allUsers;
-  }
-
-  async getLikedAndComentedPosts(userId: number) {
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
-
-    if (!user) {
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          error: 'User not found.',
-        },
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    const commentedPostIds = await this.commentRepository
-      .createQueryBuilder('comment_entity')
-      .select('comment_entity.postId')
-      .where(`comment_entity.userId=${userId}`)
-      .getMany();
-
-    const likedPostIds = await this.likeRepository
-      .createQueryBuilder('like')
-      .select('like.postId')
-      .where(`like.userId =${userId}`)
-      .getMany();
-
-    const allPostsIds = [...commentedPostIds, ...likedPostIds];
-
-    const postIds = allPostsIds.map((post) => post.postId);
-
-    const allPosts = await this.postRepository.find({
-      where: { id: In(postIds) },
-      relations: ['author'],
-    });
-
-    const likes = await this.likeRepository
-      .createQueryBuilder('like')
-      .select(['COUNT(like.postId) as likeCount', 'like.postId'])
-      .groupBy('like.postId')
-      .where('like.postId IN(:...postIds)', {
-        postIds: postIds,
-      })
-      .getRawMany();
-
-    const comments = await this.commentRepository
-      .createQueryBuilder('comment_entity')
-      .select([
-        'COUNT(comment_entity.postId) as commentCount',
-        'comment_entity.postId',
-      ])
-      .groupBy('comment_entity.postId')
-      .where('comment_entity.postId IN(:...postIds)', {
-        postIds: postIds,
-      })
-      .getRawMany();
-
-    const likedAndCommentedPosts = allPosts.map((post) => {
-      const likeCount = likes.find((like) => like.like_postId === post.id);
-      const commentCount = comments.find(
-        (comment) => comment.comment_entity_postId === post.id,
-      );
-      return {
-        postId: post.id,
-        caption: post.caption,
-        createdDate: post.createdAt,
-        likesCount: likeCount ? likeCount.likecount : 0,
-        commentCount: commentCount ? commentCount.commentcount : 0,
-        postimage: post.imgUrl,
-        author: {
-          authorId: post.author.id,
-          authorNickName: post.author.nickName,
-          authorAvatar: post.author.avatarUrl,
-        },
-      };
-    });
-
-    return likedAndCommentedPosts;
   }
 }

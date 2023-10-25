@@ -149,8 +149,10 @@ export class AuthService {
     });
 
     if (deletedUser) {
-      const deletedUserDate = new Date(deletedUser.deletedAt).toISOString();
-
+      const response = createResponse(
+        HttpStatus.FORBIDDEN,
+        deletedAccountMessage,
+      );
       const secret = this.configService.getOrThrow('auth.secret', {
         infer: true,
       });
@@ -163,16 +165,7 @@ export class AuthService {
         { id: deletedUser.id },
         { secret, expiresIn: tokenExpires },
       );
-
-      throw new HttpException(
-        {
-          status: HttpStatus.FORBIDDEN,
-          message: deletedAccountMessage,
-          deletedUserDate,
-          restoreToken,
-        },
-        HttpStatus.FORBIDDEN,
-      );
+      return { response, restoreToken };
     }
 
     const userByEmail = await this.usersService.findOne({
