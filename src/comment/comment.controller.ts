@@ -30,7 +30,7 @@ export class CommentController {
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
-  @Post('to-comment/:commentId')
+  @Post(':commentId/to-comment')
   async commentToComment(
     @Request() req,
     @Param('commentId') commentId: number,
