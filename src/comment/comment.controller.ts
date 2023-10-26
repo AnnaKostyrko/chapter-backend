@@ -27,4 +27,19 @@ export class CommentController {
   ): Promise<CommentEntity> {
     return await this.commentService.create(commentData, postId, req.user.id);
   }
+
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':commentId/to-comment')
+  async commentToComment(
+    @Request() req,
+    @Param('commentId') commentId: number,
+    @Body() commentData: CreateCommentDto,
+  ) {
+    return await this.commentService.commentToComment(
+      req.user.id,
+      commentId,
+      commentData,
+    );
+  }
 }

@@ -44,4 +44,35 @@ export class CommentService {
 
     return this.commentRepository.save(comment);
   }
+
+  async commentToComment(
+    userId: number,
+    commentId: number,
+    commentData: CreateCommentDto,
+  ): Promise<CommentEntity> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const comment = await this.commentRepository.findOne({
+      where: { id: commentId },
+    });
+
+    if (!comment) {
+      throw new NotFoundException('Comment not found');
+    }
+
+    const commentToComment = this.commentRepository.create({
+      ...commentData,
+      parentId: comment.id,
+      postId: comment.postId,
+      user,
+    });
+
+    return this.commentRepository.save(commentToComment);
+  }
 }
