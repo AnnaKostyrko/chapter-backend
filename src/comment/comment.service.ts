@@ -75,4 +75,17 @@ export class CommentService {
 
     return this.commentRepository.save(commentToComment);
   }
+
+  async getCommentsByPost(postId: number): Promise<CommentEntity[]> {
+    const post = await this.postRepository.findOne({
+      where: { id: postId },
+      relations: ['comments'],
+    });
+
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
+    return post.comments;
+  }
 }

@@ -40,7 +40,7 @@ export class PostEntity {
   author: User;
 
   @OneToMany(() => CommentEntity, (comment) => comment.post)
-  comments: Comment[];
+  comments: CommentEntity[];
 
   @OneToMany(() => Like, (like) => like.post)
   likes: Like[];
