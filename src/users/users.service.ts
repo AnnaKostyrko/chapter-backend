@@ -128,10 +128,7 @@ export class UsersService {
     });
   }
 
-  async update(
-    userId: number,
-    updateProfileDto: DeepPartial<User>,
-  ): Promise<User> {
+  async update(userId: number, updateProfileDto: DeepPartial<User>) {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
 
     if (!user) {
@@ -163,7 +160,23 @@ export class UsersService {
     user.avatarUrl = updateProfileDto.avatarUrl ?? user.avatarUrl;
     user.userStatus = updateProfileDto.userStatus ?? user.userStatus;
 
-    return this.usersRepository.save(user);
+    await this.usersRepository.save(user);
+
+    const updatedUser = {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      nickName: user.nickName,
+      country: user.country,
+      region: user.region,
+      city: user.city,
+      avatarUrl: user.avatarUrl,
+      userStatus: user.userStatus,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+    };
+    return updatedUser;
   }
 
   async softDelete(id: User['id']): Promise<void> {
@@ -228,6 +241,7 @@ export class UsersService {
     console.log('mySubscribers', mySubscribers);
 
     return {
+      id: user.id,
       userEmail: user.email,
       avatarUrl: user.avatarUrl,
       firstName: user.firstName,

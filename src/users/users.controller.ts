@@ -77,10 +77,7 @@ export class UsersController {
 
   @Patch('me')
   @HttpCode(HttpStatus.OK)
-  update(
-    @Request() request,
-    @Body() updateProfileDto: UpdateUserDto,
-  ): Promise<User> {
+  update(@Request() request, @Body() updateProfileDto: UpdateUserDto) {
     return this.usersService.update(request.user.id, updateProfileDto);
   }
 
