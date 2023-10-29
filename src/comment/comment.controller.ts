@@ -1,8 +1,11 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Param,
+  ParseIntPipe,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -49,7 +52,9 @@ export class CommentController {
   @ApiOperation({ summary: 'get comments of the post ' })
   async getCommentsByPost(
     @Param('postId') postId: number,
-  ): Promise<CommentEntity[]> {
-    return await this.commentService.getCommentsByPost(postId);
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ): Promise<{ comments: CommentEntity[]; totalComments: number }> {
+    return await this.commentService.getCommentsByPost(postId, page, limit);
   }
 }

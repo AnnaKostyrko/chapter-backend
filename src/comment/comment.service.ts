@@ -76,7 +76,11 @@ export class CommentService {
     return this.commentRepository.save(commentToComment);
   }
 
-  async getCommentsByPost(postId: number): Promise<CommentEntity[]> {
+  async getCommentsByPost(
+    postId: number,
+    page: number,
+    limit: number,
+  ): Promise<{ comments: CommentEntity[]; totalComments: number }> {
     const post = await this.postRepository.findOne({
       where: { id: postId },
       relations: ['comments'],
@@ -86,6 +90,13 @@ export class CommentService {
       throw new NotFoundException('Post not found');
     }
 
-    return post.comments;
+    const comments = post.comments;
+    const totalCount = comments.length;
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const paginatedComments = comments.slice(startIndex, endIndex);
+
+    return { comments: paginatedComments, totalComments: totalCount };
   }
 }
