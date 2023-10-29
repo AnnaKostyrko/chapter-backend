@@ -119,6 +119,9 @@ export class User extends EntityHelper {
   @Exclude({ toPlainOnly: true })
   hash: string | null;
 
+  @Column({ default: false, nullable: false })
+  IsAccessCookie: boolean;
+
   @CreateDateColumn()
   @Exclude({ toPlainOnly: true })
   createdAt: Date;

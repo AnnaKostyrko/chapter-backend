@@ -29,4 +29,8 @@ export class UpdateUserRegisterDto {
   @ApiProperty()
   @MinLength(8)
   confirmPassword: string;
+
+  @ApiProperty({ example: false })
+  @IsNotEmpty()
+  IsAccessCookie: boolean;
 }
