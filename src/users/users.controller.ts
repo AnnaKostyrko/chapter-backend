@@ -161,6 +161,7 @@ export class UsersController {
 
   @Get('my-follow')
   @ApiResponse({
+    status: HttpStatus.OK,
     content: {
       'application/json': {
         example: [
