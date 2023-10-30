@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   DefaultValuePipe,
+  HttpStatus,
   Param,
   ParseIntPipe,
   Post,
@@ -12,7 +13,12 @@ import {
 import { CommentService } from './comment.service';
 import { CommentEntity } from './entity/comment.entity';
 import { CreateCommentDto } from './dto/comment.dto';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { CommentResponse } from './interfaces';
 
@@ -25,6 +31,25 @@ export class CommentController {
   @UseGuards(AuthGuard('jwt'))
   @Post(':postId')
   @ApiOperation({ summary: 'make a comment on a post ' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Create comment to post',
+    content: {
+      'application/json': {
+        example: {
+          text: 'Great post!',
+          postId: 2,
+          userId: 5,
+          post: {},
+          user: {},
+          parentId: null,
+          id: 74,
+          createdAt: 'created date',
+          updatedAt: 'updated date',
+        },
+      },
+    },
+  })
   async create(
     @Param('postId') postId: number,
     @Body() commentData: CreateCommentDto,
@@ -36,6 +61,24 @@ export class CommentController {
   @UseGuards(AuthGuard('jwt'))
   @Post(':commentId/to-comment')
   @ApiOperation({ summary: 'make a comment on a comment ' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Create comment to comment',
+    content: {
+      'application/json': {
+        example: {
+          parentId: 1,
+          text: 'Great comment!',
+          postId: 1,
+          userId: 5,
+          user: {},
+          id: 73,
+          createdAt: 'created date',
+          updatedAt: 'updated date',
+        },
+      },
+    },
+  })
   async commentToComment(
     @Request() req,
     @Param('commentId') commentId: number,
@@ -51,6 +94,29 @@ export class CommentController {
   @UseGuards(AuthGuard('jwt'))
   @Post('comments/:postId')
   @ApiOperation({ summary: 'get comments of the post ' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: "Get post's comments",
+    content: {
+      'application/json': {
+        example: {
+          comments: [
+            {
+              id: 1,
+              parentId: 1,
+              text: 'Great post!',
+              postId: 1,
+              userId: 3,
+              createdAt: '2023-10-18T08:58:10.879Z',
+              updatedAt: '2023-10-18T08:58:10.879Z',
+              __entity: 'CommentEntity',
+            },
+          ],
+          totalComments: 7,
+        },
+      },
+    },
+  })
   async getCommentsByPost(
     @Param('postId') postId: number,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
