@@ -167,14 +167,15 @@ export class UsersService {
       firstName: user.firstName,
       lastName: user.lastName,
       nickName: user.nickName,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
       country: user.country,
       region: user.region,
       city: user.city,
-      avatarUrl: user.avatarUrl,
       userStatus: user.userStatus,
-      email: user.email,
       role: user.role,
       status: user.status,
+      userBooks: user.books,
     };
     return updatedUser;
   }
@@ -238,19 +239,19 @@ export class UsersService {
       .where('subscriber.id=:userId', { userId })
       .getMany();
 
-    console.log('mySubscribers', mySubscribers);
-
     return {
       id: user.id,
-      userEmail: user.email,
-      avatarUrl: user.avatarUrl,
       firstName: user.firstName,
       lastName: user.lastName,
       nickName: user.nickName,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
       country: user.country,
       region: user.region,
       city: user.city,
       userStatus: user.userStatus,
+      role: user.role,
+      status: user.status,
       myFollowersCount: mySubscribers.length,
       myFollowingCount: user.subscribers.length,
       userBooks: user.books,
