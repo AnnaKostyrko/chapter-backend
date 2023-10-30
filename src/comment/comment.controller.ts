@@ -14,6 +14,7 @@ import { CommentEntity } from './entity/comment.entity';
 import { CreateCommentDto } from './dto/comment.dto';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
+import { CommentResponse } from './interfaces';
 
 @ApiTags('Comment')
 @ApiBearerAuth()
@@ -54,7 +55,7 @@ export class CommentController {
     @Param('postId') postId: number,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-  ): Promise<{ comments: CommentEntity[]; totalComments: number }> {
+  ): Promise<CommentResponse> {
     return await this.commentService.getCommentsByPost(postId, page, limit);
   }
 }

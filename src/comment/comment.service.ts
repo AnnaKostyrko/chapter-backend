@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { CreateCommentDto } from './dto/comment.dto';
 import { User } from '../users/entities/user.entity';
 import { PostEntity } from '../post/entities/post.entity';
+import { CommentResponse } from './interfaces';
 
 @Injectable()
 export class CommentService {
@@ -80,7 +81,7 @@ export class CommentService {
     postId: number,
     page: number,
     limit: number,
-  ): Promise<{ comments: CommentEntity[]; totalComments: number }> {
+  ): Promise<CommentResponse> {
     const post = await this.postRepository.findOne({
       where: { id: postId },
       relations: ['comments'],
