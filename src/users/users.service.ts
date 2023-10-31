@@ -128,10 +128,7 @@ export class UsersService {
     });
   }
 
-  async update(
-    userId: number,
-    updateProfileDto: DeepPartial<User>,
-  ): Promise<User> {
+  async update(userId: number, updateProfileDto: DeepPartial<User>) {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
 
     if (!user) {
@@ -163,7 +160,24 @@ export class UsersService {
     user.avatarUrl = updateProfileDto.avatarUrl ?? user.avatarUrl;
     user.userStatus = updateProfileDto.userStatus ?? user.userStatus;
 
-    return this.usersRepository.save(user);
+    await this.usersRepository.save(user);
+
+    const updatedUser = {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      nickName: user.nickName,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      country: user.country,
+      region: user.region,
+      city: user.city,
+      userStatus: user.userStatus,
+      role: user.role,
+      status: user.status,
+      userBooks: user.books,
+    };
+    return updatedUser;
   }
 
   async softDelete(id: User['id']): Promise<void> {
@@ -225,18 +239,19 @@ export class UsersService {
       .where('subscriber.id=:userId', { userId })
       .getMany();
 
-    console.log('mySubscribers', mySubscribers);
-
     return {
-      userEmail: user.email,
-      avatarUrl: user.avatarUrl,
+      id: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
       nickName: user.nickName,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
       country: user.country,
       region: user.region,
       city: user.city,
       userStatus: user.userStatus,
+      role: user.role,
+      status: user.status,
       myFollowersCount: mySubscribers.length,
       myFollowingCount: user.subscribers.length,
       userBooks: user.books,
