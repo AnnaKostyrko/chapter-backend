@@ -37,10 +37,15 @@ import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
 import { createResponse } from 'src/helpers/response-helpers';
 import { deletedAccountMessage } from 'src/helpers/messages/messages';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Forgot } from 'src/forgot/entities/forgot.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService {
   constructor(
+    @InjectRepository(Forgot)
+    private forgotRepository: Repository<Forgot>,
     private jwtService: JwtService,
     private usersService: UsersService,
     private forgotService: ForgotService,
@@ -413,6 +418,18 @@ export class AuthService {
           },
         },
         HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+
+    const countForgot = await this.forgotRepository
+      .createQueryBuilder('forgot')
+      .where('forgot.userId=:userId', { userId: user.id })
+      .getCount();
+
+    if (countForgot >= 3) {
+      throw new HttpException(
+        'You can request a password reset maximum 3 times per day.',
+        HttpStatus.BAD_REQUEST,
       );
     }
 
