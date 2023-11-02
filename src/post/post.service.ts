@@ -13,7 +13,8 @@ import { UpdatePostDto } from './dto/updatePost.dto';
 import { createResponse } from 'src/helpers/response-helpers';
 import { Like } from 'src/like/entity/like.entity';
 import { CommentEntity } from 'src/comment/entity/comment.entity';
-
+import { Server } from 'socket.io';
+import { FeedGateway } from 'src/feed/gateway/feet.gateway';
 @Injectable()
 export class PostService {
   constructor(
@@ -25,6 +26,8 @@ export class PostService {
     private likeRepository: Repository<Like>,
     @InjectRepository(CommentEntity)
     private commentRepository: Repository<CommentEntity>,
+    private readonly server:Server,
+    private Gateway:FeedGateway
   ) {}
 
   async create(author: User, createPostDto: PostDto) {
@@ -35,7 +38,12 @@ export class PostService {
     post.author = user;
     post.caption = createPostDto.caption;
 
-    return await this.postRepository.save(post);
+    const savePost  = await this.postRepository.save(post)
+    // сохранение в ентити
+    this.Gateway.server.emit('new-post', post)
+
+    return savePost
+    
   }
 
   async updatePost(

@@ -21,11 +21,17 @@ import { AuthGuard } from '@nestjs/passport';
 import { PostEntity } from './entities/post.entity';
 import { User } from '../users/entities/user.entity';
 import { UpdatePostDto } from './dto/updatePost.dto';
+import { Server } from 'socket.io';
+import { FeedGateway } from 'src/feed/gateway/feet.gateway';
 @ApiBearerAuth()
 @ApiTags('posts')
 @Controller()
 export class PostController {
-  constructor(private readonly postService: PostService) {}
+  constructor(
+    private readonly postService: PostService,
+    private readonly Gateway: FeedGateway,
+    private readonly server:Server
+    ) {}
 
   @ApiOperation({ summary: 'Create a post' })
   @ApiResponse({ status: 201, description: 'Created.' })
@@ -34,10 +40,11 @@ export class PostController {
   async createPost(
     @Req() req: any,
     @Body() createPostDto: PostDto,
-  ): Promise<PostEntity> {
+  ): Promise<void> {
     const currentUser: User = req.user;
-
-    return await this.postService.create(currentUser, createPostDto);
+    return await this.postService.create(currentUser, createPostDto).then((post)=>{
+      this.Gateway.server.emit('message', post );
+    });
   }
 
   @ApiOperation({ summary: 'Update a post' })
@@ -79,6 +86,8 @@ export class PostController {
   @UseGuards(AuthGuard('jwt'))
   async getLikedAndComentedPosts(@Req() req) {
     const user: User = req.user as User;
-    return this.postService.getLikedAndComentedPosts(user.id);
+    const returnValue = this.postService.getLikedAndComentedPosts(user.id)
+    this.server.emit("", returnValue)
+    return returnValue;
   }
 }
