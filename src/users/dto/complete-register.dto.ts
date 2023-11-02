@@ -1,14 +1,23 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import { IsNotEmpty, Matches, MinLength } from 'class-validator';
+import { IsNotEmpty, Matches, MinLength, Validate } from 'class-validator';
+import { IsValidName } from 'src/utils/validators/double-names-validator';
 
 export class UpdateUserRegisterDto {
   @IsNotEmpty()
   @ApiProperty({ example: 'John' })
+  @Validate(IsValidName, {
+    message:
+      'Name should contain only letters, hyphen, and be in English or Ukrainian alphabet',
+  })
   firstName: string;
 
   @IsNotEmpty()
   @ApiProperty({ example: 'Doe' })
+  @Validate(IsValidName, {
+    message:
+      'Last name should contain only letters, hyphen, and be in English or Ukrainian alphabet',
+  })
   lastName: string;
 
   @ApiProperty({ example: '@Jojo2323' })
