@@ -18,9 +18,6 @@ import { CreateBookDto } from './dto/create-book.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import bcrypt from 'bcryptjs';
 import { createResponse } from 'src/helpers/response-helpers';
-import { Session } from 'src/session/entities/session.entity';
-import { Forgot } from 'src/forgot/entities/forgot.entity';
-import { PostEntity } from 'src/post/entities/post.entity';
 
 @Injectable()
 export class UsersService {
@@ -29,62 +26,12 @@ export class UsersService {
     private usersRepository: Repository<User>,
     @InjectRepository(Book)
     private bookRepository: Repository<Book>,
-    @InjectRepository(Session)
-    private sessionRepository: Repository<Session>,
-    @InjectRepository(Forgot)
-    private forgotRepository: Repository<Forgot>,
-    @InjectRepository(PostEntity)
-    private postRepository: Repository<PostEntity>,
   ) {}
 
   create(createProfileDto: CreateUserDto): Promise<User> {
     return this.usersRepository.save(
       this.usersRepository.create(createProfileDto),
     );
-  }
-
-  async deleteUserRelatedData(user: User): Promise<void> {
-    const userSubscribers = await this.usersRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.subscribers', 'subscriber')
-      .where('subscriber.id=:userId', { userId: user.id })
-      .getMany();
-
-    for (const subscriber of userSubscribers) {
-      await this.usersRepository
-        .createQueryBuilder('user')
-        .relation(User, 'subscribers')
-        .of(subscriber)
-        .remove(user);
-    }
-
-    await this.sessionRepository
-      .createQueryBuilder()
-      .delete()
-      .from(Session)
-      .where('user = :userId', { userId: user.id })
-      .execute();
-
-    await this.bookRepository
-      .createQueryBuilder()
-      .delete()
-      .from(Book)
-      .where('user=:userId', { userId: user.id })
-      .execute();
-
-    await this.forgotRepository
-      .createQueryBuilder()
-      .delete()
-      .from(Forgot)
-      .where('user=:userId', { userId: user.id })
-      .execute();
-
-    await this.postRepository
-      .createQueryBuilder()
-      .delete()
-      .from(PostEntity)
-      .where('authorId=:userId', { userId: user.id })
-      .execute();
   }
 
   findManyWithPagination(
@@ -128,10 +75,7 @@ export class UsersService {
     });
   }
 
-  async update(
-    userId: number,
-    updateProfileDto: DeepPartial<User>,
-  ): Promise<User> {
+  async update(userId: number, updateProfileDto: DeepPartial<User>) {
     const user = await this.usersRepository.findOne({ where: { id: userId } });
 
     if (!user) {
@@ -163,7 +107,24 @@ export class UsersService {
     user.avatarUrl = updateProfileDto.avatarUrl ?? user.avatarUrl;
     user.userStatus = updateProfileDto.userStatus ?? user.userStatus;
 
-    return this.usersRepository.save(user);
+    await this.usersRepository.save(user);
+
+    const updatedUser = {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      nickName: user.nickName,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      country: user.country,
+      region: user.region,
+      city: user.city,
+      userStatus: user.userStatus,
+      role: user.role,
+      status: user.status,
+      userBooks: user.books,
+    };
+    return updatedUser;
   }
 
   async softDelete(id: User['id']): Promise<void> {
@@ -225,18 +186,19 @@ export class UsersService {
       .where('subscriber.id=:userId', { userId })
       .getMany();
 
-    console.log('mySubscribers', mySubscribers);
-
     return {
-      userEmail: user.email,
-      avatarUrl: user.avatarUrl,
+      id: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
       nickName: user.nickName,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
       country: user.country,
       region: user.region,
       city: user.city,
       userStatus: user.userStatus,
+      role: user.role,
+      status: user.status,
       myFollowersCount: mySubscribers.length,
       myFollowingCount: user.subscribers.length,
       userBooks: user.books,
@@ -434,7 +396,6 @@ export class UsersService {
     if (!user) {
       throw createResponse(HttpStatus.NOT_FOUND, 'User not found.');
     }
-    await this.deleteUserRelatedData(user);
 
     await this.usersRepository.remove(user);
   }

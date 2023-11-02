@@ -21,6 +21,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { PostEntity } from './entities/post.entity';
 import { User } from '../users/entities/user.entity';
 import { UpdatePostDto } from './dto/updatePost.dto';
+
 @ApiBearerAuth()
 @ApiTags('posts')
 @Controller()
@@ -43,6 +44,7 @@ export class PostController {
   @ApiOperation({ summary: 'Update a post' })
   @ApiResponse({ status: 201, description: 'Updated.' })
   @Patch('update/:id')
+  @UseGuards(AuthGuard('jwt'))
   async updatePost(
     @Param('id') postId: number,
     @Body() updatePostDto: UpdatePostDto,
