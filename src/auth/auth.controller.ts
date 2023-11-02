@@ -80,6 +80,13 @@ export class AuthController {
     return this.service.register(createUserDto);
   }
 
+  @Post('nickname-validation/:nickname')
+  @HttpCode(HttpStatus.OK)
+  async nickValidation(@Param('nickname') nickname: string): Promise<void> {
+    return await this.service.validateNickname(nickname);
+  }
+
+
   @Patch('refresh-unique-token')
   @HttpCode(HttpStatus.NO_CONTENT)
   async refreshToken(

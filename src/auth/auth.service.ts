@@ -298,7 +298,26 @@ export class AuthService {
       },
     });
   }
-
+  
+  async validateNickname(nickname: string): Promise<void> {
+    if (!nickname.startsWith('@')) {
+      throw new BadRequestException('Nickname should start with "@"');
+    }
+    
+    const existingUser = await this.usersService.findOne({ nickName: nickname });
+    
+  
+    if (!existingUser) {
+      throw new NotFoundException('Nickname is aviable to used'); 
+    }
+    if (existingUser) {
+      throw new ConflictException({
+        error: `User with this nickname already exists.`,
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
+    } 
+  }
+  
   async resendConfirmationCode(email: string): Promise<void> {
     const user = await this.usersService.findOne({ email });
 
