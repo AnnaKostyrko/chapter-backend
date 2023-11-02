@@ -33,7 +33,7 @@ export class Like extends EntityHelper {
   @ApiProperty()
   postId: number;
 
-  @ManyToOne(() => User, (user) => user.likes)
+  @ManyToOne(() => User, (user) => user.likes, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user: User;
 

@@ -39,7 +39,7 @@ export class Book extends EntityHelper {
   book_statusId: number;
 
   @Exclude()
-  @ManyToOne(() => User, (user) => user.books, { cascade: true })
+  @ManyToOne(() => User, (user) => user.books, { onDelete: 'CASCADE' })
   user: User;
 
   @Exclude()

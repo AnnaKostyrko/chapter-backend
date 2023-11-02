@@ -617,9 +617,9 @@ export class AuthService {
     if (!existingUser) {
       throw createResponse(HttpStatus.FORBIDDEN, 'Wrong hash');
     }
-
-    await this.usersService.restoringUser(existingUser.id);
     existingUser.hash = null;
+    await existingUser.save();
+    await this.usersService.restoringUser(existingUser.id);
 
     return createResponse(
       HttpStatus.OK,
