@@ -5,6 +5,7 @@ import { User } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
 import { Repository } from 'typeorm';
 import { addDays } from 'date-fns';
+import { Forgot } from '../forgot/entities/forgot.entity';
 
 @Injectable()
 export class TaskService {
@@ -12,9 +13,11 @@ export class TaskService {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
     private usersService: UsersService,
+    @InjectRepository(Forgot)
+    private forgotRepository: Repository<Forgot>,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_1AM, {
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
     name: 'findDeletingUsersMoreThan30DaysAgo',
     timeZone: 'Europe/Kyiv',
   })
@@ -35,6 +38,19 @@ export class TaskService {
       }
     } catch (error) {
       console.error('Error in handleCron:', error);
+    }
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
+    name: 'deleteForgotRequest',
+    timeZone: 'Europe/Kyiv',
+  })
+  async handle(): Promise<void> {
+    try {
+      await this.forgotRepository.clear();
+      console.log('clear is succesfull');
+    } catch (error) {
+      console.error('Error in handleDeleteForgotRequest:', error);
     }
   }
 }

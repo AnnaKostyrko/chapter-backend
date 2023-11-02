@@ -12,6 +12,8 @@ import { IsExist } from 'src/utils/validators/is-exists.validator';
 import { IsNotExist } from 'src/utils/validators/is-not-exists.validator';
 import { SessionModule } from 'src/session/session.module';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Forgot } from 'src/forgot/entities/forgot.entity';
 
 @Module({
   imports: [
@@ -21,6 +23,7 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
     PassportModule,
     MailModule,
     JwtModule.register({}),
+    TypeOrmModule.forFeature([Forgot]),
   ],
   controllers: [AuthController],
   providers: [
