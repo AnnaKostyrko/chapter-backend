@@ -110,7 +110,7 @@ export class User extends EntityHelper {
   })
   status?: Status;
 
-  @ManyToMany(() => User, (user) => user.subscribers)
+  @ManyToMany(() => User, (user) => user.subscribers, { onDelete: 'CASCADE' })
   @JoinTable({ name: 'User2user(friends)' })
   subscribers: User[];
 
@@ -134,15 +134,17 @@ export class User extends EntityHelper {
   @Exclude({ toPlainOnly: true })
   deletedAt: Date;
 
-  @OneToMany(() => PostEntity, (post) => post.author)
+  @OneToMany(() => PostEntity, (post) => post.author, { onDelete: 'CASCADE' })
   posts: PostEntity[];
 
-  @OneToMany(() => Book, (book) => book.user)
+  @OneToMany(() => Book, (book) => book.user, { onDelete: 'CASCADE' })
   books: Book[];
 
-  @OneToMany(() => CommentEntity, (comment) => comment.user)
+  @OneToMany(() => CommentEntity, (comment) => comment.user, {
+    onDelete: 'CASCADE',
+  })
   comments: CommentEntity[];
 
-  @OneToMany(() => Like, (like) => like.user)
+  @OneToMany(() => Like, (like) => like.user, { onDelete: 'CASCADE' })
   likes: Like[];
 }

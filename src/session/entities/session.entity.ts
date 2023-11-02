@@ -16,6 +16,7 @@ export class Session extends EntityHelper {
 
   @ManyToOne(() => User, {
     eager: true,
+    onDelete: 'CASCADE',
   })
   @Index()
   user: User;

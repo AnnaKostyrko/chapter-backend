@@ -36,7 +36,7 @@ export class CommentEntity extends EntityHelper {
   @ApiProperty()
   postId: number;
 
-  @ManyToOne(() => User, (user) => user.comments)
+  @ManyToOne(() => User, (user) => user.comments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
   user: User;
 

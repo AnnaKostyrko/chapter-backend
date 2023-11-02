@@ -32,7 +32,6 @@ export class TaskService {
 
       for (const user of usersIncludingDeleted) {
         if (user.deletedAt && user.deletedAt < thirtyDaysAgo) {
-          await this.usersService.deleteUserRelatedData(user);
           await this.usersRepository.remove(user);
         }
       }
