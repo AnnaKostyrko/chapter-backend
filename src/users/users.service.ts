@@ -396,7 +396,6 @@ export class UsersService {
     if (!user) {
       throw createResponse(HttpStatus.NOT_FOUND, 'User not found.');
     }
-    // await this.deleteUserRelatedData(user);
 
     await this.usersRepository.remove(user);
   }
