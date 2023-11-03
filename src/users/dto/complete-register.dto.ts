@@ -8,7 +8,7 @@ export class UpdateUserRegisterDto {
   @ApiProperty({ example: 'John' })
   @Validate(IsValidName, {
     message:
-      'Name should contain only letters, hyphen, and be in English or Ukrainian alphabet',
+      'Name should contain only letters and be in English or Ukrainian alphabet',
   })
   firstName: string;
 
@@ -16,7 +16,7 @@ export class UpdateUserRegisterDto {
   @ApiProperty({ example: 'Doe' })
   @Validate(IsValidName, {
     message:
-      'Last name should contain only letters, hyphen, and be in English or Ukrainian alphabet',
+      'Last name should contain only letters and be in English or Ukrainian alphabet',
   })
   lastName: string;
 

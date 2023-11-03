@@ -11,12 +11,13 @@ import { Injectable } from '@nestjs/common';
 @ValidatorConstraint({ name: 'IsValidName', async: false })
 export class IsValidName implements ValidatorConstraintInterface {
   validate(name: string) {
-    const nameParts = name.split('-'); // Розділити ім'я або прізвище за дефісом
-
-    if (nameParts.length === 3) {
+    const nameParts = name.split('-');
+    if (nameParts.length === 2) {
       return nameParts.every((part) => namesValidator.test(part));
+    } else if (nameParts.length === 1) {
+      return namesValidator.test(name);
     }
 
-    return namesValidator.test(name);
+    return false;
   }
 }
