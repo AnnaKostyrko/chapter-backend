@@ -1,5 +1,3 @@
-// name-validator.ts
-
 import { namesValidator } from 'src/helpers/regex/names-regexp';
 import {
   ValidatorConstraint,
