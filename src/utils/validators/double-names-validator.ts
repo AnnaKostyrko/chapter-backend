@@ -12,6 +12,11 @@ export class IsValidName implements ValidatorConstraintInterface {
     if (name.startsWith("'") || name.endsWith("'")) {
       return false;
     }
+
+    if (name.includes("''")) {
+      return false;
+    }
+
     const nameParts = name.split('-');
     if (nameParts.length === 2) {
       return nameParts.every((part) => namesValidator.test(part));
