@@ -9,6 +9,9 @@ import { Injectable } from '@nestjs/common';
 @ValidatorConstraint({ name: 'IsValidName', async: false })
 export class IsValidName implements ValidatorConstraintInterface {
   validate(name: string) {
+    if (name.startsWith("'") || name.endsWith("'")) {
+      return false;
+    }
     const nameParts = name.split('-');
     if (nameParts.length === 2) {
       return nameParts.every((part) => namesValidator.test(part));

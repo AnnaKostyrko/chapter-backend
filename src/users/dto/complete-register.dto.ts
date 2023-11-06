@@ -7,16 +7,14 @@ export class UpdateUserRegisterDto {
   @IsNotEmpty()
   @ApiProperty({ example: 'John' })
   @Validate(IsValidName, {
-    message:
-      'Name should contain only letters and be in English or Ukrainian alphabet',
+    message: 'Incorrect name',
   })
   firstName: string;
 
   @IsNotEmpty()
   @ApiProperty({ example: 'Doe' })
   @Validate(IsValidName, {
-    message:
-      'Last name should contain only letters and be in English or Ukrainian alphabet',
+    message: 'Incorrect last name',
   })
   lastName: string;
 
