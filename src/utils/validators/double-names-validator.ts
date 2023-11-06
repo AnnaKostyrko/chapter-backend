@@ -9,21 +9,24 @@ import { Injectable } from '@nestjs/common';
 @ValidatorConstraint({ name: 'IsValidName', async: false })
 export class IsValidName implements ValidatorConstraintInterface {
   validate(name: string) {
-    if (name.startsWith("'") || name.endsWith("'")) {
-      return false;
-    }
-
-    if (name.includes("''")) {
+    if (
+      name.startsWith("'") ||
+      name.endsWith("'") ||
+      name.split("'").length > 3
+    ) {
       return false;
     }
 
     const nameParts = name.split('-');
     if (nameParts.length === 2) {
-      return nameParts.every((part) => namesValidator.test(part));
-    } else if (nameParts.length === 1) {
-      return namesValidator.test(name);
+      return nameParts.every((part) => {
+        if (part.split("'").length > 2 || !namesValidator.test(part)) {
+          return false;
+        }
+        return true;
+      });
     }
 
-    return false;
+    return true;
   }
 }
