@@ -86,7 +86,6 @@ export class AuthController {
     return await this.service.validateNickname(nickname);
   }
 
-
   @Patch('refresh-unique-token')
   @HttpCode(HttpStatus.NO_CONTENT)
   async refreshToken(
