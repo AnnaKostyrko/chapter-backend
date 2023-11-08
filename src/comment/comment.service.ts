@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CommentEntity } from './entity/comment.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateCommentDto } from './dto/comment.dto';
+import { CreateCommentDto, GetCommentsDto } from './dto/comment.dto';
 import { User } from '../users/entities/user.entity';
 import { PostEntity } from '../post/entities/post.entity';
 
@@ -74,5 +74,24 @@ export class CommentService {
     });
 
     return this.commentRepository.save(commentToComment);
+  }
+
+  async GetComments(postId: number, commentData: GetCommentsDto) {
+    const post = await this.postRepository.findOne({
+      where: { id: postId },
+    });
+
+    if (!post) {
+      throw new Error(`Post with id: ${postId} not found`);
+    }
+
+    const comments = await this.commentRepository.find({
+      where: {
+        postId: post.id,
+        text: commentData.text, // Возможно, вам нужно использовать commentData.text в качестве фильтра для комментариев
+      },
+    });
+
+    return { post, comments };
   }
 }

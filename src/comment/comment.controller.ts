@@ -1,15 +1,17 @@
 import {
   Body,
   Controller,
+  Get,
   Param,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { CommentEntity } from './entity/comment.entity';
-import { CreateCommentDto } from './dto/comment.dto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { CreateCommentDto, GetCommentsDto } from './dto/comment.dto';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Comment')
@@ -41,5 +43,16 @@ export class CommentController {
       commentId,
       commentData,
     );
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ summary: 'Get comments for a post' })
+  @Get('GetCommentByPost/:id')
+  async GetComments(
+    @Param('id') postId: number,
+    @Query() commentData: GetCommentsDto,
+  ) {
+    return await this.commentService.GetComments(postId, commentData);
   }
 }

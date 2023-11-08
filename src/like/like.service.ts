@@ -5,7 +5,6 @@ import { Repository } from 'typeorm';
 import { createResponse } from 'src/helpers/response-helpers';
 import { PostEntity } from 'src/post/entities/post.entity';
 import { CommentEntity } from '../comment/entity/comment.entity';
-
 @Injectable()
 export class LikeService {
   constructor(

@@ -10,27 +10,28 @@
         <ul id="messages"></ul>
     </div>
     <div>
-        <label for="message"></label><input type="text" id="message" autocomplete="off">
-        <button onclick="handleSubmit()">Send</button>
+       
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
     <script>
         const socket = io('http://localhost:1127/feed', { withCredentials: false });  // or true, if you need to send credentials
-        const messages = document.getElementById('messages');
+        
         const message = document.getElementById('message');
         const handleSubmit = () => {
             socket.emit('message', {data: message.value});
-            socket.emit('GetPosts', {data: message.value})
+            socket.emit('GetPosts', {data: message.value});
         };
+
         socket.on('message', (res) => {
             console.log(res)
             return res
         });
-        socket.on('GetPosts',(data)=>{
+        
+        socket.on('GetPosts', (data)=> {
             console.log(data)
             return data
-        })
-        socket.on()
+        });
+        
     </script>
   </body>
 </html>

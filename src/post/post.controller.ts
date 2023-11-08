@@ -30,8 +30,8 @@ export class PostController {
   constructor(
     private readonly postService: PostService,
     private readonly Gateway: FeedGateway,
-    private readonly server:Server
-    ) {}
+    private readonly server: Server,
+  ) {}
 
   @ApiOperation({ summary: 'Create a post' })
   @ApiResponse({ status: 201, description: 'Created.' })
@@ -42,9 +42,11 @@ export class PostController {
     @Body() createPostDto: PostDto,
   ): Promise<void> {
     const currentUser: User = req.user;
-    return await this.postService.create(currentUser, createPostDto).then((post)=>{
-      this.Gateway.server.emit('message', post );
-    });
+    return await this.postService
+      .create(currentUser, createPostDto)
+      .then((post) => {
+        this.Gateway.server.emit('message', post);
+      });
   }
 
   @ApiOperation({ summary: 'Update a post' })
@@ -53,8 +55,13 @@ export class PostController {
   async updatePost(
     @Param('id') postId: number,
     @Body() updatePostDto: UpdatePostDto,
-  ): Promise<void> {
-    await this.postService.updatePost(postId, updatePostDto);
+  ): Promise<any> {
+    return await this.postService
+      .updatePost(postId, updatePostDto)
+      .then((caption) => {
+        console.log(caption);
+        this.Gateway.server.emit('UpdatePost', caption);
+      });
   }
 
   @ApiOperation({ summary: 'delete a post' })
@@ -86,8 +93,7 @@ export class PostController {
   @UseGuards(AuthGuard('jwt'))
   async getLikedAndComentedPosts(@Req() req) {
     const user: User = req.user as User;
-    const returnValue = this.postService.getLikedAndComentedPosts(user.id)
-    this.server.emit("", returnValue)
+    const returnValue = this.postService.getLikedAndComentedPosts(user.id);
     return returnValue;
   }
 }

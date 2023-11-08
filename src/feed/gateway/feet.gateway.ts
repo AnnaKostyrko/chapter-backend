@@ -1,26 +1,28 @@
 import {
-    MessageBody,
-    SubscribeMessage,
-    WebSocketGateway,
-    WebSocketServer,
-  } from '@nestjs/websockets';
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+} from '@nestjs/websockets';
 
-@WebSocketGateway(1127,{namespace: 'feed',
-cors: {
-  origin: '*',
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  credentials: true,
-},})
+@WebSocketGateway(1127, {
+  namespace: 'feed',
+  cors: {
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  },
+})
 export class FeedGateway {
-@WebSocketServer()
-server: any;
+  @WebSocketServer()
+  server: any;
 
-@SubscribeMessage('message')
+  @SubscribeMessage('message')
   handleMessage(client: any, message: { data: string }): void {
     console.log(`message: ${message.data}`);
     this.server.emit('message', message);
   }
+  handleUpdatePost(client: any, message: { data: string }): void {
+    console.log(`message: ${message.data}`);
+    this.server.emit('message', message);
+  }
 }
-
-
-// @SubscribeGetpost('message')
