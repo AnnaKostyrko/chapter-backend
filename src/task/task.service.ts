@@ -52,4 +52,22 @@ export class TaskService {
       console.error('Error in handleDeleteForgotRequest:', error);
     }
   }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
+    name: 'reset hash count',
+    timeZone: 'Europe/Kyiv',
+  })
+  async resetHashCount(): Promise<void> {
+    try {
+      await this.usersRepository
+        .createQueryBuilder()
+        .update(User)
+        .set({ hashCount: 0 })
+        .execute();
+
+      console.log('reset is succesfull');
+    } catch (error) {
+      console.error('Error in resetHashCount:', error);
+    }
+  }
 }

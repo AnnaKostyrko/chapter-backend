@@ -325,6 +325,17 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+    let hashCount = user.hashCount;
+    if (hashCount > 2) {
+      throw new HttpException(
+        {
+          status: HttpStatus.TOO_MANY_REQUESTS,
+          error: 'You have exceeded the rate limit for the day',
+        },
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+    hashCount++;
 
     const hash = crypto
       .createHash('sha256')
@@ -332,6 +343,7 @@ export class AuthService {
       .digest('hex')
       .slice(-6);
 
+    user.hashCount = hashCount;
     user.hash = hash;
     await user.save();
 
@@ -341,15 +353,6 @@ export class AuthService {
         hash,
       },
     });
-    // Delay setting user.hash to null
-    setTimeout(async () => {
-      const delay = (ms) => new Promise((res) => setTimeout(res, ms));
-
-      await delay(15 * 60 * 1000);
-
-      user.hash = null;
-      await user.save();
-    }, 15 * 60 * 1000);
   }
 
   async confirmEmail(uniqueToken: string): Promise<{ id: number }> {
@@ -364,6 +367,21 @@ export class AuthService {
           error: `notFound`,
         },
         HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const date = new Date();
+    const hashDate = user.updatedAt;
+
+    const timeDifference = (date.getTime() - hashDate.getTime()) / 60000;
+
+    if (timeDifference >= 15) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: 'Hash is not valid.',
+        },
+        HttpStatus.BAD_REQUEST,
       );
     }
 

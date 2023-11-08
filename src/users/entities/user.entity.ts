@@ -119,6 +119,10 @@ export class User extends EntityHelper {
   @Exclude({ toPlainOnly: true })
   hash: string | null;
 
+  @Column({ type: 'integer', nullable: true, default: 0 })
+  @Exclude()
+  hashCount: number;
+
   @Column({ default: false, nullable: false })
   IsAccessCookie: boolean;
 
@@ -129,6 +133,16 @@ export class User extends EntityHelper {
   @UpdateDateColumn()
   @Exclude({ toPlainOnly: true })
   updatedAt: Date;
+
+  @BeforeInsert()
+  setCreatedAt() {
+    this.createdAt = new Date();
+  }
+
+  @BeforeUpdate()
+  setUpdatedAt() {
+    this.updatedAt = new Date();
+  }
 
   @DeleteDateColumn()
   @Exclude({ toPlainOnly: true })
