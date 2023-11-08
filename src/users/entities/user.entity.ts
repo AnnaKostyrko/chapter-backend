@@ -134,6 +134,16 @@ export class User extends EntityHelper {
   @Exclude({ toPlainOnly: true })
   updatedAt: Date;
 
+  @BeforeInsert()
+  setCreatedAt() {
+    this.createdAt = new Date();
+  }
+
+  @BeforeUpdate()
+  setUpdatedAt() {
+    this.updatedAt = new Date();
+  }
+
   @DeleteDateColumn()
   @Exclude({ toPlainOnly: true })
   deletedAt: Date;

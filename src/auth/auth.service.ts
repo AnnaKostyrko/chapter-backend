@@ -371,7 +371,6 @@ export class AuthService {
     }
 
     const date = new Date();
-
     const hashDate = user.updatedAt;
 
     const timeDifference = (date.getTime() - hashDate.getTime()) / 60000;
