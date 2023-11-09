@@ -279,7 +279,7 @@ export class AuthService {
         status: HttpStatus.UNPROCESSABLE_ENTITY,
       });
     }
-    const user = await this.usersService.create({
+    await this.usersService.create({
       ...dto,
       email: dto.email,
       role: {
@@ -297,16 +297,6 @@ export class AuthService {
         hash,
       },
     });
-
-    setTimeout(async () => {
-      const delay = (ms: number | undefined) =>
-        new Promise((res) => setTimeout(res, ms));
-
-      await delay(15 * 60 * 1000);
-
-      user.hash = null;
-      await user.save();
-    }, 15 * 60 * 1000);
   }
 
   async resendConfirmationCode(email: string): Promise<void> {
@@ -331,16 +321,6 @@ export class AuthService {
         hash,
       },
     });
-    // Delay setting user.hash to null
-    setTimeout(async () => {
-      const delay = (ms: number | undefined) =>
-        new Promise((res) => setTimeout(res, ms));
-
-      await delay(15 * 60 * 1000);
-
-      user.hash = null;
-      await user.save();
-    }, 15 * 60 * 1000);
   }
 
   async confirmEmail(uniqueToken: string): Promise<{ id: number }> {
