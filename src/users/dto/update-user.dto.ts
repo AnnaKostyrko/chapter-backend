@@ -15,17 +15,9 @@ export class UpdateUserDto {
   @IsOptional()
   nickName?: string;
 
-  @ApiProperty({ example: 'Ukraine' })
+  @ApiProperty({ example: 'Ukraine, Kyiv' })
   @IsOptional()
-  country?: string | null;
-
-  @ApiProperty({ example: 'Kyivska oblast' })
-  @IsOptional()
-  region?: string | null;
-
-  @ApiProperty({ example: 'Kyiv' })
-  @IsOptional()
-  city?: string | null;
+  location?: string | null;
 
   @ApiProperty({ example: 'http//.....' })
   @IsOptional()
