@@ -101,9 +101,7 @@ export class UsersService {
     user.firstName = updateProfileDto.firstName ?? user.firstName;
     user.lastName = updateProfileDto.lastName ?? user.lastName;
     user.nickName = updateProfileDto.nickName ?? user.nickName;
-    user.country = updateProfileDto.country ?? user.country;
-    user.region = updateProfileDto.region ?? user.region;
-    user.city = updateProfileDto.city ?? user.city;
+    user.location = updateProfileDto.location ?? user.location;
     user.avatarUrl = updateProfileDto.avatarUrl ?? user.avatarUrl;
     user.userStatus = updateProfileDto.userStatus ?? user.userStatus;
 
@@ -116,9 +114,7 @@ export class UsersService {
       nickName: user.nickName,
       email: user.email,
       avatarUrl: user.avatarUrl,
-      country: user.country,
-      region: user.region,
-      city: user.city,
+      location: user.location,
       userStatus: user.userStatus,
       role: user.role,
       status: user.status,
@@ -193,9 +189,7 @@ export class UsersService {
       nickName: user.nickName,
       email: user.email,
       avatarUrl: user.avatarUrl,
-      country: user.country,
-      region: user.region,
-      city: user.city,
+      location: user.location,
       userStatus: user.userStatus,
       role: user.role,
       status: user.status,
@@ -215,9 +209,7 @@ export class UsersService {
       firstName: user.firstName,
       lastName: user.lastName,
       nickName: user.nickName,
-      country: user.country,
-      region: user.region,
-      city: user.city,
+      location: user.location,
       userStatus: user.userStatus,
     };
   }
