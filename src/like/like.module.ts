@@ -28,6 +28,6 @@ import { CommentService } from 'src/comment/comment.service';
     ]),
   ],
   controllers: [LikeController],
-  providers: [LikeService, UsersService, PostService,CommentService],
+  providers: [LikeService, UsersService, PostService, CommentService],
 })
 export class LikeModule {}

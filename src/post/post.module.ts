@@ -17,7 +17,17 @@ import { Session } from 'src/session/entities/session.entity';
 import { Forgot } from 'src/forgot/entities/forgot.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PostEntity, User, Like, CommentEntity,Book,Session,Forgot])],
+  imports: [
+    TypeOrmModule.forFeature([
+      PostEntity,
+      User,
+      Like,
+      CommentEntity,
+      Book,
+      Session,
+      Forgot,
+    ]),
+  ],
   providers: [
     PostService,
     FeedGateway,

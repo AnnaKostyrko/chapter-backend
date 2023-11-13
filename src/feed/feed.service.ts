@@ -15,10 +15,10 @@ export class FeedService {
     private readonly likeService: LikeService,
     private readonly commentService: CommentService,
     private readonly usersService: UsersService,
-    ) {}
+  ) {}
 
   //searching feed items
-  async getFeed(currentUserId:number) {
+  async getFeed(currentUserId: number) {
     const feedItems = await this.postRepository.find({
       order: { createdAt: 'DESC' },
       relations: {
@@ -62,21 +62,20 @@ export class FeedService {
 
         const likedUsers = await this.likeService.getLikedUsers(item.id);
         // const likedComments = await this.likeService.toggleCommentLike(item.author.id,comments, )
-   
-        
-   
-    
+
         const followStatus = await this.usersService.toggleSubscription(
           item.author.id,
-          currentUserId
-          );
+          currentUserId,
+        );
 
-        return {    
+        return {
           caption: item.caption,
           imgUrl: item.imgUrl,
-          likedUsers: likedUsers, 
+          likedUsers: likedUsers,
           comments,
-          followStatus: followStatus.subscribers.some(subscriber => subscriber.id === item.author.id),
+          followStatus: followStatus.subscribers.some(
+            (subscriber) => subscriber.id === item.author.id,
+          ),
           createAt: item.createdAt,
           author: {
             id: item.author.id,

@@ -88,25 +88,24 @@ export class CommentService {
     const comments = await this.commentRepository.find({
       where: {
         postId: post.id,
-        text: commentData.text, 
+        text: commentData.text,
       },
     });
 
     return { post, comments };
   }
 
-  async getCommentToComment(parentCommentId: number){
-
+  async getCommentToComment(parentCommentId: number) {
     const replies = await this.commentRepository.find({
       where: { parentId: parentCommentId },
     });
 
     if (!replies) {
-      throw new NotFoundException('No replies found for the specified comment.');
+      throw new NotFoundException(
+        'No replies found for the specified comment.',
+      );
     }
 
     return replies;
   }
-  }
-  
-
+}

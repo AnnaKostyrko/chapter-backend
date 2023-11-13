@@ -149,22 +149,20 @@ export class PostService {
       const commentCount = comments.find(
         (comment) => comment.comment_entity_postId === post.id,
       );
-        const commentToComment =  this.commentService.commentToComment(post.author.id, post.id, { text: post.comments });
-   
+
       return {
         postId: post.id,
         caption: post.caption,
         createdDate: post.createdAt,
         likesCount: likeCount ? likeCount.likecount : 0,
         commentCount: commentCount ? commentCount.commentcount : 0,
-       
+
         postimage: post.imgUrl,
         author: {
           authorId: post.author.id,
           authorNickName: post.author.nickName,
           authorAvatar: post.author.avatarUrl,
         },
-
       };
     });
 
