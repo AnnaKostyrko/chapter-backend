@@ -6,18 +6,25 @@ import {
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-@ValidatorConstraint({ name: 'IsValidName', async: false })
+@ValidatorConstraint({ name: 'IsValidName', async: true })
 export class IsValidName implements ValidatorConstraintInterface {
   validate(name: string) {
-    if (
-      name.startsWith("'") ||
-      name.endsWith("'") ||
-      name.split("'").length > 3
-    ) {
+    const nameParts = name.split('-');
+    if (nameParts.length > 2) {
       return false;
     }
 
-    const nameParts = name.split('-');
+    if (nameParts.length === 1) {
+      if (
+        name.startsWith("'") ||
+        name.endsWith("'") ||
+        name.split("'").length > 2 ||
+        !namesValidator.test(name)
+      ) {
+        return false;
+      }
+    }
+
     if (nameParts.length === 2) {
       return nameParts.every((part) => {
         if (part.split("'").length > 2 || !namesValidator.test(part)) {

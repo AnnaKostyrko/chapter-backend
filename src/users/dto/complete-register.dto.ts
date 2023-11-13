@@ -20,7 +20,7 @@ export class UpdateUserRegisterDto {
 
   @ApiProperty({ example: '@Jojo2323' })
   @IsNotEmpty()
-  @MinLength(3)
+  @Matches(/^@[A-Za-z0-9]{7,30}$/, { message: 'Incorrect format of nick name' })
   nickName: string;
 
   @IsNotEmpty()

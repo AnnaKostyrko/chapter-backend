@@ -300,17 +300,10 @@ export class AuthService {
   }
 
   async validateNickname(nickname: string): Promise<void> {
-    if (!nickname.startsWith('@')) {
-      throw new BadRequestException('Nickname should start with "@"');
-    }
-
     const existingUser = await this.usersService.findOne({
       nickName: nickname,
     });
 
-    if (!existingUser) {
-      throw new NotFoundException('Nickname is aviable to used');
-    }
     if (existingUser) {
       throw new ConflictException({
         error: `User with this nickname already exists.`,
@@ -371,7 +364,10 @@ export class AuthService {
     }
 
     const date = new Date();
+    console.log('date', date);
+
     const hashDate = user.updatedAt;
+    console.log('hashDate', hashDate);
 
     const timeDifference = (date.getTime() - hashDate.getTime()) / 60000;
 
