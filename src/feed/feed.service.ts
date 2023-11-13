@@ -61,6 +61,7 @@ export class FeedService {
         });
 
         const likedUsers = await this.likeService.getLikedUsers(item.id);
+        
         // const likedComments = await this.likeService.toggleCommentLike(item.author.id,comments, )
 
         const followStatus = await this.usersService.toggleSubscription(
