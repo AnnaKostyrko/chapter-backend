@@ -371,7 +371,8 @@ export class AuthService {
 
     const timeDifference = (date.getTime() - hashDate.getTime()) / 60000;
 
-    if (timeDifference >= 15) {
+    //temporarily until the problem has been fixed
+    if (timeDifference >= 135) {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,

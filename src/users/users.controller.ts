@@ -44,6 +44,12 @@ import { RolesGuard } from 'src/roles/roles.guard';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Get('search')
+  async searchUsers(@Query('query') query: string): Promise<User[]> {
+    const users = await this.usersService.searchUsers(query);
+    return users.slice(0, 5);
+  }
+
   @Post()
   @HttpCode(HttpStatus.CREATED)
   create(@Body() createProfileDto: CreateUserDto): Promise<User> {
