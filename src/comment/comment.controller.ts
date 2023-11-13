@@ -55,4 +55,13 @@ export class CommentController {
   ) {
     return await this.commentService.GetComments(postId, commentData);
   }
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ summary: 'Get comments for a post' })
+  @Get('GetCommentToComment/:id')
+  async GetCommentToComment(
+    @Param('parrentId') parrentId: number,
+  ): Promise<CommentEntity[]> {
+    return await this.commentService.getCommentToComment(parrentId);
+  }
 }

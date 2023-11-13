@@ -5,18 +5,20 @@ import { PostEntity } from 'src/post/entities/post.entity';
 import { Server } from 'socket.io';
 import { LikeService } from 'src/like/like.service';
 import { CommentService } from 'src/comment/comment.service';
+import { UsersService } from 'src/users/users.service';
 @Injectable()
 export class FeedService {
   constructor(
     @InjectRepository(PostEntity)
     private readonly postRepository: Repository<PostEntity>,
     private readonly server: Server,
-    private readonly LikeService: LikeService,
-    private readonly CommentService: CommentService,
-  ) {}
+    private readonly likeService: LikeService,
+    private readonly commentService: CommentService,
+    private readonly usersService: UsersService,
+    ) {}
 
   //searching feed items
-  async getFeed() {
+  async getFeed(currentUserId:number) {
     const feedItems = await this.postRepository.find({
       order: { createdAt: 'DESC' },
       relations: {
@@ -54,19 +56,27 @@ export class FeedService {
 
     const formattedFeedItems = await Promise.all(
       feedItems.map(async (item) => {
-        // const comments = await this.CommentService.GetComments(  item.comments );
-        const comments = await this.CommentService.GetComments(item.id, {
+        const comments = await this.commentService.GetComments(item.id, {
           text: item.comments,
         });
-        const likedUsers = await this.LikeService.getLikedUsers(item.id);
 
-        return {
-          id: item.id,
+        const likedUsers = await this.likeService.getLikedUsers(item.id);
+        // const likedComments = await this.likeService.toggleCommentLike(item.author.id,comments, )
+   
+        
+   
+    
+        const followStatus = await this.usersService.toggleSubscription(
+          item.author.id,
+          currentUserId
+          );
+
+        return {    
           caption: item.caption,
           imgUrl: item.imgUrl,
-          likedUsers: likedUsers, // Add likedUsers array here
-          comments: comments, // Add comments here
-          follow: String,
+          likedUsers: likedUsers, 
+          comments,
+          followStatus: followStatus.subscribers.some(subscriber => subscriber.id === item.author.id),
           createAt: item.createdAt,
           author: {
             id: item.author.id,

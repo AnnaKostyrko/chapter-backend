@@ -13,6 +13,7 @@ import { UpdatePostDto } from './dto/updatePost.dto';
 import { createResponse } from 'src/helpers/response-helpers';
 import { Like } from 'src/like/entity/like.entity';
 import { CommentEntity } from 'src/comment/entity/comment.entity';
+import { CommentService } from 'src/comment/comment.service';
 
 @Injectable()
 export class PostService {
@@ -25,6 +26,8 @@ export class PostService {
     private likeRepository: Repository<Like>,
     @InjectRepository(CommentEntity)
     private commentRepository: Repository<CommentEntity>,
+
+    private readonly commentService: CommentService,
   ) {}
 
   async create(author: User, createPostDto: PostDto) {
@@ -146,18 +149,22 @@ export class PostService {
       const commentCount = comments.find(
         (comment) => comment.comment_entity_postId === post.id,
       );
+        const commentToComment =  this.commentService.commentToComment(post.author.id, post.id, { text: post.comments });
+   
       return {
         postId: post.id,
         caption: post.caption,
         createdDate: post.createdAt,
         likesCount: likeCount ? likeCount.likecount : 0,
         commentCount: commentCount ? commentCount.commentcount : 0,
+       
         postimage: post.imgUrl,
         author: {
           authorId: post.author.id,
           authorNickName: post.author.nickName,
           authorAvatar: post.author.avatarUrl,
         },
+
       };
     });
 

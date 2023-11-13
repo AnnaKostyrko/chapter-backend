@@ -12,10 +12,13 @@ import { Like } from 'src/like/entity/like.entity';
 import { CommentEntity } from 'src/comment/entity/comment.entity';
 import { LikeService } from 'src/like/like.service';
 import { CommentService } from 'src/comment/comment.service';
+import { UsersService } from 'src/users/users.service';
+import { Session } from 'src/session/entities/session.entity';
+import { Forgot } from 'src/forgot/entities/forgot.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([PostEntity, User, Book, Like, CommentEntity]),
+    TypeOrmModule.forFeature([PostEntity, User, Book, Like, CommentEntity,Session,Forgot]),
   ],
   providers: [
     FeedService,
@@ -24,6 +27,7 @@ import { CommentService } from 'src/comment/comment.service';
     PostService,
     LikeService,
     CommentService,
+    UsersService,
   ],
   controllers: [FeedController],
 })

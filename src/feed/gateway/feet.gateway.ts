@@ -21,8 +21,4 @@ export class FeedGateway {
     console.log(`message: ${message.data}`);
     this.server.emit('message', message);
   }
-  handleUpdatePost(client: any, message: { data: string }): void {
-    console.log(`message: ${message.data}`);
-    this.server.emit('message', message);
-  }
 }

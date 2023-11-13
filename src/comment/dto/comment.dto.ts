@@ -12,7 +12,7 @@ export class CreateCommentDto {
   @Length(1, 255, {
     message: 'Comment text should be between 1 and 255 characters',
   })
-  text: string;
+  text: any;
 }
 
 export class UpdateCommentDto {

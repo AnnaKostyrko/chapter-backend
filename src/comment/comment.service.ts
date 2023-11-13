@@ -88,10 +88,25 @@ export class CommentService {
     const comments = await this.commentRepository.find({
       where: {
         postId: post.id,
-        text: commentData.text, // Возможно, вам нужно использовать commentData.text в качестве фильтра для комментариев
+        text: commentData.text, 
       },
     });
 
     return { post, comments };
   }
-}
+
+  async getCommentToComment(parentCommentId: number){
+
+    const replies = await this.commentRepository.find({
+      where: { parentId: parentCommentId },
+    });
+
+    if (!replies) {
+      throw new NotFoundException('No replies found for the specified comment.');
+    }
+
+    return replies;
+  }
+  }
+  
+
