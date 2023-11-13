@@ -1,37 +1,32 @@
 import {
   Body,
   Controller,
-  Get,
   HttpCode,
   HttpStatus,
   Request,
   Post,
   UseGuards,
   Patch,
-  Delete,
   SerializeOptions,
   Param,
-  // Param,
+  Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthEmailLoginDto } from './dto/auth-email-login.dto';
 import { AuthForgotPasswordDto } from './dto/auth-forgot-password.dto';
 import { AuthConfirmEmailDto } from './dto/auth-confirm-email.dto';
 import { AuthResetPasswordDto } from './dto/auth-reset-password.dto';
-import { AuthUpdateDto } from './dto/auth-update.dto';
+
 import { AuthGuard } from '@nestjs/passport';
-// import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
 import { LoginResponseType } from './types/login-response.type';
 import { User } from '../users/entities/user.entity';
-import { NullableType } from '../utils/types/nullable.type';
-// import { StatusEnum } from 'src/statuses/statuses.enum';
 
 import { AuthRegisterLoginDto } from './dto/auth-register-login.dto';
-
 import { UpdateUserRegisterDto } from 'src/users/dto/complete-register.dto';
-//временный тип без поля email
-// type RegisterDtoWithoutEmail = Omit<AuthRegisterLoginDto, 'email'>;
+
+import { Response, Request as req } from 'express';
+
 @ApiTags('Auth')
 @Controller({
   path: 'auth',
@@ -45,10 +40,27 @@ export class AuthController {
   })
   @Post('email/login')
   @HttpCode(HttpStatus.OK)
-  public login(
+  public async login(
     @Body() loginDto: AuthEmailLoginDto,
-  ): Promise<LoginResponseType> {
-    return this.service.validateLogin(loginDto, false);
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<LoginResponseType | object> {
+    const loginResponse = (await this.service.validateLogin(
+      loginDto,
+      false,
+    )) as LoginResponseType;
+
+    response.cookie('refresh_token', loginResponse.refreshToken, {
+      httpOnly: true,
+      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      sameSite: 'none',
+      secure: true,
+    });
+
+    return {
+      token: loginResponse.token,
+      tokenExpires: loginResponse.tokenExpires,
+      user: loginResponse.user,
+    };
   }
 
   @SerializeOptions({
@@ -58,7 +70,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   public adminLogin(
     @Body() loginDTO: AuthEmailLoginDto,
-  ): Promise<LoginResponseType> {
+  ): Promise<LoginResponseType | object> {
     return this.service.validateLogin(loginDTO, true);
   }
 
@@ -68,14 +80,31 @@ export class AuthController {
     return this.service.register(createUserDto);
   }
 
-  ///////////////
-  @Post('email/confirm')
+  @Post('nickname-validation/:nickname')
+  @HttpCode(HttpStatus.OK)
+  async nickValidation(@Param('nickname') nickname: string): Promise<void> {
+    return await this.service.validateNickname(nickname);
+  }
+
+  @Patch('refresh-unique-token')
   @HttpCode(HttpStatus.NO_CONTENT)
+  async refreshToken(
+    @Body() createUserDto: AuthRegisterLoginDto,
+  ): Promise<void> {
+    await this.service.resendConfirmationCode(createUserDto.email);
+  }
+
+  @Post('email/confirm')
+  @HttpCode(HttpStatus.OK)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Ok',
+    type: User,
+  })
   async confirmEmail(
     @Body() confirmEmailDto: AuthConfirmEmailDto,
-  ): Promise<void> {
-    console.log('Confirming email for uniqueToken:', confirmEmailDto.hash);
-    return this.service.confirmEmail(confirmEmailDto.hash);
+  ): Promise<{ id: number }> {
+    return await this.service.confirmEmail(confirmEmailDto.hash);
   }
 
   @Patch('email/register/finaly/:id')
@@ -83,8 +112,9 @@ export class AuthController {
     @Param('id') userId: number, // Отримуємо id з параметра маршруту
     @Body() completeDto: UpdateUserRegisterDto,
   ): Promise<void> {
-    await this.service.completeRegistration(userId, completeDto);
+    return await this.service.completeRegistration(userId, completeDto);
   }
+
   @Post('forgot/password')
   @HttpCode(HttpStatus.NO_CONTENT)
   async forgotPassword(
@@ -106,53 +136,67 @@ export class AuthController {
   @SerializeOptions({
     groups: ['me'],
   })
-  @Get('me')
-  @UseGuards(AuthGuard('jwt'))
-  @HttpCode(HttpStatus.OK)
-  public me(@Request() request): Promise<NullableType<User>> {
-    return this.service.me(request.user);
-  }
-
-  @ApiBearerAuth()
-  @SerializeOptions({
-    groups: ['me'],
-  })
   @Post('refresh')
-  @UseGuards(AuthGuard('jwt-refresh'))
   @HttpCode(HttpStatus.OK)
-  public refresh(@Request() request): Promise<Omit<LoginResponseType, 'user'>> {
-    return this.service.refreshToken(request.user.sessionId);
+  public async refresh(
+    @Request() request: req,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const refreshToken = request.cookies.refresh_token;
+    const refreshResponse = await this.service.refreshToken(refreshToken);
+    if (refreshResponse.refreshToken) {
+      response.cookie('refresh_token', refreshResponse.refreshToken, {
+        httpOnly: true,
+        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        sameSite: 'none',
+        secure: true,
+      });
+
+      return {
+        token: refreshResponse.token,
+        tokenExpires: refreshResponse.tokenExpires,
+      };
+    } else {
+      response.status(HttpStatus.UNAUTHORIZED).send('Failed to refresh token');
+    }
+    return {
+      token: refreshResponse.token,
+      tokenExpires: refreshResponse.tokenExpires,
+    };
   }
 
   @ApiBearerAuth()
   @Post('logout')
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.NO_CONTENT)
-  public async logout(@Request() request): Promise<void> {
+  public async logout(
+    @Request() request,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<void> {
+    response.clearCookie('refresh_token');
+
     await this.service.logout({
       sessionId: request.user.sessionId,
     });
   }
 
-  @ApiBearerAuth()
-  @SerializeOptions({
-    groups: ['me'],
-  })
-  @Patch('me')
-  @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.OK)
-  public update(
-    @Request() request,
-    @Body() userDto: AuthUpdateDto,
-  ): Promise<NullableType<User>> {
-    return this.service.update(request.user, userDto);
+  @Post('restoring-user')
+  async restoringUser(@Body() restoringDto: AuthRegisterLoginDto) {
+    return await this.service.restoringUser(restoringDto);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('confirm-restoring-user')
+  async confirmRestoringUser(@Body() data: AuthConfirmEmailDto) {
+    return await this.service.confirmRestoringUser(data.hash);
   }
 
   @ApiBearerAuth()
-  @Delete('me')
   @UseGuards(AuthGuard('jwt'))
-  @HttpCode(HttpStatus.NO_CONTENT)
-  public async delete(@Request() request): Promise<void> {
-    return this.service.softDelete(request.user);
+  @HttpCode(HttpStatus.OK)
+  @Post('restoring-user-by-google')
+  async restoringUserByGoogle(@Request() request) {
+    return await this.service.restoringUserByGoogle(request.user.id);
   }
 }

@@ -10,6 +10,9 @@ import {
   UpdateDateColumn,
   BeforeInsert,
   BeforeUpdate,
+  OneToMany,
+  JoinTable,
+  ManyToMany,
 } from 'typeorm';
 import { Role } from '../../roles/entities/role.entity';
 import { Status } from '../../statuses/entities/status.entity';
@@ -18,7 +21,11 @@ import bcrypt from 'bcryptjs';
 import { EntityHelper } from 'src/utils/entity-helper';
 import { AuthProvidersEnum } from 'src/auth/auth-providers.enum';
 import { Exclude, Expose } from 'class-transformer';
+import { PostEntity } from '../../post/entities/post.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { Book } from './book.entity';
+import { Like } from '../../like/entity/like.entity';
+import { CommentEntity } from '../../comment/entity/comment.entity';
 
 @Entity()
 export class User extends EntityHelper {
@@ -69,6 +76,19 @@ export class User extends EntityHelper {
   @Column({ type: String, nullable: true })
   lastName: string | null;
 
+  @Index()
+  @Column({ type: String, nullable: true })
+  nickName: string;
+
+  @Column({ type: String, nullable: true })
+  userStatus: string | null;
+
+  @Column({ type: String, nullable: true })
+  location: string | null;
+
+  @Column({ type: String, nullable: true })
+  avatarUrl: string | null;
+
   @ManyToOne(() => FileEntity, {
     eager: true,
   })
@@ -84,17 +104,55 @@ export class User extends EntityHelper {
   })
   status?: Status;
 
+  @ManyToMany(() => User, (user) => user.subscribers, { onDelete: 'CASCADE' })
+  @JoinTable({ name: 'User2user(friends)' })
+  subscribers: User[];
+
   @Column({ type: String, nullable: true })
   @Index()
   @Exclude({ toPlainOnly: true })
   hash: string | null;
 
+  @Column({ type: 'integer', nullable: true, default: 0 })
+  @Exclude()
+  hashCount: number;
+
+  @Column({ default: false, nullable: false })
+  IsAccessCookie: boolean;
+
   @CreateDateColumn()
+  @Exclude({ toPlainOnly: true })
   createdAt: Date;
 
   @UpdateDateColumn()
+  @Exclude({ toPlainOnly: true })
   updatedAt: Date;
 
+  @BeforeInsert()
+  setCreatedAt() {
+    this.createdAt = new Date();
+  }
+
+  @BeforeUpdate()
+  setUpdatedAt() {
+    this.updatedAt = new Date();
+  }
+
   @DeleteDateColumn()
+  @Exclude({ toPlainOnly: true })
   deletedAt: Date;
+
+  @OneToMany(() => PostEntity, (post) => post.author, { onDelete: 'CASCADE' })
+  posts: PostEntity[];
+
+  @OneToMany(() => Book, (book) => book.user, { onDelete: 'CASCADE' })
+  books: Book[];
+
+  @OneToMany(() => CommentEntity, (comment) => comment.user, {
+    onDelete: 'CASCADE',
+  })
+  comments: CommentEntity[];
+
+  @OneToMany(() => Like, (like) => like.user, { onDelete: 'CASCADE' })
+  likes: Like[];
 }
