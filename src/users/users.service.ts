@@ -76,7 +76,12 @@ export class UsersService {
   }
 
   async update(userId: number, updateProfileDto: DeepPartial<User>) {
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    const user = await this.findOne(
+      {
+        id: userId,
+      },
+      ['posts', 'subscribers', 'books'],
+    );
 
     if (!user) {
       throw new HttpException(
@@ -105,9 +110,15 @@ export class UsersService {
     user.avatarUrl = updateProfileDto.avatarUrl ?? user.avatarUrl;
     user.userStatus = updateProfileDto.userStatus ?? user.userStatus;
 
+    const mySubscribers = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.subscribers', 'subscriber')
+      .where('subscriber.id=:userId', { userId })
+      .getMany();
+
     await this.usersRepository.save(user);
 
-    const updatedUser = {
+    return {
       id: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
@@ -118,9 +129,10 @@ export class UsersService {
       userStatus: user.userStatus,
       role: user.role,
       status: user.status,
+      myFollowersCount: mySubscribers.length,
+      myFollowingCount: user.subscribers.length,
       userBooks: user.books,
     };
-    return updatedUser;
   }
 
   async softDelete(id: User['id']): Promise<void> {
@@ -172,8 +184,15 @@ export class UsersService {
       },
       ['posts', 'subscribers', 'books'],
     );
+
     if (!user) {
-      throw new Error('User not found');
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: 'User not found.',
+        },
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     const mySubscribers = await this.usersRepository
