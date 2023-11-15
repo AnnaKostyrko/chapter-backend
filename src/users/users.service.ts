@@ -28,6 +28,28 @@ export class UsersService {
     private bookRepository: Repository<Book>,
   ) {}
 
+  async searchUsers(query: string): Promise<User[]> {
+    const matchingUsers = await this.usersRepository
+      .createQueryBuilder('user')
+      .where('user.nickName LIKE :part', { part: `%${query}%` })
+      .select([
+        'user.avatarUrl',
+        'user.nickName',
+        'user.firstName',
+        'user.lastName',
+        'user.id',
+      ])
+      .getMany();
+
+    if (matchingUsers.length === 0) {
+      throw new NotFoundException({
+        error: 'Users not found',
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
+    }
+    return matchingUsers;
+  }
+
   create(createProfileDto: CreateUserDto): Promise<User> {
     return this.usersRepository.save(
       this.usersRepository.create(createProfileDto),
