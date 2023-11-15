@@ -102,7 +102,7 @@ export class PostService {
     const commentedPostIds = await this.commentRepository
       .createQueryBuilder('comment_entity')
       .select('comment_entity.postId')
-      .where(`comment_entity.userId=${userId}`)
+      .where('comment_entity.userId=:userId', { userId })
       .getMany();
 
     const likedPostIds = await this.likeRepository
@@ -124,9 +124,7 @@ export class PostService {
       .createQueryBuilder('like')
       .select(['COUNT(like.postId) as likeCount', 'like.postId'])
       .groupBy('like.postId')
-      .where('like.postId IN(:...postIds)', {
-        postIds: postIds,
-      })
+      .where('like.postId = ANY(:postIds)', { postIds })
       .getRawMany();
 
     const comments = await this.commentRepository
@@ -136,8 +134,8 @@ export class PostService {
         'comment_entity.postId',
       ])
       .groupBy('comment_entity.postId')
-      .where('comment_entity.postId IN(:...postIds)', {
-        postIds: postIds,
+      .where('comment_entity.postId = ANY(:postIds)', {
+        postIds,
       })
       .getRawMany();
 
