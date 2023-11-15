@@ -348,7 +348,9 @@ export class AuthService {
     });
   }
 
-  async confirmEmail(uniqueToken: string): Promise<{ id: number }> {
+  async confirmEmail(
+    uniqueToken: string,
+  ): Promise<{ id: number; email: string }> {
     const user = await this.usersService.findOne({
       hash: uniqueToken,
     });
@@ -364,14 +366,12 @@ export class AuthService {
     }
 
     const date = new Date();
-    console.log('date', date);
 
     const hashDate = user.updatedAt;
-    console.log('hashDate', hashDate);
 
     const timeDifference = (date.getTime() - hashDate.getTime()) / 60000;
 
-    if (timeDifference >= 15) {
+    if (timeDifference >= 135) {
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
@@ -386,7 +386,7 @@ export class AuthService {
     });
     user.hash = null;
     await user.save();
-    return { id: user.id };
+    return { id: user.id, email: user.email! };
   }
 
   async completeRegistration(
@@ -397,6 +397,20 @@ export class AuthService {
     const user = await this.usersService.findOne({
       id: userId,
     });
+
+    if (!user) {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: 'User not found or not active',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (user.email !== completeDto.email) {
+      throw new BadRequestException('Email does not match the user.');
+    }
 
     if (!completeDto.nickName.startsWith('@')) {
       throw new BadRequestException('Nickname should start with "@"');
@@ -415,16 +429,6 @@ export class AuthService {
         error: `User with this nickname already exists.`,
         status: HttpStatus.UNPROCESSABLE_ENTITY,
       });
-    }
-
-    if (!user) {
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          error: 'User not found or not active',
-        },
-        HttpStatus.NOT_FOUND,
-      );
     }
 
     user.nickName = completeDto.nickName;

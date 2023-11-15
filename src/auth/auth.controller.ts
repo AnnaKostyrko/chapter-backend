@@ -103,7 +103,7 @@ export class AuthController {
   })
   async confirmEmail(
     @Body() confirmEmailDto: AuthConfirmEmailDto,
-  ): Promise<{ id: number }> {
+  ): Promise<{ id: number; email: string }> {
     return await this.service.confirmEmail(confirmEmailDto.hash);
   }
 
