@@ -45,8 +45,25 @@ export class AuthGoogleController {
 
     return {
       token: loginResponse.token,
+
       tokenExpires: loginResponse.tokenExpires,
-      user: loginResponse.user,
+
+      user: {
+        id: loginResponse.user.id,
+        email: loginResponse.user.email,
+        provider: loginResponse.user.provider,
+        socialId: loginResponse.user.socialId,
+        firstName: loginResponse.user.firstName,
+        lastName: loginResponse.user.lastName,
+        nickName: loginResponse.user.nickName,
+        userStatus: loginResponse.user.userStatus,
+        location: loginResponse.user.location,
+        avatarUrl: loginResponse.user.avatarUrl,
+        IsAccessCookie: loginResponse.user.IsAccessCookie,
+        photo: loginResponse.user.photo,
+        role: loginResponse.user.role,
+        status: loginResponse.user.status,
+      },
     };
   }
 }
