@@ -5,6 +5,7 @@ import {
   IsEmail,
   IsNotEmpty,
   IsOptional,
+  Matches,
   MinLength,
   Validate,
 } from 'class-validator';
@@ -22,6 +23,9 @@ export class CreateUserDto {
     message: 'emailAlreadyExists',
   })
   @IsEmail()
+  @Matches(/^[A-Za-z0-9._-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/, {
+    message: 'Incorrect email',
+  })
   email?: string | null;
 
   @ApiProperty()
