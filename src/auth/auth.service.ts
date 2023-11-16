@@ -300,17 +300,10 @@ export class AuthService {
   }
 
   async validateNickname(nickname: string): Promise<void> {
-    if (!nickname.startsWith('@')) {
-      throw new BadRequestException('Nickname should start with "@"');
-    }
-
     const existingUser = await this.usersService.findOne({
       nickName: nickname,
     });
 
-    if (!existingUser) {
-      throw new NotFoundException('Nickname is aviable to used');
-    }
     if (existingUser) {
       throw new ConflictException({
         error: `User with this nickname already exists.`,
@@ -325,6 +318,17 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+    let hashCount = user.hashCount;
+    if (hashCount > 2) {
+      throw new HttpException(
+        {
+          status: HttpStatus.TOO_MANY_REQUESTS,
+          error: 'You have exceeded the rate limit for the day',
+        },
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+    hashCount++;
 
     const hash = crypto
       .createHash('sha256')
@@ -332,6 +336,7 @@ export class AuthService {
       .digest('hex')
       .slice(-6);
 
+    user.hashCount = hashCount;
     user.hash = hash;
     await user.save();
 
@@ -341,18 +346,11 @@ export class AuthService {
         hash,
       },
     });
-    // Delay setting user.hash to null
-    setTimeout(async () => {
-      const delay = (ms) => new Promise((res) => setTimeout(res, ms));
-
-      await delay(15 * 60 * 1000);
-
-      user.hash = null;
-      await user.save();
-    }, 15 * 60 * 1000);
   }
 
-  async confirmEmail(uniqueToken: string): Promise<{ id: number }> {
+  async confirmEmail(
+    uniqueToken: string,
+  ): Promise<{ id: number; email: string }> {
     const user = await this.usersService.findOne({
       hash: uniqueToken,
     });
@@ -367,12 +365,29 @@ export class AuthService {
       );
     }
 
+    const date = new Date();
+
+    const hashDate = user.updatedAt;
+
+    const timeDifference = (date.getTime() - hashDate.getTime()) / 60000;
+
+    //temporarily until the problem has been fixed
+    if (timeDifference >= 135) {
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: 'Hash is not valid.',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     user.status = plainToClass(Status, {
       id: StatusEnum.active,
     });
     user.hash = null;
     await user.save();
-    return { id: user.id };
+    return { id: user.id, email: user.email! };
   }
 
   async completeRegistration(
@@ -383,6 +398,20 @@ export class AuthService {
     const user = await this.usersService.findOne({
       id: userId,
     });
+
+    if (!user) {
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: 'User not found or not active',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    if (user.email !== completeDto.email) {
+      throw new BadRequestException('Email does not match the user.');
+    }
 
     if (!completeDto.nickName.startsWith('@')) {
       throw new BadRequestException('Nickname should start with "@"');
@@ -401,16 +430,6 @@ export class AuthService {
         error: `User with this nickname already exists.`,
         status: HttpStatus.UNPROCESSABLE_ENTITY,
       });
-    }
-
-    if (!user) {
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          error: 'User not found or not active',
-        },
-        HttpStatus.NOT_FOUND,
-      );
     }
 
     user.nickName = completeDto.nickName;

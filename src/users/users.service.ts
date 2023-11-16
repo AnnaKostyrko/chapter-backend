@@ -28,6 +28,28 @@ export class UsersService {
     private bookRepository: Repository<Book>,
   ) {}
 
+  async searchUsers(query: string): Promise<User[]> {
+    const matchingUsers = await this.usersRepository
+      .createQueryBuilder('user')
+      .where('user.nickName LIKE :part', { part: `%${query}%` })
+      .select([
+        'user.avatarUrl',
+        'user.nickName',
+        'user.firstName',
+        'user.lastName',
+        'user.id',
+      ])
+      .getMany();
+
+    if (matchingUsers.length === 0) {
+      throw new NotFoundException({
+        error: 'Users not found',
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
+    }
+    return matchingUsers;
+  }
+
   create(createProfileDto: CreateUserDto): Promise<User> {
     return this.usersRepository.save(
       this.usersRepository.create(createProfileDto),
@@ -76,7 +98,12 @@ export class UsersService {
   }
 
   async update(userId: number, updateProfileDto: DeepPartial<User>) {
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    const user = await this.findOne(
+      {
+        id: userId,
+      },
+      ['posts', 'subscribers', 'books'],
+    );
 
     if (!user) {
       throw new HttpException(
@@ -101,12 +128,15 @@ export class UsersService {
     user.firstName = updateProfileDto.firstName ?? user.firstName;
     user.lastName = updateProfileDto.lastName ?? user.lastName;
     user.nickName = updateProfileDto.nickName ?? user.nickName;
-    user.country = updateProfileDto.country ?? user.country;
-    user.region = updateProfileDto.region ?? user.region;
-    user.city = updateProfileDto.city ?? user.city;
+    user.location = updateProfileDto.location ?? user.location;
     user.avatarUrl = updateProfileDto.avatarUrl ?? user.avatarUrl;
     user.userStatus = updateProfileDto.userStatus ?? user.userStatus;
 
+    const mySubscribers = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.subscribers', 'subscriber')
+      .where('subscriber.id=:userId', { userId })
+      .getMany();
     await this.usersRepository.save(user);
 
     const updatedUser = {
@@ -116,12 +146,12 @@ export class UsersService {
       nickName: user.nickName,
       email: user.email,
       avatarUrl: user.avatarUrl,
-      country: user.country,
-      region: user.region,
-      city: user.city,
+      location: user.location,
       userStatus: user.userStatus,
       role: user.role,
       status: user.status,
+      myFollowersCount: mySubscribers.length,
+      myFollowingCount: user.subscribers.length,
       userBooks: user.books,
     };
     return updatedUser;
@@ -176,8 +206,15 @@ export class UsersService {
       },
       ['posts', 'subscribers', 'books'],
     );
+
     if (!user) {
-      throw new Error('User not found');
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: 'User not found.',
+        },
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     const mySubscribers = await this.usersRepository
@@ -193,9 +230,7 @@ export class UsersService {
       nickName: user.nickName,
       email: user.email,
       avatarUrl: user.avatarUrl,
-      country: user.country,
-      region: user.region,
-      city: user.city,
+      location: user.location,
       userStatus: user.userStatus,
       role: user.role,
       status: user.status,
@@ -215,9 +250,7 @@ export class UsersService {
       firstName: user.firstName,
       lastName: user.lastName,
       nickName: user.nickName,
-      country: user.country,
-      region: user.region,
-      city: user.city,
+      location: user.location,
       userStatus: user.userStatus,
     };
   }

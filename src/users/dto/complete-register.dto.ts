@@ -1,10 +1,26 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 
-import { IsNotEmpty, Matches, MinLength, Validate } from 'class-validator';
 import { passwordRegexp } from 'src/helpers/regex/password-regex';
+import {
+  IsEmail,
+  IsNotEmpty,
+  Matches,
+  MinLength,
+  Validate,
+} from 'class-validator';
+import { lowerCaseTransformer } from 'src/utils/transformers/lower-case.transformer';
 import { IsValidName } from 'src/utils/validators/double-names-validator';
 
 export class UpdateUserRegisterDto {
+  @ApiProperty()
+  @Transform(lowerCaseTransformer)
+  @IsEmail()
+  @Matches(/^[A-Za-z0-9._-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/, {
+    message: 'Incorrect email',
+  })
+  email: string;
+
   @IsNotEmpty()
   @ApiProperty({ example: 'John' })
   @Validate(IsValidName, {
@@ -21,7 +37,7 @@ export class UpdateUserRegisterDto {
 
   @ApiProperty({ example: '@Jojo2323' })
   @IsNotEmpty()
-  @MinLength(3)
+  @Matches(/^@[A-Za-z0-9]{7,30}$/, { message: 'Incorrect format of nick name' })
   nickName: string;
 
   @IsNotEmpty()
