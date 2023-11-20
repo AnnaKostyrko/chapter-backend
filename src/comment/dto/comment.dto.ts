@@ -24,3 +24,6 @@ export class UpdateCommentDto {
   @Length(1, 255)
   text: string;
 }
+export class GetCommentsDto {
+  text: any;
+}
