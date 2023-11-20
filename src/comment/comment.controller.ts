@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   DefaultValuePipe,
+  Get,
   HttpStatus,
   Param,
   ParseIntPipe,
@@ -12,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { CommentEntity } from './entity/comment.entity';
-import { CreateCommentDto } from './dto/comment.dto';
+import { CreateCommentDto, GetCommentsDto } from './dto/comment.dto';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -124,4 +125,26 @@ export class CommentController {
   ): Promise<CommentResponse> {
     return await this.commentService.getCommentsByPost(postId, page, limit);
   }
+
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ summary: 'Get comments for a post' })
+  @Get('GetCommentByPost/:id')
+  async GetComments(
+    @Param('id') postId: number,
+    @Query() commentData: GetCommentsDto,
+  ) {
+    return await this.commentService.GetComments(postId, commentData);
+  }
+  
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ summary: 'Get comments for a post' })
+  @Get('GetCommentToComment/:id')
+  async GetCommentToComment(
+    @Param('parrentId') parrentId: number,
+  ): Promise<CommentEntity[]> {
+    return await this.commentService.getCommentToComment(parrentId);
+  }
 }
+
