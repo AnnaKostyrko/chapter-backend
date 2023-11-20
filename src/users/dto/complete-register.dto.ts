@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 
+import { passwordRegexp } from 'src/helpers/regex/password-regex';
 import {
   IsEmail,
   IsNotEmpty,
@@ -40,9 +41,8 @@ export class UpdateUserRegisterDto {
   nickName: string;
 
   @IsNotEmpty()
-  @Matches(/^(?=.*\d)(?=.*[A-Z])[A-Za-z\d]+$/, {
-    message:
-      'Password must contain min 1 digit, min 1 uppercase letter and only Latin alphabet.',
+  @Matches(passwordRegexp, {
+    message: 'Password must contain min 1 digit, min 1 uppercase letter.',
   })
   @ApiProperty({ example: 'string' })
   @MinLength(8)
