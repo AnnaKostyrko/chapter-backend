@@ -20,7 +20,7 @@ import crypto from 'crypto';
 import { plainToClass } from 'class-transformer';
 import { Status } from 'src/statuses/entities/status.entity';
 import { Role } from 'src/roles/entities/role.entity';
-import { AuthProvidersEnum } from './auth-providers.enum';
+// import { AuthProvidersEnum } from './auth-providers.enum';
 import { SocialInterface } from 'src/social/interfaces/social.interface';
 import { UsersService } from 'src/users/users.service';
 import { ForgotService } from 'src/forgot/forgot.service';
@@ -89,18 +89,6 @@ export class AuthService {
           status: HttpStatus.UNPROCESSABLE_ENTITY,
           errors: {
             email: 'notFound',
-          },
-        },
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
-    }
-
-    if (user.provider !== AuthProvidersEnum.email) {
-      throw new HttpException(
-        {
-          status: HttpStatus.UNPROCESSABLE_ENTITY,
-          errors: {
-            email: `needLoginViaProvider:${user.provider}`,
           },
         },
         HttpStatus.UNPROCESSABLE_ENTITY,
