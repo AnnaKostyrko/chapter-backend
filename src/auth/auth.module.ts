@@ -14,6 +14,7 @@ import { SessionModule } from 'src/session/session.module';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Forgot } from 'src/forgot/entities/forgot.entity';
+import { User } from 'src/users/entities/user.entity';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { Forgot } from 'src/forgot/entities/forgot.entity';
     PassportModule,
     MailModule,
     JwtModule.register({}),
-    TypeOrmModule.forFeature([Forgot]),
+    TypeOrmModule.forFeature([Forgot, User]),
   ],
   controllers: [AuthController],
   providers: [

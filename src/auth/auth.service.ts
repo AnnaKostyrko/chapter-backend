@@ -46,6 +46,8 @@ export class AuthService {
   constructor(
     @InjectRepository(Forgot)
     private forgotRepository: Repository<Forgot>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
     private jwtService: JwtService,
     private usersService: UsersService,
     private forgotService: ForgotService,
@@ -73,9 +75,12 @@ export class AuthService {
       );
     }
 
-    const user = await this.usersService.findOne({
-      email: loginDto.email,
-    });
+    const user = await this.usersService.findOne(
+      {
+        email: loginDto.email,
+      },
+      ['subscribers', 'books'],
+    );
 
     if (
       !user ||
@@ -94,6 +99,12 @@ export class AuthService {
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
+
+    const subscribers = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.subscribers', 'subscriber')
+      .where('subscriber.id=:userId', { userId: user.id })
+      .getMany();
 
     const isValidPassword = await bcrypt.compare(
       loginDto.password,
@@ -121,13 +132,32 @@ export class AuthService {
       role: user.role,
       sessionId: session.id,
     });
+    const resUser = {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      nickName: user.nickName,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      location: user.location,
+      userStatus: user.userStatus,
+      role: user.role,
+      status: user.status,
+      followersCount: subscribers.length,
+      followingCount: user.subscribers.length,
+      books: user.books,
+      socialId: user.socialId,
+      IsAccessCookie: user.IsAccessCookie,
+      photo: user.photo,
+      provider: user.provider,
+    };
 
     return {
       refreshToken,
       token,
       tokenExpires,
-      user,
-    } as LoginResponseType;
+      user: resUser,
+    } as unknown as LoginResponseType;
   }
 
   async validateSocialLogin(
@@ -172,10 +202,13 @@ export class AuthService {
       email: socialEmail,
     });
 
-    user = await this.usersService.findOne({
-      socialId: socialData.id,
-      provider: authProvider,
-    });
+    user = await this.usersService.findOne(
+      {
+        socialId: socialData.id,
+        provider: authProvider,
+      },
+      ['books', 'subscribers'],
+    );
 
     if (user) {
       ////////////////////////////////////////
@@ -236,12 +269,37 @@ export class AuthService {
       sessionId: session.id,
     });
 
+    const subscribers = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.subscribers', 'subscriber')
+      .where('subscriber.id=:userId', { userId: user.id })
+      .getMany();
+
+    const resUser = {
+      id: 23,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      nickName: user.nickName,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      location: user.location,
+      userStatus: user.userStatus,
+      role: user.role,
+      status: user.status,
+      provider: user.provider,
+      socialId: user.socialId,
+      IsAccessCookie: user.IsAccessCookie,
+      photo: user.photo,
+      books: user.books,
+      followersCount: subscribers.length,
+      followingCount: user.subscribers.length,
+    };
     return {
       refreshToken,
       token: jwtToken,
       tokenExpires,
-      user,
-    } as LoginResponseType;
+      user: resUser,
+    } as unknown as LoginResponseType;
   }
 
   async register(dto: AuthRegisterLoginDto): Promise<void> {
