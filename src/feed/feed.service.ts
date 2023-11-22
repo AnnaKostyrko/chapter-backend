@@ -73,10 +73,7 @@ export class FeedService {
           caption: item.caption,
           imgUrl: item.imgUrl,
           likedUsers: likedUsers,
-          comment:{
-            comments,
-            likedUsers,
-          },
+          comments,
           followStatus: followStatus.subscribers.some(
             (subscriber) => subscriber.id === item.author.id,
           ),
