@@ -10,8 +10,7 @@ export class UpdatePasswordDto {
   @ApiProperty({ example: '1111111' })
   @MinLength(8)
   @Matches(passwordRegexp, {
-    message:
-      ' Password must contain min 1 digit, min 1 uppercase letter and only Latin alphabet. ',
+    message: 'Password must contain min 1 digit, min 1 uppercase letter.',
   })
   @IsNotEmpty()
   newPassword: string;
