@@ -275,6 +275,42 @@ export class UsersService {
     };
   }
 
+  async addBookToFavorite(bookId: number) {
+    const book = await this.bookRepository.findOne({
+      where: { id: bookId },
+    });
+  
+    if (!book) {
+      throw new Error('Book not found');
+    }
+  
+    book.favorite_book_status = true;
+    
+    await this.bookRepository.save(book)
+  }
+  
+  async getBooksOrderedByFavorite() {
+    const books = await this.bookRepository.find({
+      order: { favorite_book_status: 'DESC' },
+    });
+  
+    return books;
+  }
+  async removeFavoriteBook(bookId: number) {
+    const book = await this.bookRepository.findOne({
+      where: { id: bookId },
+    });
+
+    if (!book) {
+      throw new Error('Book are removed from favorites');
+    }
+     
+    book.favorite_book_status = false;
+    
+    await this.bookRepository.save(book)
+  }
+  
+  
   async addBookToUser(
     userId: number,
     createBookDto: CreateBookDto,
