@@ -374,7 +374,7 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    if (user.password) {
+    if (user.status?.id === 1) {
       throw new ConflictException('This email is already confirmed');
     }
 
