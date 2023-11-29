@@ -373,6 +373,11 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
+    if (user.status?.id === 1) {
+      throw new ConflictException('This email is already confirmed');
+    }
+
     let hashCount = user.hashCount;
     if (hashCount >= 2) {
       throw new HttpException(
