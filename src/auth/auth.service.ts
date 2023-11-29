@@ -374,7 +374,7 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
     let hashCount = user.hashCount;
-    if (hashCount > 2) {
+    if (hashCount >= 2) {
       throw new HttpException(
         {
           status: HttpStatus.TOO_MANY_REQUESTS,
@@ -715,6 +715,19 @@ export class AuthService {
       throw createResponse(HttpStatus.FORBIDDEN, 'Account not found');
     }
 
+    let hashCount = deletedUser.hashCount;
+    console.log('hashCount', hashCount);
+    if (hashCount > 2) {
+      throw new HttpException(
+        {
+          status: HttpStatus.TOO_MANY_REQUESTS,
+          error: 'You have exceeded the rate limit for the day',
+        },
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+    hashCount++;
+
     const hash = crypto
       .createHash('sha256')
       .update(randomStringGenerator())
@@ -727,7 +740,10 @@ export class AuthService {
         hash,
       },
     });
+
+    deletedUser.hashCount = hashCount;
     deletedUser.hash = hash;
+
     await deletedUser.save();
 
     return createResponse(
