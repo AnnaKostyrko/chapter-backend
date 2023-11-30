@@ -60,9 +60,9 @@ export class FeedService {
           text: item.comments,
         });
 
-        const likedUsers = await this.likeService.getLikedUsers(item.id);
-        
-        // const likedComments = await this.likeService.toggleCommentLike(item.author.id,comments, )
+        const likedComment= await this.likeService.getLikedUsers(item.id);
+
+        const likePost = await this.likeService.togglePostLike(item.id, item.author.id  )
 
         const followStatus = await this.usersService.toggleSubscription(
           item.author.id,
@@ -70,10 +70,14 @@ export class FeedService {
         );
 
         return {
+          postId: item.id,
           caption: item.caption,
           imgUrl: item.imgUrl,
-          likedUsers: likedUsers,
-          comments,
+          comment:{
+            comments,
+            likedComments: likedComment,
+          },
+          likePost,
           followStatus: followStatus.subscribers.some(
             (subscriber) => subscriber.id === item.author.id,
           ),

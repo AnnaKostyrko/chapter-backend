@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CommentEntity } from './entity/comment.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -6,6 +6,7 @@ import { CreateCommentDto, GetCommentsDto } from './dto/comment.dto';
 import { User } from '../users/entities/user.entity';
 import { PostEntity } from '../post/entities/post.entity';
 import { CommentResponse } from './interfaces';
+import { createResponse } from 'src/helpers/response-helpers';
 
 @Injectable()
 export class CommentService {
@@ -46,7 +47,7 @@ export class CommentService {
     return this.commentRepository.save(comment);
   }
 
-  async commentToComment(
+ async commentToComment(
     userId: number,
     commentId: number,
     commentData: CreateCommentDto,
@@ -73,7 +74,6 @@ export class CommentService {
       postId: comment.postId,
       user,
     });
-
     return this.commentRepository.save(commentToComment);
   }
 
@@ -119,18 +119,34 @@ export class CommentService {
     return { post, comments };
   }
 
-  async getCommentToComment(parentCommentId: number) {
-    const replies = await this.commentRepository.find({
-      where: { parentId: parentCommentId },
-    });
+  async deleteComment(commentId: number,parentId:number): Promise<void> {
+    const comment = await this.commentRepository.findOne({ where: { 
+      id: commentId,
+      parentId } });
 
-    if (!replies) {
-      throw new NotFoundException(
-        'No replies found for the specified comment.',
-      );
+    if (!comment) {
+      throw createResponse(HttpStatus.NOT_FOUND, 'Comment not found.');
     }
 
-    return replies;
+    await this.commentRepository.remove(comment);
   }
+
+  async getCommentToComment(parentId: number, commentData: GetCommentsDto)  {
+    const commentsToComment = await this.commentRepository.find({
+      where: {
+        parentId: parentId,
+      },
+    });
+  
+    if (!commentsToComment || commentsToComment.length === 0) {
+      return [];
+    }
+  
+    return commentsToComment.map(comment => ({
+      id: comment.id,
+      text: comment.text,
+    }));
+  }
+  
 }
 
