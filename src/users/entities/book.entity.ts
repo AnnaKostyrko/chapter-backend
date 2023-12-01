@@ -38,9 +38,11 @@ export class Book extends EntityHelper {
   @Column({ nullable: true })
   book_statusId: number;
 
-  @Column({default:false, nullable: false })
+  @Column({ default: false, nullable: false })
   favorite_book_status: boolean;
 
+  @Column({ type: String, nullable: true })
+  imagePath: string;
 
   @Exclude()
   @ManyToOne(() => User, (user) => user.books, { onDelete: 'CASCADE' })

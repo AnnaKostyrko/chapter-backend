@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateBookDto {
@@ -9,6 +9,12 @@ export class CreateBookDto {
   @ApiProperty({ example: 'J.K. Rowling' })
   @IsNotEmpty()
   author: string;
+
+  @ApiProperty({
+    example: 'http://.......',
+  })
+  @IsOptional()
+  imagePath: string;
 
   @ApiProperty({
     example:
