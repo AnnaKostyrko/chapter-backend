@@ -500,6 +500,8 @@ export class AuthService {
 
     user.password = completeDto.password;
 
+    user.IsAccessCookie = completeDto.IsAccessCookie;
+
     await user.save();
   }
 
