@@ -151,21 +151,22 @@ export class UsersController {
     return await this.usersService.deleteBook(bookId);
   }
 
-  @Post(':id/AddToFavoriteBook/:bookId')
-  async addBookToFavorite(@Param('bookId') bookId: number) {
-    return await this.usersService.addBookToFavorite(bookId);
-  }
-
   @Get(':FavoriteBooks')
   async getFavoriteBooks() {
     return await this.usersService.getBooksOrderedByFavorite();
   }
 
-  @Delete(':bookId/FavoriteBook')
-  async removeFavoriteBook(@Param('bookId') bookId: number): Promise<void> {
-    return await this.usersService.removeFavoriteBook(bookId);
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('/toggle-favorite-status/:bookId')
+  async toggleFavoriteStatus(
+    @Param('bookId') bookId: number,
+    @Request() request,
+  ): Promise<Book> {
+    return await this.usersService.toggleFavoriteStatus(
+      bookId,
+      request.user.id,
+    );
   }
-
   @Post('update-password')
   @ApiResponse({
     status: HttpStatus.OK,

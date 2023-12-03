@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -275,18 +276,27 @@ export class UsersService {
     };
   }
 
-  async addBookToFavorite(bookId: number) {
+  async toggleFavoriteStatus(bookId: number, userId: number): Promise<Book> {
     const book = await this.bookRepository.findOne({
       where: { id: bookId },
+      relations: ['user'],
     });
 
     if (!book) {
       throw new Error('Book not found');
     }
 
-    book.favorite_book_status = true;
+    if (book.user.id !== userId) {
+      throw new ForbiddenException(
+        'You are not allowed to perform this action.',
+      );
+    }
 
-    await this.bookRepository.save(book);
+    book.favorite_book_status = !book.favorite_book_status;
+
+    const updatedBook: Book = await this.bookRepository.save(book);
+
+    return updatedBook;
   }
 
   async getBooksOrderedByFavorite() {
@@ -295,19 +305,6 @@ export class UsersService {
     });
 
     return books;
-  }
-  async removeFavoriteBook(bookId: number) {
-    const book = await this.bookRepository.findOne({
-      where: { id: bookId },
-    });
-
-    if (!book) {
-      throw new Error('Book are removed from favorites');
-    }
-
-    book.favorite_book_status = false;
-
-    await this.bookRepository.save(book);
   }
 
   async addBookToUser(

@@ -31,6 +31,7 @@ export class Book extends EntityHelper {
   })
   @Column()
   annotation: string;
+
   @ApiProperty({
     example: '1',
     description: 'id for book status',
