@@ -235,8 +235,8 @@ export class UsersService {
       userStatus: user.userStatus,
       role: user.role,
       status: user.status,
-      myFollowersCount: mySubscribers.length,
-      myFollowingCount: user.subscribers.length,
+      myFollowersCount: mySubscribers?.length || null,
+      myFollowingCount: user.subscribers?.length || null,
       userBooks: user.books,
     };
   }
