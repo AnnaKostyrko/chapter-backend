@@ -141,17 +141,15 @@ export class CommentController {
   
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
-  @ApiOperation({ summary: 'Get comments for a post' })
-  @Get('GetCommentToComment')
-  async GetCommentToComment(
-    @Param('parrentId') parrentId: number,
-    @Query() commentData: GetCommentsDto,
-
-  ) {
-    return await this.commentService.getCommentToComment(parrentId,commentData);
+  @ApiOperation({ summary: 'Get replice for a comments' })
+  @Get('commentToCommentId/:id')
+  async getCommentToComment(@Param('id', ParseIntPipe) 
+  commentToCommentId: number,
+  commentData:GetCommentsDto
+  ): Promise<CommentEntity> {
+      return  await this.commentService.getCommentToComment(commentToCommentId);
   }
 
-  
   @ApiOperation({ summary: 'delete a post' })
   @ApiResponse({ status: 201, description: 'delete.' })
   @Delete('delete/:id')

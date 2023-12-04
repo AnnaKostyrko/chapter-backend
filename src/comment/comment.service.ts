@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CommentEntity } from './entity/comment.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -77,6 +77,29 @@ export class CommentService {
     return this.commentRepository.save(commentToComment);
   }
 
+  // async getRepliesToComment(
+  //   commentId: number,
+  //   commentData: CreateCommentDto,
+  // )  {
+  
+  //   const comment = await this.commentRepository.findOne({
+  //     where: { id: commentId },
+  //   });
+  
+  //   if (!comment) {
+  //     throw new NotFoundException('Comment not found');
+  //   }
+  
+  //   const replies = await this.commentRepository.findOne({
+  //     where: {
+  //         ...commentData,
+  //     parentId: comment?.id,
+  //     },
+  //   });
+  //   return { comment , replies };
+  // }
+
+  
   async getCommentsByPost(
     postId: number,
     page: number,
@@ -100,24 +123,40 @@ export class CommentService {
 
     return { comments: paginatedComments, totalComments: totalCount };
   }
-  async GetComments(postId: number, commentData: GetCommentsDto) {
-    const post = await this.postRepository.findOne({
-      where: { id: postId },
-    });
+    async GetComments(postId: number, commentData: GetCommentsDto) {
+      const post = await this.postRepository.findOne({
+        where: { id: postId },
+      });
 
-    if (!post) {
-      throw new Error(`Post with id: ${postId} not found`);
+      if (!post) {
+        throw new Error(`Post with id: ${postId} not found`);
+      }
+
+      const comments = await this.commentRepository.find({
+        where: {
+          postId: post.id,
+          text: commentData.text,
+        },
+      });
+
+      return { post, comments };
     }
-
-    const comments = await this.commentRepository.find({
-      where: {
-        postId: post.id,
-        text: commentData.text,
-      },
+  //15
+  async getCommentToComment(commentToCommentId: number): Promise<CommentEntity> {
+    const commentToComment = await this.commentRepository.findOne({
+      where: { 
+        id: commentToCommentId,
+               },
+      relations: ['user', 'post', 'likes'], // Include related entities in the result
     });
-
-    return { post, comments };
+  
+    if (!commentToComment) {
+      throw new NotFoundException('Comment-to-comment not found');
+    }
+  
+    return commentToComment;
   }
+
 
   async deleteComment(commentId: number,parentId:number): Promise<void> {
     const comment = await this.commentRepository.findOne({ where: { 
@@ -131,22 +170,6 @@ export class CommentService {
     await this.commentRepository.remove(comment);
   }
 
-  async getCommentToComment(parentId: number, commentData: GetCommentsDto)  {
-    const commentsToComment = await this.commentRepository.find({
-      where: {
-        parentId: parentId,
-      },
-    });
-  
-    if (!commentsToComment || commentsToComment.length === 0) {
-      return [];
-    }
-  
-    return commentsToComment.map(comment => ({
-      id: comment.id,
-      text: comment.text,
-    }));
-  }
   
 }
 

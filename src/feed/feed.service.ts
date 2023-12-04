@@ -6,6 +6,7 @@ import { Server } from 'socket.io';
 import { LikeService } from 'src/like/like.service';
 import { CommentService } from 'src/comment/comment.service';
 import { UsersService } from 'src/users/users.service';
+import { CommentEntity } from 'src/comment/entity/comment.entity';
 @Injectable()
 export class FeedService {
   constructor(
@@ -55,20 +56,22 @@ export class FeedService {
     };
 
     const formattedFeedItems = await Promise.all(
-      feedItems.map(async (item) => {
+      feedItems.map(async (item) => { 
+        const text: CommentEntity[] = item.comments;
+        const commentsAsString: string = JSON.stringify(text);
         const comments = await this.commentService.GetComments(item.id, {
-          text: item.comments,
+          text: commentsAsString
         });
-
-        const likedComment= await this.likeService.getLikedUsers(item.id);
-
-        const likePost = await this.likeService.togglePostLike(item.id, item.author.id  )
-
+    
+        const repliesToComment = await this.commentService.getCommentToComment(item.id)
+    
+        const likedComment = await this.likeService.getLikedUsers(item.id);
+        const likePost = await this.likeService.togglePostLike(item.id, item.author.id  );
         const followStatus = await this.usersService.toggleSubscription(
           item.author.id,
           currentUserId,
         );
-
+        
         return {
           postId: item.id,
           caption: item.caption,
@@ -76,6 +79,7 @@ export class FeedService {
           comment:{
             comments,
             likedComments: likedComment,
+            repliesToComment, // not work
           },
           likePost,
           followStatus: followStatus.subscribers.some(
@@ -92,11 +96,11 @@ export class FeedService {
         };
       }),
     );
-
+    
     const posts = formattedFeedItems;
-
+    
     this.server.emit('GetPosts', posts);
-
+    
     return {
       posts,
     };

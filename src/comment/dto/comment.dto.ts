@@ -25,5 +25,7 @@ export class UpdateCommentDto {
   text: string;
 }
 export class GetCommentsDto {
-  text: any;
+  
+  @IsNotEmpty({ message: 'Comment text should not be empty' })
+  text: string;
 }
