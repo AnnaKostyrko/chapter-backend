@@ -10,6 +10,7 @@ import {
   Query,
   Request,
   UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { CommentEntity } from './entity/comment.entity';
@@ -136,7 +137,7 @@ export class CommentController {
   ) {
     return await this.commentService.GetComments(postId, commentData);
   }
-  
+
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Get comments for a post' })
@@ -146,5 +147,11 @@ export class CommentController {
   ): Promise<CommentEntity[]> {
     return await this.commentService.getCommentToComment(parrentId);
   }
-}
 
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @Delete(':commentId')
+  async deleteComment(@Param('commentId') id: number): Promise<void> {
+    return await this.commentService.deleteComment(id);
+  }
+}
