@@ -143,8 +143,8 @@ export class AuthService {
       userStatus: user.userStatus,
       role: user.role,
       status: user.status,
-      myFollowersCount: subscribers.length,
-      myFollowingCount: user.subscribers.length,
+      myFollowersCount: subscribers?.length || null,
+      myFollowingCount: user.subscribers?.length || null,
       userBooks: user.books,
       socialId: user.socialId,
       IsAccessCookie: user.IsAccessCookie,
@@ -258,7 +258,7 @@ export class AuthService {
     const session = await this.sessionService.create({
       user,
     });
-
+    console.log('user', user);
     const {
       token: jwtToken,
       refreshToken,
@@ -276,7 +276,7 @@ export class AuthService {
       .getMany();
 
     const resUser = {
-      id: 23,
+      id: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
       nickName: user.nickName,
@@ -291,8 +291,8 @@ export class AuthService {
       IsAccessCookie: user.IsAccessCookie,
       photo: user.photo,
       books: user.books,
-      followersCount: subscribers.length,
-      followingCount: user.subscribers.length,
+      followersCount: subscribers?.length || null,
+      followingCount: user.subscribers?.length || null,
     };
     return {
       refreshToken,
@@ -318,20 +318,27 @@ export class AuthService {
     }
 
     const existingUser = await this.usersService.findOne({ email: dto.email });
-    if (existingUser?.status?.name === 'Inactive') {
-      throw new ConflictException({
-        error: 'this email has already been registered, but is not confirmed',
-        status: HttpStatus.UNPROCESSABLE_ENTITY,
-      });
-    } else if (
-      existingUser?.status?.name === 'Active' &&
-      existingUser?.password === null
-    ) {
-      throw new ConflictException({
-        error:
-          'this email has already been registered, but registration is not completed',
-        status: HttpStatus.UNPROCESSABLE_ENTITY,
-      });
+    if (existingUser) {
+      if (existingUser.status?.name === 'Inactive') {
+        throw new ConflictException({
+          error: 'This email has already been registered, but is not confirmed',
+          status: HttpStatus.UNPROCESSABLE_ENTITY,
+        });
+      } else if (
+        existingUser.status?.name === 'Active' &&
+        existingUser.password === null
+      ) {
+        throw new ConflictException({
+          error:
+            'This email has already been registered, but registration is not completed',
+          status: HttpStatus.UNPROCESSABLE_ENTITY,
+        });
+      } else {
+        throw new ConflictException({
+          error: 'This email is already registered with an active account',
+          status: HttpStatus.UNPROCESSABLE_ENTITY,
+        });
+      }
     }
 
     await this.usersService.create({
@@ -459,7 +466,7 @@ export class AuthService {
       id: userId,
     });
 
-    if (!user) {
+    if (!user || user.status?.id === 2) {
       throw new HttpException(
         {
           status: HttpStatus.NOT_FOUND,
