@@ -19,13 +19,17 @@ export class PostEntity {
   @ApiProperty()
   id: number;
 
-  @Column({ nullable: true })
+  @Column({ type: String, nullable: true })
   @ApiProperty()
-  imgUrl: string;
+  imgUrl: string | null;
 
-  @Column({ nullable: true })
+  @Column({ type: String, nullable: true })
   @ApiProperty()
-  caption: string;
+  caption: string | null;
+
+  @Column({ type: String, nullable: true })
+  @ApiProperty()
+  title: string | null;
 
   @CreateDateColumn()
   @ApiProperty()

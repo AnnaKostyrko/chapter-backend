@@ -23,9 +23,13 @@ import { User } from '../users/entities/user.entity';
 import { UpdatePostDto } from './dto/updatePost.dto';
 import { Server } from 'socket.io';
 import { FeedGateway } from 'src/feed/gateway/feet.gateway';
+
 @ApiBearerAuth()
 @ApiTags('posts')
-@Controller()
+@Controller({
+  path: 'posts',
+  version: '1',
+})
 export class PostController {
   constructor(
     private readonly postService: PostService,
