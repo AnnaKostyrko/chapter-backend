@@ -1,14 +1,19 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class PostDto {
-  @IsNotEmpty()
   @IsString()
+  @IsOptional()
   @ApiProperty()
-  readonly imageUrl: string;
+  readonly imageUrl?: string;
 
-  @IsNotEmpty()
   @IsString()
+  @IsOptional()
   @ApiProperty()
-  readonly caption: string;
+  readonly caption?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty()
+  readonly title?: string;
 }

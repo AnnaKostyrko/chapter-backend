@@ -5,7 +5,10 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Likes')
-@Controller('like')
+@Controller({
+  path: 'likes',
+  version: '1',
+})
 export class LikeController {
   constructor(private readonly likeServise: LikeService) {}
 
