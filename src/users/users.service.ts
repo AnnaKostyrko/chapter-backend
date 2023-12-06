@@ -266,7 +266,7 @@ export class UsersService {
     });
 
     if (!book) {
-      throw new Error('Book not found for the given user');
+      throw new NotFoundException('Book not found for the given user');
     }
 
     return {
@@ -283,7 +283,7 @@ export class UsersService {
     });
 
     if (!book) {
-      throw new Error('Book not found');
+      throw new NotFoundException('Book not found');
     }
 
     if (book.user.id !== userId) {
@@ -318,7 +318,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found');
     }
 
     book.user = user;
@@ -329,7 +329,7 @@ export class UsersService {
     }
 
     if (user.books.length > 12) {
-      throw new Error('User already has 12 books');
+      throw new ConflictException('User already has 12 books');
     }
 
     user.books.push(book);
@@ -343,7 +343,7 @@ export class UsersService {
 
     const updatedBook = await this.bookRepository.findOne({ where: { id } });
     if (!updatedBook) {
-      throw new Error('Book not found');
+      throw new NotFoundException('Book not found');
     }
     return updatedBook;
   }

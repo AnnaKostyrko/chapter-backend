@@ -18,7 +18,12 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
-import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 
 import { infinityPagination } from 'src/utils/infinity-pagination';
@@ -33,6 +38,7 @@ import { GuestUserInfoResponse } from 'src/response-example/GuestUserInfoRespons
 import { Roles } from 'src/roles/roles.decorator';
 import { RoleEnum } from 'src/roles/roles.enum';
 import { RolesGuard } from 'src/roles/roles.guard';
+import { UpdateBookDto } from './dto/update-book.dto';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
@@ -123,11 +129,11 @@ export class UsersController {
   }
 
   @Post('books')
+  @ApiOperation({ summary: 'Post new book' })
   @ApiResponse({
     status: HttpStatus.OK,
     type: Book,
   })
-  @ApiBody({ type: CreateBookDto, description: 'Create book' })
   async addBookToUser(
     @Request() request: Express.Request & { user: User },
     @Body() createBookDto: CreateBookDto,
@@ -139,9 +145,10 @@ export class UsersController {
   }
 
   @Patch(':bookId')
+  @ApiOperation({ summary: 'Update book' })
   async updateBook(
     @Param('bookId') bookId: number,
-    @Body() updateData: Partial<Book>,
+    @Body() updateData: UpdateBookDto,
   ): Promise<Book> {
     return await this.usersService.updateBook(bookId, updateData);
   }
