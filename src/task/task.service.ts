@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
 import { Repository } from 'typeorm';
-import { addDays } from 'date-fns';
+import { addMinutes } from 'date-fns';
 import { Forgot } from '../forgot/entities/forgot.entity';
 
 @Injectable()
@@ -17,26 +17,49 @@ export class TaskService {
     private forgotRepository: Repository<Forgot>,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
-    name: 'findDeletingUsersMoreThan30DaysAgo',
+  // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, {
+  //   name: 'findDeletingUsersMoreThan30DaysAgo',
+  //   timeZone: 'Europe/Kyiv',
+  // })
+  // async handleCron(): Promise<void> {
+  //   try {
+  //     const currentDate = new Date();
+
+  //     const thirtyDaysAgo = addDays(currentDate, -30);
+
+  //     const usersIncludingDeleted =
+  //       await this.usersService.findAllDeletedUsers();
+
+  //     for (const user of usersIncludingDeleted) {
+  //       if (user.deletedAt && user.deletedAt < thirtyDaysAgo) {
+  //         await this.usersRepository.remove(user);
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error('Error in handleCron:', error);
+  //   }
+  // }
+
+  @Cron('*/1 * * * *', {
+    name: 'findDeletingUsersEveryMinute',
     timeZone: 'Europe/Kyiv',
   })
-  async handleCron(): Promise<void> {
+  async cronForQA(): Promise<void> {
     try {
       const currentDate = new Date();
 
-      const thirtyDaysAgo = addDays(currentDate, -30);
+      const oneMinuteAgo = addMinutes(currentDate, -1);
 
       const usersIncludingDeleted =
         await this.usersService.findAllDeletedUsers();
 
       for (const user of usersIncludingDeleted) {
-        if (user.deletedAt && user.deletedAt < thirtyDaysAgo) {
+        if (user.deletedAt && user.deletedAt < oneMinuteAgo) {
           await this.usersRepository.remove(user);
         }
       }
     } catch (error) {
-      console.error('Error in handleCron:', error);
+      console.error('Error in cronForQA:', error);
     }
   }
 
