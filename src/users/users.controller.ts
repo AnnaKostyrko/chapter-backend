@@ -87,6 +87,51 @@ export class UsersController {
     return await this.usersService.me(request.user.id);
   }
 
+  @Get('my-follow')
+  @ApiResponse({
+    status: HttpStatus.OK,
+    content: {
+      'application/json': {
+        example: [
+          {
+            id: 1,
+            firstName: 'firstName',
+            lastName: 'lastName',
+          },
+          {
+            id: 2,
+            firstName: 'firstName',
+            lastName: 'lastName',
+          },
+        ],
+      },
+    },
+  })
+  async getMyFollow(
+    @Request() request,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ) {
+    return await this.usersService.getMyFollowWithPagination(
+      request.user.id,
+      page,
+      limit,
+    );
+  }
+
+  @Get('my-followers')
+  async getMyFollowers(
+    @Request() request,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ): Promise<object> {
+    return await this.usersService.getMyFollowersWithPagination(
+      request.user.id,
+      page,
+      limit,
+    );
+  }
+
   @Patch('me')
   @HttpCode(HttpStatus.OK)
   update(@Request() request, @Body() updateProfileDto: UpdateUserDto) {
@@ -109,7 +154,6 @@ export class UsersController {
     return await this.usersService.toggleSubscription(currentUserId, userId);
   }
 
-  @ApiBearerAuth()
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'User information for guests',
@@ -163,7 +207,6 @@ export class UsersController {
     return await this.usersService.getBooksOrderedByFavorite();
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Patch('/toggle-favorite-status/:bookId')
   async toggleFavoriteStatus(
     @Param('bookId') bookId: number,
@@ -183,51 +226,6 @@ export class UsersController {
     @Body() updatePasswordDto: UpdatePasswordDto,
   ) {
     return this.usersService.updatePassword(request.user.id, updatePasswordDto);
-  }
-
-  @Get('my-follow')
-  @ApiResponse({
-    status: HttpStatus.OK,
-    content: {
-      'application/json': {
-        example: [
-          {
-            id: 1,
-            firstName: 'firstName',
-            lastName: 'lastName',
-          },
-          {
-            id: 2,
-            firstName: 'firstName',
-            lastName: 'lastName',
-          },
-        ],
-      },
-    },
-  })
-  async getMyFollow(
-    @Request() request,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-  ) {
-    return await this.usersService.getMyFollowWithPagination(
-      request.user.id,
-      page,
-      limit,
-    );
-  }
-
-  @Get('my-followers')
-  async getMyFollowers(
-    @Request() request,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-  ): Promise<object> {
-    return await this.usersService.getMyFollowersWithPagination(
-      request.user.id,
-      page,
-      limit,
-    );
   }
 
   @Delete('delete-by-admin/:id')
