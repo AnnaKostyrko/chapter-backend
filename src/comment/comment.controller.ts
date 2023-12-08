@@ -97,7 +97,7 @@ export class CommentController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('comments/:postId')
+  @Get('comments/:postId')
   @ApiOperation({ summary: 'get comments of the post ' })
   @ApiResponse({
     status: HttpStatus.OK,
