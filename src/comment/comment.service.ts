@@ -1,8 +1,8 @@
-import { BadRequestException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CommentEntity } from './entity/comment.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateCommentDto, GetCommentsDto } from './dto/comment.dto';
+import { CreateCommentDto } from './dto/comment.dto';
 import { User } from '../users/entities/user.entity';
 import { PostEntity } from '../post/entities/post.entity';
 import { CommentResponse } from './interfaces';
@@ -47,7 +47,7 @@ export class CommentService {
     return this.commentRepository.save(comment);
   }
 
- async commentToComment(
+  async commentToComment(
     userId: number,
     commentId: number,
     commentData: CreateCommentDto,
@@ -81,15 +81,15 @@ export class CommentService {
   //   commentId: number,
   //   commentData: CreateCommentDto,
   // )  {
-  
+
   //   const comment = await this.commentRepository.findOne({
   //     where: { id: commentId },
   //   });
-  
+
   //   if (!comment) {
   //     throw new NotFoundException('Comment not found');
   //   }
-  
+
   //   const replies = await this.commentRepository.findOne({
   //     where: {
   //         ...commentData,
@@ -99,7 +99,6 @@ export class CommentService {
   //   return { comment , replies };
   // }
 
-  
   async getCommentsByPost(
     postId: number,
     page: number,
@@ -123,45 +122,60 @@ export class CommentService {
 
     return { comments: paginatedComments, totalComments: totalCount };
   }
-    async GetComments(postId: number, commentData: GetCommentsDto) {
-      const post = await this.postRepository.findOne({
-        where: { id: postId },
-      });
 
-      if (!post) {
-        throw new Error(`Post with id: ${postId} not found`);
-      }
-
-      const comments = await this.commentRepository.find({
-        where: {
-          postId: post.id,
-          text: commentData.text,
-        },
-      });
-
-      return { post, comments };
-    }
-  //15
-  async getCommentToComment(commentToCommentId: number): Promise<CommentEntity> {
-    const commentToComment = await this.commentRepository.findOne({
-      where: { 
-        id: commentToCommentId,
-               },
-      relations: ['user', 'post', 'likes'], // Include related entities in the result
+  async GetComments(postId: number) {
+    const post = await this.postRepository.findOne({
+      where: { id: postId },
     });
-  
-    if (!commentToComment) {
+
+    if (!post) {
+      throw new Error(`Post with id: ${postId} not found`);
+    }
+
+    const comments = await this.commentRepository.find({
+      where: {
+        postId: post.id,
+      },
+    });
+
+    return { post, comments };
+  }
+  //15
+  async getCommentToComment(commentToCommentId: number) {
+    const commentsToComment = await this.commentRepository
+      .createQueryBuilder('comment')
+      .select('comment.id')
+      .where(`comment.parentId=${commentToCommentId}`)
+      .getRawMany();
+
+    if (!commentsToComment) {
       throw new NotFoundException('Comment-to-comment not found');
     }
-  
-    return commentToComment;
+    console.log('commentsToComment', commentsToComment);
+    return commentsToComment;
   }
 
+  async getCommentToCommentForFeed(commentToCommentId: number) {
+    const commentsToComment = await this.commentRepository
+      .createQueryBuilder('comment')
+      .select('*')
+      .where(`comment.parentId=${commentToCommentId}`)
+      .getRawMany();
 
-  async deleteComment(commentId: number,parentId:number): Promise<void> {
-    const comment = await this.commentRepository.findOne({ where: { 
-      id: commentId,
-      parentId } });
+    if (!commentsToComment) {
+      throw new NotFoundException('Comment-to-comment not found');
+    }
+    console.log('commentsToComment', commentsToComment);
+    return commentsToComment;
+  }
+
+  async deleteComment(commentId: number, parentId: number): Promise<void> {
+    const comment = await this.commentRepository.findOne({
+      where: {
+        id: commentId,
+        parentId,
+      },
+    });
 
     if (!comment) {
       throw createResponse(HttpStatus.NOT_FOUND, 'Comment not found.');
@@ -169,7 +183,4 @@ export class CommentService {
 
     await this.commentRepository.remove(comment);
   }
-
-  
 }
-
