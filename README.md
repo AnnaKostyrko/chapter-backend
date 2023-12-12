@@ -131,3 +131,5 @@ npm run seed:run
 * [Anna Kostyrko](https://www.linkedin.com/in/annafffox/)
 * [Vlad Virchenko](https://www.linkedin.com/in/vlad-virchenko/)
 * [Valera Shevchuk](https://www.linkedin.com/in/valera-shevchuk-86261b206/)
+* [Михайло Іляш](https://www.linkedin.com/in/mikeleilyash/)
+* [Денис Кононученко](https://www.linkedin.com/in/denis-kononuchenko/)
