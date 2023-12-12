@@ -241,11 +241,18 @@ export class UsersService {
     };
   }
 
-  async getGuestsUserInfo(userId: number): Promise<Partial<User>> {
-    const user = await this.findOne({ id: userId });
+  async getGuestsUserInfo(userId: number): Promise<Partial<object>> {
+    const user = await this.findOne({ id: userId }, ['subscribers', 'books']);
+
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
+    const subscribers = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.subscribers', 'subscriber')
+      .where('subscriber.id=:userId', { userId })
+      .getMany();
+
     return {
       avatarUrl: user.avatarUrl,
       firstName: user.firstName,
@@ -253,6 +260,9 @@ export class UsersService {
       nickName: user.nickName,
       location: user.location,
       userStatus: user.userStatus,
+      myFollowersCount: subscribers.length ?? null,
+      myFollowingCount: user.subscribers.length ?? null,
+      userBooks: user.books,
     };
   }
 

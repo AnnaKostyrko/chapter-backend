@@ -11,10 +11,15 @@ import {
   Request,
   UseGuards,
   Delete,
+  Patch,
 } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { CommentEntity } from './entity/comment.entity';
-import { CreateCommentDto, GetCommentsDto } from './dto/comment.dto';
+import {
+  CreateCommentDto,
+  GetCommentsDto,
+  UpdateCommentDto,
+} from './dto/comment.dto';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -63,6 +68,17 @@ export class CommentController {
     return await this.commentService.create(commentData, postId, req.user.id);
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'edit a comment on a post ' })
+  @UseGuards(AuthGuard('jwt'))
+  @Patch(':id')
+  async update(
+    @Param('id') id: number,
+    @Body() updateCommentDto: UpdateCommentDto,
+  ): Promise<CommentEntity> {
+    return await this.commentService.update(id, updateCommentDto);
+  }
+
   @UseGuards(AuthGuard('jwt'))
   @Post(':commentId/to-comment')
   @ApiOperation({ summary: 'make a comment on a comment ' })
@@ -97,7 +113,7 @@ export class CommentController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('comments/:postId')
+  @Get('comments/:postId')
   @ApiOperation({ summary: 'get comments of the post ' })
   @ApiResponse({
     status: HttpStatus.OK,
