@@ -35,6 +35,7 @@ Deploy of backend part is on Heroku, frontend part is on AWS, database is on Ver
 - [x] Sign in and sign up via email.
 - [x] Social sign in (Google).
 - [x] Create, edit, delete, restore account.
+- [x] Follow, unfollow friends.
 - [x] Create, edit, delete own bookshelf.
 - [x] Create, delete, edit post (image, title, caption).
 - [x] Create, delete, edit comments, answer on someone comment (text).
