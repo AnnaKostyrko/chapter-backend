@@ -123,23 +123,6 @@ export class CommentService {
     return { comments: paginatedComments, totalComments: totalCount };
   }
 
-  async GetComments(postId: number) {
-    const post = await this.postRepository.findOne({
-      where: { id: postId },
-    });
-
-    if (!post) {
-      throw new Error(`Post with id: ${postId} not found`);
-    }
-
-    const comments = await this.commentRepository.find({
-      where: {
-        postId: post.id,
-      },
-    });
-
-    return { post, comments };
-  }
   //15
   async getCommentToComment(commentToCommentId: number) {
     const commentsToComment = await this.commentRepository
@@ -155,18 +138,38 @@ export class CommentService {
     return commentsToComment;
   }
 
-  async getCommentToCommentForFeed(commentToCommentId: number) {
-    const commentsToComment = await this.commentRepository
+  async getCommentsToPostForFeed(postId: number): Promise<Array<any>> {
+    const commentsToPost = await this.commentRepository
       .createQueryBuilder('comment')
-      .select('*')
-      .where(`comment.parentId=${commentToCommentId}`)
+      .leftJoinAndSelect('comment.likes', 'like')
+      .select([
+        'comment.id as id',
+        'comment.parentId as parent_id',
+        'comment.text as text',
+        'comment.postId as post_id',
+        'comment.userId as user_id',
+        'comment.createdAt as created_at',
+        'comment.updatedAt as updated_at',
+        'COUNT(like.id) as like_count',
+      ])
+      .where(`comment.postId=${postId}`)
+      .groupBy('comment.id')
       .getRawMany();
 
-    if (!commentsToComment) {
-      throw new NotFoundException('Comment-to-comment not found');
+    if (!commentsToPost) {
+      throw new NotFoundException('Comment to post not found');
     }
-    console.log('commentsToComment', commentsToComment);
-    return commentsToComment;
+
+    return commentsToPost.map((comment) => ({
+      id: comment.id,
+      parentId: comment.parent_id,
+      text: comment.text,
+      postId: comment.post_id,
+      userId: comment.user_id,
+      createdAt: comment.created_at,
+      updatedAt: comment.updated_at,
+      likeCount: parseInt(comment.like_count),
+    }));
   }
 
   async deleteComment(commentId: number, parentId: number): Promise<void> {

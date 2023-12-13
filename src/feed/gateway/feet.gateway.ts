@@ -2,6 +2,7 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  MessageBody
 } from '@nestjs/websockets';
 
 @WebSocketGateway(1127, {
@@ -21,4 +22,5 @@ export class FeedGateway {
     console.log(`message: ${message.data}`);
     this.server.emit('message', message);
   }
+
 }
