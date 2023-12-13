@@ -153,7 +153,6 @@ export class CommentService {
         'COUNT(like.id) as like_count',
       ])
       .where(`comment.postId=${postId}`)
-
       .groupBy('comment.id')
       .getRawMany();
 
