@@ -3,18 +3,21 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PostEntity } from 'src/post/entities/post.entity';
 import { Server } from 'socket.io';
-import { LikeService } from 'src/like/like.service';
+
 import { CommentService } from 'src/comment/comment.service';
 import { UsersService } from 'src/users/users.service';
 import { PostService } from 'src/post/post.service';
+import { Like } from 'src/like/entity/like.entity';
 
 @Injectable()
 export class FeedService {
   constructor(
     @InjectRepository(PostEntity)
     private readonly postRepository: Repository<PostEntity>,
+    @InjectRepository(Like)
+    private readonly likeRepository: Repository<Like>,
     private readonly server: Server,
-    private readonly likeService: LikeService,
+
     private readonly commentService: CommentService,
     private readonly postService: PostService,
     private readonly usersService: UsersService,
@@ -74,57 +77,34 @@ export class FeedService {
           const isSubscribeToAuthor = subscribersIds.includes(item.author.id);
 
           //all post's comments
-          const { comments } = await this.commentService.GetComments(item.id);
+          const comments = await this.commentService.getCommentsToPostForFeed(
+            item.id,
+          );
 
           const commentsCount = comments.length;
           //comments directly to the post  with likes
-          const parrentComments = await Promise.all(
-            comments
-              .filter((comment) => comment.parentId === null)
-              .map(async (comment) => {
-                const likedUsers = await this.likeService.getLikedUsersComment(
-                  comment,
-                );
-                return {
-                  ...comment,
-                  likeCount: likedUsers.length,
-                };
-              }),
+          const parrentComments = comments.filter(
+            (comment) => comment.parentId === null,
           );
 
-          //unique parrent ids
-          const uniqueCommentsParentIds = comments
-            .filter((comment) => comment.parentId !== null)
-            .map((comment) => comment.parentId)
-            .filter((value, index, self) => self.indexOf(value) === index);
+          console.log('parrentComments', parrentComments);
 
-          const repliesToComment = await Promise.all(
-            uniqueCommentsParentIds.map(async (parentId) => {
-              const commentsToComment =
-                await this.commentService.getCommentToCommentForFeed(parentId);
+          const repliesToComments = parrentComments
+            .map((parentComment) => {
+              const replies = comments.filter(
+                (comment) => comment.parentId === parentComment.id,
+              );
+              return replies;
+            })
+            .flat();
 
-              return {
-                parrentCommentId: parentId,
-
-                commentsToComment: await Promise.all(
-                  commentsToComment.map(async (comment) => {
-                    const likedUsers =
-                      await this.likeService.getLikedUsersComment(comment);
-
-                    return {
-                      ...comment,
-                      likeCount: likedUsers.length,
-                    };
-                  }),
-                ),
-              };
-            }),
-          );
-
+          console.log('repliesToComment', repliesToComments);
           //post likes count
-          const likeCountPost = (
-            await this.postService.getUsersWhoLikedPost(item.id)
-          ).length;
+          const likeCountPost = await this.likeRepository
+            .createQueryBuilder('like')
+            .where('like.postId = :postId', { postId: item.id })
+            .getCount();
+          console.log('likeCountPost', likeCountPost);
 
           return {
             postId: item.id,
@@ -133,6 +113,7 @@ export class FeedService {
             commentsCount,
             likeCount: likeCountPost,
             createAt: item.createdAt,
+            updatedAt: item.updatedAt,
             author: {
               id: item.author.id,
               avatar: item.author.avatarUrl,
@@ -144,10 +125,27 @@ export class FeedService {
               ),
             },
             isSubscribeToAuthor,
-            comments: {
-              parrentComments,
-              repliesToComment: repliesToComment ?? null,
-            },
+            comments: parrentComments.map((com) => ({
+              id: com.id,
+              text: com.text,
+              postId: com.postId,
+              userId: com.userId,
+              likeCount: com.likeCount,
+              createdAt: com.createdAt,
+              updatedAt: com.updatedAt,
+              comments: repliesToComments
+                .filter((reply) => reply.parentId === com.id)
+                .map((filterReply) => ({
+                  id: filterReply.id,
+                  text: filterReply.text,
+                  parrentId: filterReply.parentId,
+                  postId: filterReply.postId,
+                  userId: filterReply.userId,
+                  likeCount: filterReply.likeCount,
+                  createdAt: filterReply.createdAt,
+                  updatedAt: filterReply.updatedAt,
+                })),
+            })),
           };
         }),
     );

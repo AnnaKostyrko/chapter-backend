@@ -71,19 +71,19 @@ export class PostService {
   }
 
   async getUsersWhoLikedPost(postId: number): Promise<User[]> {
-    const post = await this.postRepository.findOne({ where: { id: postId } });
+    const postExists = await this.postRepository.findOne({
+      where: { id: postId },
+    });
 
-    if (!post) {
-      throw new NotFoundException(`Post not found`);
+    if (!postExists) {
+      throw new NotFoundException(`Post with ID ${postId} not found`);
     }
-
-    const allUsers = await this.usersRepository
+    const users = await this.usersRepository
       .createQueryBuilder('user')
-      .innerJoin(Like, 'like', 'like.userId=user.id')
-      .where('like.postId=:postId', { postId })
+      .innerJoin('user.likes', 'like', 'like.postId = :postId', { postId })
       .getMany();
 
-    return allUsers;
+    return users;
   }
 
   async getLikedAndComentedPosts(userId: number) {

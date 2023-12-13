@@ -20,6 +20,7 @@ import { Forgot } from 'src/forgot/entities/forgot.entity';
   imports: [
     TypeOrmModule.forFeature([
       PostEntity,
+      Like,
       User,
       Book,
       Like,
