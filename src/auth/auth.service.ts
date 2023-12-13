@@ -40,6 +40,7 @@ import { deletedAccountMessage } from 'src/helpers/messages/messages';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Forgot } from 'src/forgot/entities/forgot.entity';
 import { Repository } from 'typeorm';
+import { checkHashValidity } from 'src/utils/validators/check.hash.validity';
 
 @Injectable()
 export class AuthService {
@@ -432,22 +433,7 @@ export class AuthService {
       );
     }
 
-    const date = new Date();
-
-    const hashDate = user.updatedAt;
-
-    const timeDifference = (date.getTime() - hashDate.getTime()) / 60000;
-
-    //temporarily until the problem has been fixed
-    if (timeDifference >= 15) {
-      throw new HttpException(
-        {
-          status: HttpStatus.BAD_REQUEST,
-          error: 'Hash is not valid.',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    checkHashValidity(user.updatedAt);
 
     user.status = plainToClass(Status, {
       id: StatusEnum.active,
@@ -594,6 +580,8 @@ export class AuthService {
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
+
+    checkHashValidity(forgot.createdAt);
 
     const user = forgot.user;
     user.password = password;
@@ -775,6 +763,9 @@ export class AuthService {
     if (!existingUser) {
       throw createResponse(HttpStatus.FORBIDDEN, 'Wrong hash');
     }
+
+    checkHashValidity(existingUser.updatedAt);
+
     existingUser.hash = null;
     await existingUser.save();
     await this.usersService.restoringUser(existingUser.id);
