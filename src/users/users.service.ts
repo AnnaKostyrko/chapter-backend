@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   HttpException,
@@ -321,29 +322,26 @@ export class UsersService {
     userId: number,
     createBookDto: CreateBookDto,
   ): Promise<Book> {
-    const book = this.bookRepository.create(createBookDto);
-    const user = await this.usersRepository.findOne({
+    const user = await this.usersRepository.findOneOrFail({
       where: { id: userId },
       relations: ['books'],
     });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
+    const favoriteCount = await this.bookRepository
+      .createQueryBuilder('book')
+      .where('book.userId = :userId', { userId })
+      .andWhere('book.favorite_book_status = :status', { status: true })
+      .getCount();
+
+    if (favoriteCount >= 7) {
+      throw new BadRequestException('The number of favorites cannot exceed 7');
     }
 
+    const book = this.bookRepository.create(createBookDto);
     book.user = user;
-    await this.bookRepository.save(book);
 
-    if (!user.books) {
-      user.books = [];
-    }
-
-    if (user.books.length > 12) {
-      throw new ConflictException('User already has 12 books');
-    }
-
-    user.books.push(book);
     await this.usersRepository.save(user);
+    await this.bookRepository.save(book);
 
     return book;
   }

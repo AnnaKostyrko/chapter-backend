@@ -15,6 +15,7 @@ export class UpdateBookDto {
   @ApiProperty({
     example: 'http://.......',
   })
+  @IsNotEmpty()
   @IsOptional()
   imagePath?: string;
 

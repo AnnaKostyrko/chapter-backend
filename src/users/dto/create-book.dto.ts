@@ -13,6 +13,7 @@ export class CreateBookDto {
   @ApiProperty({
     example: 'http://.......',
   })
+  @IsNotEmpty()
   @IsOptional()
   imagePath: string;
 
