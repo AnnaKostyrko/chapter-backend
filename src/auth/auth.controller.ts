@@ -60,7 +60,7 @@ export class AuthController {
       token: loginResponse.token,
       tokenExpires: loginResponse.tokenExpires,
       user: loginResponse.user,
-    };
+    } as LoginResponseType;
   }
 
   @SerializeOptions({

@@ -7,7 +7,7 @@ export class AuthResetPasswordDto {
   @IsNotEmpty()
   @Matches(passwordRegexp, {
     message:
-      ' Password must contain min 1 digit, min 1 uppercase letter and only Latin alphabet. ',
+      'Password must contain one capital letter and one number, also password should be only Latin letters',
   })
   password: string;
 

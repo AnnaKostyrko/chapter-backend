@@ -1,5 +1,7 @@
 import {
+  BadRequestException,
   ConflictException,
+  ForbiddenException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -234,17 +236,24 @@ export class UsersService {
       userStatus: user.userStatus,
       role: user.role,
       status: user.status,
-      myFollowersCount: mySubscribers.length,
-      myFollowingCount: user.subscribers.length,
+      myFollowersCount: mySubscribers?.length || null,
+      myFollowingCount: user.subscribers?.length || null,
       userBooks: user.books,
     };
   }
 
-  async getGuestsUserInfo(userId: number): Promise<Partial<User>> {
-    const user = await this.findOne({ id: userId });
+  async getGuestsUserInfo(userId: number): Promise<Partial<object>> {
+    const user = await this.findOne({ id: userId }, ['subscribers', 'books']);
+
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
+    const subscribers = await this.usersRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.subscribers', 'subscriber')
+      .where('subscriber.id=:userId', { userId })
+      .getMany();
+
     return {
       avatarUrl: user.avatarUrl,
       firstName: user.firstName,
@@ -252,6 +261,9 @@ export class UsersService {
       nickName: user.nickName,
       location: user.location,
       userStatus: user.userStatus,
+      myFollowersCount: subscribers.length ?? null,
+      myFollowingCount: user.subscribers.length ?? null,
+      userBooks: user.books,
     };
   }
 
@@ -265,7 +277,7 @@ export class UsersService {
     });
 
     if (!book) {
-      throw new Error('Book not found for the given user');
+      throw new NotFoundException('Book not found for the given user');
     }
 
     return {
@@ -275,33 +287,61 @@ export class UsersService {
     };
   }
 
+  async toggleFavoriteStatus(bookId: number, userId: number): Promise<Book> {
+    const book = await this.bookRepository.findOne({
+      where: { id: bookId },
+      relations: ['user'],
+    });
+
+    if (!book) {
+      throw new NotFoundException('Book not found');
+    }
+
+    if (book.user.id !== userId) {
+      throw new ForbiddenException(
+        'You are not allowed to perform this action.',
+      );
+    }
+
+    book.favorite_book_status = !book.favorite_book_status;
+
+    const updatedBook: Book = await this.bookRepository.save(book);
+
+    return updatedBook;
+  }
+
+  async getBooksOrderedByFavorite() {
+    const books = await this.bookRepository.find({
+      order: { favorite_book_status: 'DESC' },
+    });
+
+    return books;
+  }
+
   async addBookToUser(
     userId: number,
     createBookDto: CreateBookDto,
   ): Promise<Book> {
-    const book = this.bookRepository.create(createBookDto);
-    const user = await this.usersRepository.findOne({
+    const user = await this.usersRepository.findOneOrFail({
       where: { id: userId },
       relations: ['books'],
     });
 
-    if (!user) {
-      throw new Error('User not found');
+    const favoriteCount = await this.bookRepository
+      .createQueryBuilder('book')
+      .where('book.userId = :userId', { userId })
+      .andWhere('book.favorite_book_status = :status', { status: true })
+      .getCount();
+
+    if (favoriteCount >= 7) {
+      throw new BadRequestException('The number of favorites cannot exceed 7');
     }
 
+    const book = this.bookRepository.create(createBookDto);
     book.user = user;
-    await this.bookRepository.save(book);
 
-    if (!user.books) {
-      user.books = [];
-    }
-
-    if (user.books.length > 12) {
-      throw new Error('User already has 12 books');
-    }
-
-    user.books.push(book);
     await this.usersRepository.save(user);
+    await this.bookRepository.save(book);
 
     return book;
   }
@@ -311,7 +351,7 @@ export class UsersService {
 
     const updatedBook = await this.bookRepository.findOne({ where: { id } });
     if (!updatedBook) {
-      throw new Error('Book not found');
+      throw new NotFoundException('Book not found');
     }
     return updatedBook;
   }

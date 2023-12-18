@@ -20,7 +20,7 @@ import crypto from 'crypto';
 import { plainToClass } from 'class-transformer';
 import { Status } from 'src/statuses/entities/status.entity';
 import { Role } from 'src/roles/entities/role.entity';
-import { AuthProvidersEnum } from './auth-providers.enum';
+// import { AuthProvidersEnum } from './auth-providers.enum';
 import { SocialInterface } from 'src/social/interfaces/social.interface';
 import { UsersService } from 'src/users/users.service';
 import { ForgotService } from 'src/forgot/forgot.service';
@@ -40,12 +40,15 @@ import { deletedAccountMessage } from 'src/helpers/messages/messages';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Forgot } from 'src/forgot/entities/forgot.entity';
 import { Repository } from 'typeorm';
+import { checkHashValidity } from 'src/utils/validators/check.hash.validity';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(Forgot)
     private forgotRepository: Repository<Forgot>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
     private jwtService: JwtService,
     private usersService: UsersService,
     private forgotService: ForgotService,
@@ -73,9 +76,12 @@ export class AuthService {
       );
     }
 
-    const user = await this.usersService.findOne({
-      email: loginDto.email,
-    });
+    const user = await this.usersService.findOne(
+      {
+        email: loginDto.email,
+      },
+      ['subscribers', 'books'],
+    );
 
     if (
       !user ||
@@ -95,17 +101,11 @@ export class AuthService {
       );
     }
 
-    if (user.provider !== AuthProvidersEnum.email) {
-      throw new HttpException(
-        {
-          status: HttpStatus.UNPROCESSABLE_ENTITY,
-          errors: {
-            email: `needLoginViaProvider:${user.provider}`,
-          },
-        },
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
-    }
+    const subscribers = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.subscribers', 'subscriber')
+      .where('subscriber.id=:userId', { userId: user.id })
+      .getMany();
 
     const isValidPassword = await bcrypt.compare(
       loginDto.password,
@@ -133,13 +133,32 @@ export class AuthService {
       role: user.role,
       sessionId: session.id,
     });
+    const resUser = {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      nickName: user.nickName,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      location: user.location,
+      userStatus: user.userStatus,
+      role: user.role,
+      status: user.status,
+      myFollowersCount: subscribers?.length || null,
+      myFollowingCount: user.subscribers?.length || null,
+      userBooks: user.books,
+      socialId: user.socialId,
+      IsAccessCookie: user.IsAccessCookie,
+      photo: user.photo,
+      provider: user.provider,
+    };
 
     return {
       refreshToken,
       token,
       tokenExpires,
-      user,
-    } as LoginResponseType;
+      user: resUser,
+    } as unknown as LoginResponseType;
   }
 
   async validateSocialLogin(
@@ -184,10 +203,13 @@ export class AuthService {
       email: socialEmail,
     });
 
-    user = await this.usersService.findOne({
-      socialId: socialData.id,
-      provider: authProvider,
-    });
+    user = await this.usersService.findOne(
+      {
+        socialId: socialData.id,
+        provider: authProvider,
+      },
+      ['books', 'subscribers'],
+    );
 
     if (user) {
       ////////////////////////////////////////
@@ -237,7 +259,7 @@ export class AuthService {
     const session = await this.sessionService.create({
       user,
     });
-
+    console.log('user', user);
     const {
       token: jwtToken,
       refreshToken,
@@ -248,12 +270,37 @@ export class AuthService {
       sessionId: session.id,
     });
 
+    const subscribers = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.subscribers', 'subscriber')
+      .where('subscriber.id=:userId', { userId: user.id })
+      .getMany();
+
+    const resUser = {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      nickName: user.nickName,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      location: user.location,
+      userStatus: user.userStatus,
+      role: user.role,
+      status: user.status,
+      provider: user.provider,
+      socialId: user.socialId,
+      IsAccessCookie: user.IsAccessCookie,
+      photo: user.photo,
+      books: user.books,
+      followersCount: subscribers?.length || null,
+      followingCount: user.subscribers?.length || null,
+    };
     return {
       refreshToken,
       token: jwtToken,
       tokenExpires,
-      user,
-    } as LoginResponseType;
+      user: resUser,
+    } as unknown as LoginResponseType;
   }
 
   async register(dto: AuthRegisterLoginDto): Promise<void> {
@@ -273,12 +320,28 @@ export class AuthService {
 
     const existingUser = await this.usersService.findOne({ email: dto.email });
     if (existingUser) {
-      const emailStatus = existingUser.status?.name;
-      throw new ConflictException({
-        error: `User with this email already exists. Email status:${emailStatus}`,
-        status: HttpStatus.UNPROCESSABLE_ENTITY,
-      });
+      if (existingUser.status?.name === 'Inactive') {
+        throw new ConflictException({
+          error: 'This email has already been registered, but is not confirmed',
+          status: HttpStatus.UNPROCESSABLE_ENTITY,
+        });
+      } else if (
+        existingUser.status?.name === 'Active' &&
+        existingUser.password === null
+      ) {
+        throw new ConflictException({
+          error:
+            'This email has already been registered, but registration is not completed',
+          status: HttpStatus.UNPROCESSABLE_ENTITY,
+        });
+      } else {
+        throw new ConflictException({
+          error: 'This email is already registered with an active account',
+          status: HttpStatus.UNPROCESSABLE_ENTITY,
+        });
+      }
     }
+
     await this.usersService.create({
       ...dto,
       email: dto.email,
@@ -318,8 +381,13 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
+    if (user.status?.id === 1) {
+      throw new ConflictException('This email is already confirmed');
+    }
+
     let hashCount = user.hashCount;
-    if (hashCount > 2) {
+    if (hashCount >= 2) {
       throw new HttpException(
         {
           status: HttpStatus.TOO_MANY_REQUESTS,
@@ -365,22 +433,7 @@ export class AuthService {
       );
     }
 
-    const date = new Date();
-
-    const hashDate = user.updatedAt;
-
-    const timeDifference = (date.getTime() - hashDate.getTime()) / 60000;
-
-    //temporarily until the problem has been fixed
-    if (timeDifference >= 135) {
-      throw new HttpException(
-        {
-          status: HttpStatus.BAD_REQUEST,
-          error: 'Hash is not valid.',
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    checkHashValidity(user.updatedAt);
 
     user.status = plainToClass(Status, {
       id: StatusEnum.active,
@@ -399,7 +452,7 @@ export class AuthService {
       id: userId,
     });
 
-    if (!user) {
+    if (!user || user.status?.id === 2) {
       throw new HttpException(
         {
           status: HttpStatus.NOT_FOUND,
@@ -440,6 +493,8 @@ export class AuthService {
 
     user.password = completeDto.password;
 
+    user.IsAccessCookie = completeDto.IsAccessCookie;
+
     await user.save();
   }
 
@@ -447,6 +502,23 @@ export class AuthService {
     const user = await this.usersService.findOne({
       email,
     });
+
+    const existingUser = await this.usersService.findOne({ email: email });
+
+    if (existingUser?.status?.name === 'Inactive') {
+      throw new ConflictException({
+        error: 'Email status is Inactive',
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
+    } else if (
+      existingUser?.status?.name === 'Active' &&
+      existingUser.nickName === null
+    ) {
+      throw new ConflictException({
+        error: 'You have not completed the registration',
+        status: HttpStatus.UNPROCESSABLE_ENTITY,
+      });
+    }
 
     if (!user) {
       throw new HttpException(
@@ -508,6 +580,8 @@ export class AuthService {
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
+
+    checkHashValidity(forgot.createdAt);
 
     const user = forgot.user;
     user.password = password;
@@ -643,6 +717,19 @@ export class AuthService {
       throw createResponse(HttpStatus.FORBIDDEN, 'Account not found');
     }
 
+    let hashCount = deletedUser.hashCount;
+    console.log('hashCount', hashCount);
+    if (hashCount > 2) {
+      throw new HttpException(
+        {
+          status: HttpStatus.TOO_MANY_REQUESTS,
+          error: 'You have exceeded the rate limit for the day',
+        },
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+    hashCount++;
+
     const hash = crypto
       .createHash('sha256')
       .update(randomStringGenerator())
@@ -655,7 +742,10 @@ export class AuthService {
         hash,
       },
     });
+
+    deletedUser.hashCount = hashCount;
     deletedUser.hash = hash;
+
     await deletedUser.save();
 
     return createResponse(
@@ -673,6 +763,9 @@ export class AuthService {
     if (!existingUser) {
       throw createResponse(HttpStatus.FORBIDDEN, 'Wrong hash');
     }
+
+    checkHashValidity(existingUser.updatedAt);
+
     existingUser.hash = null;
     await existingUser.save();
     await this.usersService.restoringUser(existingUser.id);

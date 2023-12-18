@@ -1,10 +1,8 @@
-import { Controller, Get, UseGuards, Request } from '@nestjs/common';
-import { ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { Controller, Get } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FeedService } from './feed.service';
 import { FeedGateway } from './gateway/feet.gateway';
 // import {FeedGateway} from './gateways/feed.gateway'
-
-import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('feed')
 @Controller()
