@@ -291,7 +291,7 @@ export class AuthService {
       socialId: user.socialId,
       IsAccessCookie: user.IsAccessCookie,
       photo: user.photo,
-      books: user.books,
+      userBooks: user.books,
       followersCount: subscribers?.length || null,
       followingCount: user.subscribers?.length || null,
     };
