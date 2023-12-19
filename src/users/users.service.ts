@@ -288,10 +288,14 @@ export class UsersService {
   }
 
   async toggleFavoriteStatus(bookId: number, userId: number): Promise<Book> {
-    const book = await this.bookRepository.findOneOrFail({
+    const book = await this.bookRepository.findOne({
       where: { id: bookId },
       relations: ['user'],
     });
+
+    if (!book) {
+      throw new NotFoundException('Book not found');
+    }
 
     if (book.user.id !== userId) {
       throw new ForbiddenException(
@@ -305,7 +309,7 @@ export class UsersService {
       .andWhere('book.favorite_book_status = :status', { status: true })
       .getCount();
 
-    if (favoriteCount >= 7) {
+    if (favoriteCount >= 7 && book.favorite_book_status === false) {
       throw new BadRequestException('The number of favorites cannot exceed 7');
     }
 
