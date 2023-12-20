@@ -1,12 +1,21 @@
-# NestJS REST API boilerplate 🇺🇦
-
-![github action status](https://github.com/brocoders/nestjs-boilerplate/actions/workflows/docker-e2e.yml/badge.svg)
+# **CHAPTER** - social network for book-lovers
 
 ## Description
 
-NestJS REST API boilerplate for typical project
+Team-pet-project named **CHAPTER**. This is a web app - social network for book-lovers.
 
-[Full documentation here](https://github.com/brocoders/nestjs-boilerplate/blob/main/docs/readme.md)
+People can create post with caption and image to our service and share them with their followers. 
+They can also view, comment and like posts shared by their friends on Chapter.
+Anyone can create an account by registering an email address or via Google and selecting a username.
+Then registered users can create bookshelf with their favorite books and share their opinion about the book.
+
+You are in repository of backend part of the project. It is based on NestJS REST API boilerplate.
+* Link to sign up in our social network: [CHAPTER sign up]()
+* Boilerplate: [Full documentation here](https://github.com/brocoders/nestjs-boilerplate/blob/main/docs/readme.md)
+* Frontend repository is here: [GitHub Repository]()
+* Design part in Figma is here: [Figma design]()
+
+Deploy of backend part is on Heroku, frontend part is on AWS, database is on Vercel 
 
 ## Table of Contents
 
@@ -14,9 +23,8 @@ NestJS REST API boilerplate for typical project
 - [Quick run](#quick-run)
 - [Comfortable development](#comfortable-development)
 - [Links](#links)
-- [Automatic update of dependencies](#automatic-update-of-dependencies)
 - [Database utils](#database-utils)
-- [Tests](#tests)
+- [Backend team](#backend-team)
 
 ## Features
 
@@ -25,12 +33,16 @@ NestJS REST API boilerplate for typical project
 - [x] Config Service ([@nestjs/config](https://www.npmjs.com/package/@nestjs/config)).
 - [x] Mailing ([nodemailer](https://www.npmjs.com/package/nodemailer)).
 - [x] Sign in and sign up via email.
-- [x] Social sign in (Apple, Facebook, Google, Twitter).
+- [x] Social sign in (Google).
+- [x] Create, edit, delete, restore account.
+- [x] Follow, unfollow friends.
+- [x] Create, edit, delete own bookshelf.
+- [x] Create, delete, edit post (image, title, caption).
+- [x] Create, delete, edit comments, answer on someone comment (text).
+- [x] Like, unlike post or comment.
+- [x] Get feed.
 - [x] Admin and User roles.
-- [x] I18N ([nestjs-i18n](https://www.npmjs.com/package/nestjs-i18n)).
-- [x] File uploads. Support local and Amazon S3 drivers.
 - [x] Swagger.
-- [x] E2E and units tests.
 - [x] Docker.
 - [x] CI (Github Actions).
 
@@ -83,10 +95,6 @@ npm run start:dev
 - Adminer (client for DB): http://localhost:8080
 - Maildev: http://localhost:1080
 
-## Automatic update of dependencies
-
-If you want to automatically update dependencies, you can connect [Renovate](https://github.com/marketplace/renovate) for your project.
-
 ## Database utils
 
 Generate migration
@@ -119,24 +127,10 @@ Run seed
 npm run seed:run
 ```
 
-## Tests
+## Backend team
 
-```bash
-# unit tests
-npm run test
-
-# e2e tests
-npm run test:e2e
-```
-
-## Tests in Docker
-
-```bash
-docker compose -f docker-compose.ci.yaml --env-file env-example -p ci up --build --exit-code-from api && docker compose -p ci rm -svf
-```
-
-## Test benchmarking
-
-```bash
-docker run --rm jordi/ab -n 100 -c 100 -T application/json -H "Authorization: Bearer USER_TOKEN" -v 2 http://<server_ip>:3000/api/v1/users
-```
+* [Anna Kostyrko](https://www.linkedin.com/in/annafffox/)
+* [Vlad Virchenko](https://www.linkedin.com/in/vlad-virchenko/)
+* [Valera Shevchuk](https://www.linkedin.com/in/valera-shevchuk-86261b206/)
+* [Михайло Іляш](https://www.linkedin.com/in/mikeleilyash/)
+* [Денис Кононученко](https://www.linkedin.com/in/denis-kononuchenko/)

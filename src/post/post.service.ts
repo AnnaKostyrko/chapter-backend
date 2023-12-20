@@ -31,9 +31,10 @@ export class PostService {
     const user = author;
     const post = new PostEntity();
 
-    post.imgUrl = createPostDto.imageUrl;
+    post.imgUrl = createPostDto.imageUrl ?? post.imgUrl;
     post.author = user;
-    post.caption = createPostDto.caption;
+    post.caption = createPostDto.caption ?? post.caption;
+    post.title = createPostDto.title ?? post.title;
 
     return await this.postRepository.save(post);
   }
@@ -48,7 +49,10 @@ export class PostService {
       throw new NotFoundException(`Post with ID ${postId} not found`);
     }
 
-    post.caption = updatePostDto.caption;
+    post.imgUrl = updatePostDto.imageUrl ?? post.imgUrl;
+
+    post.caption = updatePostDto.caption ?? post.caption;
+    post.title = updatePostDto.title ?? post.title;
 
     await this.postRepository.save(post);
   }
@@ -70,7 +74,7 @@ export class PostService {
     });
   }
 
-  async getUsersWhoLikedPost(postId: number): Promise<object> {
+  async getUsersWhoLikedPost(postId: number): Promise<User[]> {
     const post = await this.postRepository.findOne({ where: { id: postId } });
 
     if (!post) {

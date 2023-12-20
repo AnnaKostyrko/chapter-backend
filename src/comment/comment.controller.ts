@@ -10,10 +10,11 @@ import {
   Query,
   Request,
   UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { CommentEntity } from './entity/comment.entity';
-import { CreateCommentDto, GetCommentsDto } from './dto/comment.dto';
+import { CreateCommentDto } from './dto/comment.dto';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -126,25 +127,35 @@ export class CommentController {
     return await this.commentService.getCommentsByPost(postId, page, limit);
   }
 
+  // @ApiBearerAuth()
+  // @UseGuards(AuthGuard('jwt'))
+  // @ApiOperation({ summary: 'Get comments for a post' })
+  // @Get('GetCommentByPost/:id')
+  // async GetComments(
+  //   @Param('id') postId: number,
+  //   @Query() commentData: GetCommentsDto,
+  // ) {
+  //   return await this.commentService.GetComments(postId, commentData);
+  // }
+
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
-  @ApiOperation({ summary: 'Get comments for a post' })
-  @Get('GetCommentByPost/:id')
-  async GetComments(
-    @Param('id') postId: number,
-    @Query() commentData: GetCommentsDto,
+  @ApiOperation({ summary: 'Get replice for a comments' })
+  @Get('commentToCommentId/:id')
+  async getCommentToComment(
+    @Param('id', ParseIntPipe)
+    commentToCommentId: number,
   ) {
-    return await this.commentService.GetComments(postId, commentData);
+    return await this.commentService.getCommentToComment(commentToCommentId);
   }
-  
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
-  @ApiOperation({ summary: 'Get comments for a post' })
-  @Get('GetCommentToComment/:id')
-  async GetCommentToComment(
-    @Param('parrentId') parrentId: number,
-  ): Promise<CommentEntity[]> {
-    return await this.commentService.getCommentToComment(parrentId);
+
+  @ApiOperation({ summary: 'delete a post' })
+  @ApiResponse({ status: 201, description: 'delete.' })
+  @Delete('delete/:id')
+  async deletePost(
+    @Param('id') commentId: number,
+    parentId: number,
+  ): Promise<void> {
+    return await this.commentService.deleteComment(commentId, parentId);
   }
 }
-

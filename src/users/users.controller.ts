@@ -18,7 +18,12 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
-import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 
 import { infinityPagination } from 'src/utils/infinity-pagination';
@@ -33,6 +38,7 @@ import { GuestUserInfoResponse } from 'src/response-example/GuestUserInfoRespons
 import { Roles } from 'src/roles/roles.decorator';
 import { RoleEnum } from 'src/roles/roles.enum';
 import { RolesGuard } from 'src/roles/roles.guard';
+import { UpdateBookDto } from './dto/update-book.dto';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
@@ -81,87 +87,6 @@ export class UsersController {
     return await this.usersService.me(request.user.id);
   }
 
-  @Patch('me')
-  @HttpCode(HttpStatus.OK)
-  update(@Request() request, @Body() updateProfileDto: UpdateUserDto) {
-    return this.usersService.update(request.user.id, updateProfileDto);
-  }
-
-  @Delete('me')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Request() req): Promise<void> {
-    return this.usersService.softDelete(req.user.id);
-  }
-
-  @Post('subscribe-unsubscribe/:userId')
-  @HttpCode(HttpStatus.OK)
-  async subscribe(
-    @Param('userId') userId: number,
-    @Request() req,
-  ): Promise<User> {
-    const currentUserId = req.user.id;
-    return await this.usersService.toggleSubscription(currentUserId, userId);
-  }
-
-  @ApiBearerAuth()
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'User information for guests',
-    type: GuestUserInfoResponse,
-  })
-  @Get('profile/:userId')
-  async getGuestUserInfo(@Param('userId') userId: number) {
-    return await this.usersService.getGuestsUserInfo(userId);
-  }
-
-  @Get(':id/books/:bookId')
-  async getBookInfoByUser(
-    @Param('id') userId: number,
-    @Param('bookId') bookId: number,
-  ): Promise<BookInfoDto> {
-    return await this.usersService.getBookInfoByUser(userId, bookId);
-  }
-
-  @Post('books')
-  @ApiResponse({
-    status: HttpStatus.OK,
-    type: Book,
-  })
-  @ApiBody({ type: CreateBookDto, description: 'Create book' })
-  async addBookToUser(
-    @Request() request: Express.Request & { user: User },
-    @Body() createBookDto: CreateBookDto,
-  ) {
-    return await this.usersService.addBookToUser(
-      request.user.id,
-      createBookDto,
-    );
-  }
-
-  @Patch(':bookId')
-  async updateBook(
-    @Param('bookId') bookId: number,
-    @Body() updateData: Partial<Book>,
-  ): Promise<Book> {
-    return await this.usersService.updateBook(bookId, updateData);
-  }
-
-  @Delete(':bookId')
-  async deleteBook(@Param('bookId') bookId: number): Promise<void> {
-    return await this.usersService.deleteBook(bookId);
-  }
-
-  @Post('update-password')
-  @ApiResponse({
-    status: HttpStatus.OK,
-  })
-  async updatePassword(
-    @Request() request,
-    @Body() updatePasswordDto: UpdatePasswordDto,
-  ) {
-    return this.usersService.updatePassword(request.user.id, updatePasswordDto);
-  }
-
   @Get('my-follow')
   @ApiResponse({
     status: HttpStatus.OK,
@@ -205,6 +130,102 @@ export class UsersController {
       page,
       limit,
     );
+  }
+
+  @Patch('me')
+  @HttpCode(HttpStatus.OK)
+  update(@Request() request, @Body() updateProfileDto: UpdateUserDto) {
+    return this.usersService.update(request.user.id, updateProfileDto);
+  }
+
+  @Delete('me')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  remove(@Request() req): Promise<void> {
+    return this.usersService.softDelete(req.user.id);
+  }
+
+  @Post('subscribe-unsubscribe/:userId')
+  @HttpCode(HttpStatus.OK)
+  async subscribe(
+    @Param('userId') userId: number,
+    @Request() req,
+  ): Promise<User> {
+    const currentUserId = req.user.id;
+    return await this.usersService.toggleSubscription(currentUserId, userId);
+  }
+
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'User information for guests',
+    type: GuestUserInfoResponse,
+  })
+  @Get('profile/:userId')
+  async getGuestUserInfo(@Param('userId') userId: number) {
+    return await this.usersService.getGuestsUserInfo(userId);
+  }
+
+  @Get(':id/books/:bookId')
+  async getBookInfoByUser(
+    @Param('id') userId: number,
+    @Param('bookId') bookId: number,
+  ): Promise<BookInfoDto> {
+    return await this.usersService.getBookInfoByUser(userId, bookId);
+  }
+
+  @Post('books')
+  @ApiOperation({ summary: 'Post new book' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: Book,
+  })
+  async addBookToUser(
+    @Request() request: Express.Request & { user: User },
+    @Body() createBookDto: CreateBookDto,
+  ) {
+    return await this.usersService.addBookToUser(
+      request.user.id,
+      createBookDto,
+    );
+  }
+
+  @Patch(':bookId')
+  @ApiOperation({ summary: 'Update book' })
+  async updateBook(
+    @Param('bookId') bookId: number,
+    @Body() updateData: UpdateBookDto,
+  ): Promise<Book> {
+    return await this.usersService.updateBook(bookId, updateData);
+  }
+
+  @Delete(':bookId')
+  async deleteBook(@Param('bookId') bookId: number): Promise<void> {
+    return await this.usersService.deleteBook(bookId);
+  }
+
+  @Get(':FavoriteBooks')
+  async getFavoriteBooks() {
+    return await this.usersService.getBooksOrderedByFavorite();
+  }
+
+  @Patch('/toggle-favorite-status/:bookId')
+  async toggleFavoriteStatus(
+    @Param('bookId') bookId: number,
+    @Request() request,
+  ): Promise<Book> {
+    return await this.usersService.toggleFavoriteStatus(
+      bookId,
+      request.user.id,
+    );
+  }
+  @Post('update-password')
+  @ApiResponse({
+    status: HttpStatus.OK,
+  })
+  async updatePassword(
+    @Request() request,
+    @Body() updatePasswordDto: UpdatePasswordDto,
+  ) {
+    return this.usersService.updatePassword(request.user.id, updatePasswordDto);
   }
 
   @Delete('delete-by-admin/:id')
