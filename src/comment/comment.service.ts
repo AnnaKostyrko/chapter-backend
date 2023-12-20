@@ -2,10 +2,7 @@ import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CommentEntity } from './entity/comment.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import {
-  CreateCommentDto,
-  UpdateCommentDto,
-} from './dto/comment.dto';
+import { CreateCommentDto, UpdateCommentDto } from './dto/comment.dto';
 import { User } from '../users/entities/user.entity';
 import { PostEntity } from '../post/entities/post.entity';
 import { CommentResponse } from './interfaces';

@@ -11,6 +11,7 @@ import { Like } from 'src/like/entity/like.entity';
 
 @Injectable()
 export class FeedService {
+  FeedGateway: any;
   constructor(
     @InjectRepository(PostEntity)
     private readonly postRepository: Repository<PostEntity>,
@@ -104,6 +105,7 @@ export class FeedService {
             .createQueryBuilder('like')
             .where('like.postId = :postId', { postId: item.id })
             .getCount();
+            this.server.emit('likeCountUpdated', { postId: item.id, likeCount: likeCountPost });
           console.log('likeCountPost', likeCountPost);
 
           return {
@@ -148,10 +150,11 @@ export class FeedService {
             })),
           };
         }),
+        
     );
 
     const posts = formattedFeedItems;
-    this.server.emit('GetPosts', posts);
-    return posts;
+       this.server.emit('GetPosts', posts);
+    return {posts};
   }
 }

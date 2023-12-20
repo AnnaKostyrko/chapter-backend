@@ -10,6 +10,7 @@ import {
     origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
+
   },
 })
 export class FeedGateway {
@@ -20,5 +21,9 @@ export class FeedGateway {
   handleMessage(client: any, message: { data: string }): void {
     console.log(`message: ${message.data}`);
     this.server.emit('message', message);
+  }
+  @SubscribeMessage('updateLikeCount')
+  handleUpdateLikeCount(client: any, payload: { postId: number, likeCount: number }): void {
+    this.server.emit('likeCountUpdated', payload);
   }
 }
