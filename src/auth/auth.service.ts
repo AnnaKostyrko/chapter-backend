@@ -214,7 +214,6 @@ export class AuthService {
       ['books', 'subscribers'],
     );
 
-    console.log('user', user);
     if (user) {
       ////////////////////////////////////////
       await user.save();
