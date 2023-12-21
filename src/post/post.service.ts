@@ -74,7 +74,7 @@ export class PostService {
     });
   }
 
-  async getUsersWhoLikedPost(postId: number): Promise<object> {
+  async getUsersWhoLikedPost(postId: number): Promise<User[]> {
     const post = await this.postRepository.findOne({ where: { id: postId } });
 
     if (!post) {

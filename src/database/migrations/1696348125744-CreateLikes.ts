@@ -11,9 +11,9 @@ export class CreateLikes1696348125744 implements MigrationInterface {
       `CREATE TABLE "comment_entity" ("id" SERIAL NOT NULL, "parentId" integer, "text" character varying NOT NULL, "postId" integer NOT NULL, "userId" integer NOT NULL, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_5a439a16c76d63e046765cdb84f" PRIMARY KEY ("id"))`,
     );
     // need to be deleted?
-    // await queryRunner.query(
-    //   `ALTER TABLE "user" ADD "userStatus" character varying`,
-    // );
+    await queryRunner.query(
+      `ALTER TABLE "user" ADD "userStatus" character varying`,
+    );
     await queryRunner.query(
       `ALTER TABLE "book" DROP CONSTRAINT "FK_82feb76fc94268c526bbfa99ee5"`,
     );

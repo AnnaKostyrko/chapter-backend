@@ -10,7 +10,7 @@ import { FeedGateway } from 'src/feed/gateway/feet.gateway';
 import { Server } from 'socket.io';
 @Module({
   imports: [TypeOrmModule.forFeature([PostEntity, User, Like, CommentEntity])],
-  providers: [PostService,FeedGateway,Server],
-  controllers: [PostController,],
+  providers: [PostService, FeedGateway, Server],
+  controllers: [PostController],
 })
 export class PostModule {}
