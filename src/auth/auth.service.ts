@@ -292,8 +292,8 @@ export class AuthService {
       IsAccessCookie: user.IsAccessCookie,
       photo: user.photo,
       userBooks: user.books,
-      followersCount: subscribers?.length || null,
-      followingCount: user.subscribers?.length || null,
+      myFollowersCount: subscribers?.length || null,
+      myFollowingCount: user.subscribers?.length || null,
     };
     return {
       refreshToken,
