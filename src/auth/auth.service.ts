@@ -199,9 +199,12 @@ export class AuthService {
       );
     }
 
-    const userByEmail = await this.usersService.findOne({
-      email: socialEmail,
-    });
+    const userByEmail = await this.usersService.findOne(
+      {
+        email: socialEmail,
+      },
+      ['books', 'subscribers'],
+    );
 
     user = await this.usersService.findOne(
       {
@@ -211,6 +214,7 @@ export class AuthService {
       ['books', 'subscribers'],
     );
 
+    console.log('user', user);
     if (user) {
       ////////////////////////////////////////
       await user.save();
@@ -275,7 +279,7 @@ export class AuthService {
       .leftJoinAndSelect('user.subscribers', 'subscriber')
       .where('subscriber.id=:userId', { userId: user.id })
       .getMany();
-
+    console.log('user', user);
     const resUser = {
       id: user.id,
       firstName: user.firstName,
