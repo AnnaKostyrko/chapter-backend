@@ -41,16 +41,12 @@ export class PostController {
   @ApiResponse({ status: 201, description: 'Created.' })
   @Post('create')
   @UseGuards(AuthGuard('jwt'))
-  async createPost(
-    @Req() req: any,
-    @Body() createPostDto: PostDto,
-  ) {
+  async createPost(@Req() req: any, @Body() createPostDto: PostDto) {
     const currentUser: User = req.user;
-    return  this.postService
-      .create(currentUser, createPostDto)
-      // .then((post) => {
-      //   this.Gateway.server.emit('message', post);
-      // });
+    return this.postService.create(currentUser, createPostDto);
+    // .then((post) => {
+    //   this.Gateway.server.emit('message', post);
+    // });
   }
 
   @ApiOperation({ summary: 'Update a post' })
@@ -60,12 +56,11 @@ export class PostController {
     @Param('id') postId: number,
     @Body() updatePostDto: UpdatePostDto,
   ): Promise<any> {
-    return await this.postService
-      .updatePost(postId, updatePostDto)
-      // .then((caption) => {
-      //   console.log(caption);
-      //   this.Gateway.server.emit('UpdatePost', caption);
-      // });
+    return await this.postService.updatePost(postId, updatePostDto);
+    // .then((caption) => {
+    //   console.log(caption);
+    //   this.Gateway.server.emit('UpdatePost', caption);
+    // });
   }
 
   @ApiOperation({ summary: 'delete a post' })

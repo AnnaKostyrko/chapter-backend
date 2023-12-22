@@ -25,7 +25,14 @@ export class FeedService {
   ) {}
 
   //searching feed items
-  async getFeed(currentUserId: number) {
+  async getFeed(
+    currentUserId: number,
+    page: number,
+    limit: number,
+    ) {
+
+ 
+
     const user = await this.usersService.findOne({ id: currentUserId }, [
       'subscribers',
     ]);
@@ -105,10 +112,12 @@ export class FeedService {
             .createQueryBuilder('like')
             .where('like.postId = :postId', { postId: item.id })
             .getCount();
-            
+
           //   this.server.emit('likeCountUpdated', { postId: item.id, likeCount: likeCountPost });
           // console.log('likeCountPost', likeCountPost);
 
+
+        
           return {
             postId: item.id,
             caption: item.caption,
@@ -151,11 +160,14 @@ export class FeedService {
             })),
           };
         }),
-        
     );
 
     const posts = formattedFeedItems;
-      //  this.server.emit('GetPosts', posts);
-    return {posts};
+    
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const paginatedFeedItems = posts.slice(startIndex, endIndex);
+    //  this.server.emit('GetPosts', posts);
+    return {paginatedFeedItems};
   }
 }
