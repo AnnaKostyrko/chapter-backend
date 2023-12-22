@@ -99,14 +99,15 @@ export class FeedService {
             })
             .flat();
 
-          console.log('repliesToComment', repliesToComments);
+          // console.log('repliesToComment', repliesToComments);
           //post likes count
           const likeCountPost = await this.likeRepository
             .createQueryBuilder('like')
             .where('like.postId = :postId', { postId: item.id })
             .getCount();
-            this.server.emit('likeCountUpdated', { postId: item.id, likeCount: likeCountPost });
-          console.log('likeCountPost', likeCountPost);
+            
+          //   this.server.emit('likeCountUpdated', { postId: item.id, likeCount: likeCountPost });
+          // console.log('likeCountPost', likeCountPost);
 
           return {
             postId: item.id,
