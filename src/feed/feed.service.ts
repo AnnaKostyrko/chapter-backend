@@ -154,7 +154,7 @@ export class FeedService {
     );
 
     const posts = formattedFeedItems;
-       this.server.emit('GetPosts', posts);
+      //  this.server.emit('GetPosts', posts);
     return {posts};
   }
 }

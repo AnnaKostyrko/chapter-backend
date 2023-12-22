@@ -22,7 +22,7 @@ import { PostEntity } from './entities/post.entity';
 import { User } from '../users/entities/user.entity';
 import { UpdatePostDto } from './dto/updatePost.dto';
 import { Server } from 'socket.io';
-import { FeedGateway } from 'src/feed/gateway/feet.gateway';
+// import { FeedGateway } from 'src/feed/gateway/feet.gateway';
 
 @ApiBearerAuth()
 @ApiTags('posts')
@@ -33,7 +33,7 @@ import { FeedGateway } from 'src/feed/gateway/feet.gateway';
 export class PostController {
   constructor(
     private readonly postService: PostService,
-    private readonly Gateway: FeedGateway,
+    // private readonly Gateway: FeedGateway,
     private readonly server: Server,
   ) {}
 
@@ -44,13 +44,13 @@ export class PostController {
   async createPost(
     @Req() req: any,
     @Body() createPostDto: PostDto,
-  ): Promise<void> {
+  ) {
     const currentUser: User = req.user;
-    return await this.postService
+    return  this.postService
       .create(currentUser, createPostDto)
-      .then((post) => {
-        this.Gateway.server.emit('message', post);
-      });
+      // .then((post) => {
+      //   this.Gateway.server.emit('message', post);
+      // });
   }
 
   @ApiOperation({ summary: 'Update a post' })
@@ -62,10 +62,10 @@ export class PostController {
   ): Promise<any> {
     return await this.postService
       .updatePost(postId, updatePostDto)
-      .then((caption) => {
-        console.log(caption);
-        this.Gateway.server.emit('UpdatePost', caption);
-      });
+      // .then((caption) => {
+      //   console.log(caption);
+      //   this.Gateway.server.emit('UpdatePost', caption);
+      // });
   }
 
   @ApiOperation({ summary: 'delete a post' })

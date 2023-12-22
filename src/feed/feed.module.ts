@@ -7,7 +7,7 @@ import { Book } from 'src/users/entities/book.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Server } from 'socket.io';
 import { PostService } from 'src/post/post.service';
-import { FeedGateway } from './gateway/feet.gateway';
+// import { FeedGateway } from './gateway/feet.gateway';
 import { Like } from 'src/like/entity/like.entity';
 import { CommentEntity } from 'src/comment/entity/comment.entity';
 import { LikeService } from 'src/like/like.service';
@@ -30,7 +30,7 @@ import { Forgot } from 'src/forgot/entities/forgot.entity';
   ],
   providers: [
     FeedService,
-    FeedGateway,
+    // FeedGateway,
     Server,
     PostService,
     LikeService,
