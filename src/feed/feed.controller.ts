@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, Request } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FeedService } from './feed.service';
 // import { FeedGateway } from './gateway/feet.gateway';
@@ -6,7 +6,9 @@ import { AuthGuard } from '@nestjs/passport';
 // import {FeedGateway} from './gateways/feed.gateway'
 
 @ApiTags('feed')
-@Controller()
+@Controller({
+  version: '1',
+})
 export class FeedController {
   constructor(
     private readonly feedService: FeedService, // private readonly Gateway: FeedGateway,
@@ -16,8 +18,12 @@ export class FeedController {
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Get a feed' })
   @Get('feed')
-  async getFeed(currentUserId: number) {
-    return this.feedService.getFeed(currentUserId);
+  async getFeed(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Request() req,
+  ) {
+    return this.feedService.getFeed(req.user.id, page, limit);
     // .then((posts) => {
     //   this.Gateway.server.emit('GetPosts', posts);
     // }).then((updateLikeCount) =>{
