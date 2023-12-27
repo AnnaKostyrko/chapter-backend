@@ -262,7 +262,7 @@ export class AuthService {
     const session = await this.sessionService.create({
       user,
     });
-    console.log('user', user);
+
     const {
       token: jwtToken,
       refreshToken,
@@ -278,7 +278,7 @@ export class AuthService {
       .leftJoinAndSelect('user.subscribers', 'subscriber')
       .where('subscriber.id=:userId', { userId: user.id })
       .getMany();
-    console.log('user', user);
+
     const resUser = {
       id: user.id,
       firstName: user.firstName,
@@ -721,7 +721,7 @@ export class AuthService {
     }
 
     let hashCount = deletedUser.hashCount;
-    console.log('hashCount', hashCount);
+
     if (hashCount > 2) {
       throw new HttpException(
         {

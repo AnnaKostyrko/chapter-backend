@@ -9,18 +9,15 @@ import { AuthGuard } from '@nestjs/passport';
 @Controller()
 export class FeedController {
   constructor(
-    private readonly feedService: FeedService,
-    // private readonly Gateway: FeedGateway,
+    private readonly feedService: FeedService, // private readonly Gateway: FeedGateway,
   ) {}
-
- 
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Get a feed' })
   @Get('feed')
   async getFeed(currentUserId: number) {
-    return this.feedService.getFeed(currentUserId)
+    return this.feedService.getFeed(currentUserId);
     // .then((posts) => {
     //   this.Gateway.server.emit('GetPosts', posts);
     // }).then((updateLikeCount) =>{

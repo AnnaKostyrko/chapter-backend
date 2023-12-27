@@ -82,13 +82,12 @@ export class FeedService {
             item.id,
           );
 
-          const commentsCount = comments.length;
+          const commentsToPostCount = comments.length;
+
           //comments directly to the post  with likes
           const parrentComments = comments.filter(
             (comment) => comment.parentId === null,
           );
-
-          console.log('parrentComments', parrentComments);
 
           const repliesToComments = parrentComments
             .map((parentComment) => {
@@ -99,21 +98,26 @@ export class FeedService {
             })
             .flat();
 
-          console.log('repliesToComment', repliesToComments);
-          //post likes count
-          const likeCountPost = await this.likeRepository
+          //post likes
+          const postLikes = await this.likeRepository
             .createQueryBuilder('like')
+            .select('like.userId')
             .where('like.postId = :postId', { postId: item.id })
-            .getCount();
-            this.server.emit('likeCountUpdated', { postId: item.id, likeCount: likeCountPost });
-          console.log('likeCountPost', likeCountPost);
+            .andWhere('like.comment IS NULL')
+            .getRawMany();
+
+          // this.server.emit('likeCountUpdated', {
+          //   postId: item.id,
+          //   likeCount: postLikes,
+          // });
 
           return {
+            title: item.title,
             postId: item.id,
             caption: item.caption,
             imgUrl: item.imgUrl,
-            commentsCount,
-            likeCount: likeCountPost,
+            commentsCount: commentsToPostCount,
+            userIds: postLikes.map((like) => like['like_userId']),
             createAt: item.createdAt,
             updatedAt: item.updatedAt,
             author: {
@@ -121,6 +125,7 @@ export class FeedService {
               avatar: item.author.avatarUrl,
               firstName: item.author.firstName,
               lastName: item.author.lastName,
+              nickName: item.author.nickName,
               relativeDate: timeDifference(
                 new Date(),
                 new Date(item.createdAt),
@@ -131,8 +136,17 @@ export class FeedService {
               id: com.id,
               text: com.text,
               postId: com.postId,
-              userId: com.userId,
-              likeCount: com.likeCount,
+              commentCount: repliesToComments.filter(
+                (reply) => reply.parentId === com.id,
+              ).length,
+              author: {
+                id: com.user.id,
+                avatar: com.user.avatarUrl,
+                firstName: com.user.firstName,
+                lastName: com.user.lastName,
+                nickName: com.user.nickName,
+              },
+              usersId: com.likeIds,
               createdAt: com.createdAt,
               updatedAt: com.updatedAt,
               comments: repliesToComments
@@ -142,19 +156,24 @@ export class FeedService {
                   text: filterReply.text,
                   parrentId: filterReply.parentId,
                   postId: filterReply.postId,
-                  userId: filterReply.userId,
-                  likeCount: filterReply.likeCount,
+                  author: {
+                    id: filterReply.user.id,
+                    avatar: filterReply.user.avatarUrl,
+                    firstName: filterReply.user.firstName,
+                    lastName: filterReply.user.lastName,
+                    nickName: filterReply.user.nickName,
+                  },
+                  usersId: filterReply.likeIds,
                   createdAt: filterReply.createdAt,
                   updatedAt: filterReply.updatedAt,
                 })),
             })),
           };
         }),
-        
     );
 
     const posts = formattedFeedItems;
-      //  this.server.emit('GetPosts', posts);
-    return {posts};
+    //  this.server.emit('GetPosts', posts);
+    return { posts };
   }
 }
