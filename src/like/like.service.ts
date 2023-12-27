@@ -17,16 +17,14 @@ export class LikeService {
   ) {}
 
   async getLikedUsers(postId: number) {
-    const likes = await this.likeRepository.find({
-      where: { postId },
-      relations: ['user'],
-    });
-    const likesUsers = likes.map((like) => {
-      return Number(like.userId);
-    });
+    const likes = await this.likeRepository
+      .createQueryBuilder('like')
+      .select('like.userId')
+      .where('like.postId = :postId', { postId })
+      .andWhere('like.comment IS NULL')
+      .getRawMany();
 
-    const uniqueUsersIds = [...new Set(likesUsers)];
-    return uniqueUsersIds;
+    return likes.map((like) => like['like_userId']);
   }
 
   async getLikedUsersComment(comment: any) {
@@ -51,9 +49,12 @@ export class LikeService {
       throw createResponse(HttpStatus.NOT_FOUND, 'Post not found.');
     }
 
-    const existingLike = await this.likeRepository.findOne({
-      where: { postId, userId },
-    });
+    const existingLike = await this.likeRepository
+      .createQueryBuilder('like')
+      .where('like.postId = :postId', { postId })
+      .andWhere('like.userId = :userId', { userId })
+      .andWhere('like.comment IS NULL')
+      .getOne();
 
     if (existingLike) {
       await this.likeRepository.remove(existingLike);

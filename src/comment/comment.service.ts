@@ -89,7 +89,7 @@ export class CommentService {
 
     const commentToComment = this.commentRepository.create({
       ...commentData,
-      parentId: comment.id,
+      parentId: comment.parentId,
       postId: comment.postId,
       user,
     });
@@ -153,7 +153,7 @@ export class CommentService {
     if (!commentsToComment) {
       throw new NotFoundException('Comment-to-comment not found');
     }
-    console.log('commentsToComment', commentsToComment);
+
     return commentsToComment;
   }
 
@@ -169,26 +169,40 @@ export class CommentService {
         'comment.userId as user_id',
         'comment.createdAt as created_at',
         'comment.updatedAt as updated_at',
-        'COUNT(like.id) as like_count',
+        'like.userId as like_user_id',
       ])
       .where(`comment.postId=${postId}`)
-      .groupBy('comment.id')
+      .groupBy('comment.id, like.userId')
       .getRawMany();
 
     if (!commentsToPost) {
       throw new NotFoundException('Comment to post not found');
     }
 
-    return commentsToPost.map((comment) => ({
-      id: comment.id,
-      parentId: comment.parent_id,
-      text: comment.text,
-      postId: comment.post_id,
-      userId: comment.user_id,
-      createdAt: comment.created_at,
-      updatedAt: comment.updated_at,
-      likeCount: parseInt(comment.like_count),
-    }));
+    const commentsWithUsers = await Promise.all(
+      commentsToPost.map(async (comment) => {
+        const user = await this.userRepository.findOne({
+          where: { id: comment.user_id },
+        });
+
+        const likeIds = commentsToPost
+          .filter((c) => c.id === comment.id && c.like_user_id !== null)
+          .map((c) => c.like_user_id);
+
+        return {
+          id: comment.id,
+          parentId: comment.parent_id,
+          text: comment.text,
+          postId: comment.post_id,
+          user,
+          createdAt: comment.created_at,
+          updatedAt: comment.updated_at,
+          likeIds,
+        };
+      }),
+    );
+
+    return commentsWithUsers;
   }
 
   async deleteComment(commentId: number, parentId: number): Promise<void> {
