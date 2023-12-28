@@ -6,6 +6,7 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import ms from 'ms';
 import { JwtService } from '@nestjs/jwt';
@@ -83,13 +84,23 @@ export class AuthService {
       ['subscribers', 'books'],
     );
 
-    if (
-      !user ||
-      (user?.role &&
-        !(onlyAdmin ? [RoleEnum.admin] : [RoleEnum.user]).includes(
-          user.role.id,
-        ))
-    ) {
+    if (!user) {
+      throw new UnprocessableEntityException('User not found');
+    }
+
+    if (user.status?.id === 2) {
+      throw new UnprocessableEntityException('Email not confirmed');
+    }
+
+    if (user.password === null) {
+      throw new UnprocessableEntityException(
+        'User registration is not completed',
+      );
+    }
+
+    const isAdmin = user.role?.id === RoleEnum.admin;
+
+    if (!isAdmin && onlyAdmin) {
       throw new HttpException(
         {
           status: HttpStatus.UNPROCESSABLE_ENTITY,
