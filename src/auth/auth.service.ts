@@ -116,7 +116,7 @@ export class AuthService {
       throw new UnprocessableEntityException('Email not confirmed');
     }
 
-    if (user && user.password === null) {
+    if (user.password === null) {
       throw new UnprocessableEntityException(
         'User registrtion is not completed',
       );
