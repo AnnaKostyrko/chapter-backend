@@ -84,23 +84,23 @@ export class AuthService {
       ['subscribers', 'books'],
     );
 
-    if (!user) {
-      throw new UnprocessableEntityException('User not found');
-    }
-
-    if (user.status?.id === 2) {
+    if (user && user.status?.id === 2) {
       throw new UnprocessableEntityException('Email not confirmed');
     }
 
-    if (user.password === null) {
+    if (user && user.password === null) {
       throw new UnprocessableEntityException(
-        'User registration is not completed',
+        'User registrtion is not completed',
       );
     }
 
-    const isAdmin = user.role?.id === RoleEnum.admin;
-
-    if (!isAdmin && onlyAdmin) {
+    if (
+      !user ||
+      (user?.role &&
+        !(onlyAdmin ? [RoleEnum.admin] : [RoleEnum.user]).includes(
+          user.role.id,
+        ))
+    ) {
       throw new HttpException(
         {
           status: HttpStatus.UNPROCESSABLE_ENTITY,
@@ -109,6 +109,16 @@ export class AuthService {
           },
         },
         HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+
+    if (user.status?.id === 2) {
+      throw new UnprocessableEntityException('Email not confirmed');
+    }
+
+    if (user && user.password === null) {
+      throw new UnprocessableEntityException(
+        'User registrtion is not completed',
       );
     }
 
