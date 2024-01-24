@@ -152,13 +152,15 @@ export class CommentController {
     return await this.commentService.getCommentToComment(commentToCommentId);
   }
 
-  @ApiOperation({ summary: 'delete a post' })
+  @ApiOperation({ summary: 'delete a comment' })
+  @UseGuards(AuthGuard('jwt'))
   @ApiResponse({ status: 201, description: 'delete.' })
   @Delete('delete/:id')
   async deletePost(
     @Param('id') commentId: number,
-    parentId: number,
+    @Request() req,
   ): Promise<void> {
-    return await this.commentService.deleteComment(commentId, parentId);
+    console.log(req.user);
+    return await this.commentService.deleteComment(commentId, req.user.id);
   }
 }

@@ -10,9 +10,11 @@ import { CommentEntity } from 'src/comment/entity/comment.entity';
 import { Server } from 'socket.io';
 @Module({
   imports: [TypeOrmModule.forFeature([PostEntity, User, Like, CommentEntity])],
-  providers: [PostService,
+  providers: [
+    PostService,
     //  FeedGateway,
-      Server],
+    Server,
+  ],
   controllers: [PostController],
 })
 export class PostModule {}
