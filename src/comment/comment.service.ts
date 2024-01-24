@@ -205,16 +205,19 @@ export class CommentService {
     return commentsWithUsers;
   }
 
-  async deleteComment(commentId: number, parentId: number): Promise<void> {
+  async deleteComment(commentId: number, userId: number): Promise<void> {
     const comment = await this.commentRepository.findOne({
       where: {
         id: commentId,
-        parentId,
       },
     });
 
     if (!comment) {
       throw createResponse(HttpStatus.NOT_FOUND, 'Comment not found.');
+    }
+
+    if (comment.userId !== userId) {
+      throw createResponse(HttpStatus.FORBIDDEN, 'Insufficient permissions.');
     }
 
     await this.commentRepository.remove(comment);
