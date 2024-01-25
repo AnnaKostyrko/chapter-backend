@@ -8,21 +8,23 @@ export class CreateBookDto {
 
   @ApiProperty({ example: 'J.K. Rowling' })
   @IsNotEmpty()
-  author: string;
+  @IsOptional()
+  author?: string;
 
   @ApiProperty({
     example: 'http://.......',
   })
   @IsNotEmpty()
   @IsOptional()
-  imagePath: string;
+  imagePath?: string;
 
   @ApiProperty({
     example:
       'Harry Potter is a series of fantasy novels by J. K. Rowling about a young wizard and his friends at Hogwarts School.',
   })
   @IsNotEmpty()
-  annotation: string;
+  @IsOptional()
+  annotation?: string;
 
   @ApiProperty({ example: '1' })
   @IsNotEmpty()
