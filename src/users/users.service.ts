@@ -20,6 +20,7 @@ import { CreateBookDto } from './dto/create-book.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import bcrypt from 'bcryptjs';
 import { createResponse } from 'src/helpers/response-helpers';
+import { UpdateBookDto } from './dto/update-book.dto';
 
 @Injectable()
 export class UsersService {
@@ -346,21 +347,46 @@ export class UsersService {
     return book;
   }
 
-  async updateBook(id: number, updateData): Promise<Book> {
-    await this.bookRepository.update(id, updateData);
+  async updateBook(
+    userId: number,
+    bookId: number,
+    updateData: UpdateBookDto,
+  ): Promise<Book> {
+    const updatedBook = await this.bookRepository.findOne({
+      where: { id: bookId },
+      relations: ['user'],
+    });
 
-    const updatedBook = await this.bookRepository.findOne({ where: { id } });
     if (!updatedBook) {
       throw new NotFoundException('Book not found');
     }
+
+    if (updatedBook.user.id !== userId) {
+      throw new ForbiddenException(
+        'You do not have permission to update this book',
+      );
+    }
+    await this.bookRepository.update(bookId, updateData);
+    await this.bookRepository.findOne({ where: { id: bookId } });
+
     return updatedBook;
   }
 
-  async deleteBook(id: number): Promise<void> {
-    const result = await this.bookRepository.delete(id);
-    if (result.affected === 0) {
+  async deleteBook(userId: number, bookId: number): Promise<void> {
+    const book = await this.bookRepository.findOne({
+      where: { id: bookId },
+      relations: ['user'],
+    });
+    if (!book) {
       throw new NotFoundException('Book not found');
     }
+
+    if (book.user.id !== userId) {
+      throw new ForbiddenException(
+        'You do not have permission to delete a book that does not belong to you',
+      );
+    }
+    await this.bookRepository.delete(bookId);
   }
 
   async updatePassword(userId: number, updtePasswordDto: UpdatePasswordDto) {
