@@ -18,7 +18,7 @@ async function bootstrap() {
   app.use(cookieParser());
 
   app.enableCors({
-    origin: ['https://localhost:5173', 'https://dev.chapter-web.com'],
+    origin: ['https://localhost:5173', 'https://dev.chapter-web.com', 'https://obscure-island-84086-0710166a71eb.herokuapp.com'],
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
     allowedHeaders: [
       'Origin',

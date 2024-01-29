@@ -14,7 +14,7 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
     <script>
-        const socket = io('http://localhost:1127/feed', { withCredentials: false });  // or true, if you need to send credentials
+        const socket = io('https://obscure-island-84086-0710166a71eb.herokuapp.com/api/v1/', { withCredentials: false });  // or true, if you need to send credentials
         
         const message = document.getElementById('message');
         const handleSubmit = () => {
