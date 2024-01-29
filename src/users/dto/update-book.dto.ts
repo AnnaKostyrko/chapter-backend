@@ -1,15 +1,17 @@
-import { IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, MaxLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateBookDto {
   @ApiProperty({ example: 'Harry Potter' })
   @IsOptional()
   @IsNotEmpty()
+  @MaxLength(30)
   nameOfBook?: string;
 
   @ApiProperty({ example: 'J.K. Rowling' })
   @IsOptional()
   @IsNotEmpty()
+  @MaxLength(30)
   author?: string;
 
   @ApiProperty({
