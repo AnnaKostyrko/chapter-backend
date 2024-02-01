@@ -89,7 +89,7 @@ export class CommentService {
 
     const commentToComment = this.commentRepository.create({
       ...commentData,
-      parentId: comment.parentId,
+      parentId: comment.parentId ? comment.parentId : comment.id,
       postId: comment.postId,
       user,
     });
