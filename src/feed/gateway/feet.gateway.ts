@@ -4,15 +4,14 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 
-@WebSocketGateway(1127, {
-  namespace: 'feed',
+@WebSocketGateway({
   cors: {
-    origin: 'https://obscure-island-84086-0710166a71eb.herokuapp.com/api/v1/',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
-
+    origin: 'https://obscure-island-84086-0710166a71eb.herokuapp.com/api/v1/feed',
+    methods:  ['GET', 'POST'],  
   },
+  transports: ['websocket'],
 })
+
 export class FeedGateway {
   @WebSocketServer()
   server: any;
@@ -23,7 +22,10 @@ export class FeedGateway {
     this.server.emit('message', message);
   }
   @SubscribeMessage('updateLikeCount')
-  handleUpdateLikeCount(client: any, payload: { postId: number, likeCount: number }): void {
+  handleUpdateLikeCount(
+    client: any,
+    payload: { postId: number; likeCount: number },
+  ): void {
     this.server.emit('likeCountUpdated', payload);
   }
 }

@@ -10,15 +10,18 @@ import { useContainer } from 'class-validator';
 import { AppModule } from './app.module';
 import validationOptions from './utils/validation-options';
 import { AllConfigType } from './config/config.type';
-
 import cookieParser from 'cookie-parser';
-
+import cors from 'cors'
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.use(cookieParser());
-
+  app.use(cookieParser())
+  app.use(cors());
   app.enableCors({
-    origin: ['https://localhost:5173', 'https://dev.chapter-web.com', 'https://obscure-island-84086-0710166a71eb.herokuapp.com'],
+    origin: [
+      'https://localhost:5173',
+      'https://dev.chapter-web.com',
+      'https://obscure-island-84086-0710166a71eb.herokuapp.com',
+    ],
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
     allowedHeaders: [
       'Origin',

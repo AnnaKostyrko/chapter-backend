@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FeedService } from './feed.service';
 // import { FeedGateway } from './gateway/feet.gateway';
 import { AuthGuard } from '@nestjs/passport';
-// import {FeedGateway} from './gateways/feed.gateway'
+import {FeedGateway} from './gateway/feet.gateway'
 
 @ApiTags('feed')
 @Controller({
@@ -11,7 +11,8 @@ import { AuthGuard } from '@nestjs/passport';
 })
 export class FeedController {
   constructor(
-    private readonly feedService: FeedService, // private readonly Gateway: FeedGateway,
+    private readonly feedService: FeedService, 
+    private readonly Gateway: FeedGateway,
   ) {}
 
   @ApiBearerAuth()
@@ -23,12 +24,14 @@ export class FeedController {
     @Query('limit') limit: number = 10,
     @Request() req,
   ) {
-    return this.feedService.getFeed(req.user.id, page, limit);
-    // .then((posts) => {
-    //   this.Gateway.server.emit('GetPosts', posts);
-    // }).then((updateLikeCount) =>{
-    //   this.Gateway.server.emit('updateLikeCount',updateLikeCount)
-    // })
+    return this.feedService.getFeed(req.user.id, page, limit)
+    .then((posts) => {
+      this.Gateway.server.emit('GetPosts', posts);
+      return posts
+    }).then((updateLikeCount) =>{
+      this.Gateway.server.emit('updateLikeCount',updateLikeCount)
+      return updateLikeCount
+    })
   }
 
   //response for swagger

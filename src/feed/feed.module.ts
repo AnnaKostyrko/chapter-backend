@@ -15,6 +15,7 @@ import { CommentService } from 'src/comment/comment.service';
 import { UsersService } from 'src/users/users.service';
 import { Session } from 'src/session/entities/session.entity';
 import { Forgot } from 'src/forgot/entities/forgot.entity';
+import { FeedGateway } from './gateway/feet.gateway';
 
 @Module({
   imports: [
@@ -30,7 +31,7 @@ import { Forgot } from 'src/forgot/entities/forgot.entity';
   ],
   providers: [
     FeedService,
-    // FeedGateway,
+    FeedGateway,
     Server,
     PostService,
     LikeService,
