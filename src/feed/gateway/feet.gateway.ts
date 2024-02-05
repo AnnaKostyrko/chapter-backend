@@ -6,12 +6,12 @@ import {
 
 @WebSocketGateway({
   cors: {
-    origin: 'https://obscure-island-84086-0710166a71eb.herokuapp.com/api/v1/feed',
-    methods:  ['GET', 'POST'],  
+    origin:
+      'https://obscure-island-84086-0710166a71eb.herokuapp.com/api/v1/feed',
+    methods: ['GET', 'POST'],
   },
   transports: ['websocket'],
 })
-
 export class FeedGateway {
   @WebSocketServer()
   server: any;
