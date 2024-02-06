@@ -155,6 +155,7 @@ export class PostService {
       );
       return {
         postId: post.id,
+        title: post.title,
         caption: post.caption,
         createdDate: post.createdAt,
         likesCount: likeCount ? likeCount.likecount : 0,
