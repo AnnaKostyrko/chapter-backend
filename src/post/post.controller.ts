@@ -22,10 +22,12 @@ import { PostEntity } from './entities/post.entity';
 import { User } from '../users/entities/user.entity';
 import { UpdatePostDto } from './dto/updatePost.dto';
 import { Server } from 'socket.io';
+
 // import { FeedGateway } from 'src/feed/gateway/feet.gateway';
 
 @ApiBearerAuth()
 @ApiTags('posts')
+@UseGuards(AuthGuard('jwt'))
 @Controller({
   path: 'posts',
   version: '1',
@@ -40,7 +42,6 @@ export class PostController {
   @ApiOperation({ summary: 'Create a post' })
   @ApiResponse({ status: 201, description: 'Created.' })
   @Post('create')
-  @UseGuards(AuthGuard('jwt'))
   async createPost(@Req() req: any, @Body() createPostDto: PostDto) {
     const currentUser: User = req.user;
     return this.postService.create(currentUser, createPostDto);
@@ -53,10 +54,15 @@ export class PostController {
   @ApiResponse({ status: 201, description: 'Updated.' })
   @Patch('update/:id')
   async updatePost(
+    @Req() req: any,
     @Param('id') postId: number,
     @Body() updatePostDto: UpdatePostDto,
   ): Promise<any> {
-    return await this.postService.updatePost(postId, updatePostDto);
+    return await this.postService.updatePost(
+      req.user.id,
+      postId,
+      updatePostDto,
+    );
     // .then((caption) => {
     //   console.log(caption);
     //   this.Gateway.server.emit('UpdatePost', caption);
@@ -66,8 +72,11 @@ export class PostController {
   @ApiOperation({ summary: 'delete a post' })
   @ApiResponse({ status: 201, description: 'delete.' })
   @Delete('delete/:id')
-  async deletePost(@Param('id') postId: number): Promise<void> {
-    return await this.postService.deletePost(postId);
+  async deletePost(
+    @Req() req: any,
+    @Param('id') postId: number,
+  ): Promise<void> {
+    return await this.postService.deletePost(req.user.id, postId);
   }
 
   @ApiOperation({ summary: 'Get posts by author' })
