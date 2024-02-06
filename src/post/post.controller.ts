@@ -8,6 +8,7 @@ import {
   Delete,
   Param,
   Get,
+  Request,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import {
@@ -83,10 +84,16 @@ export class PostController {
   @ApiResponse({ status: 200, description: 'OK', type: [PostEntity] })
   @Get('by-author')
   @UseGuards(AuthGuard('jwt'))
-  async getPostsByAuthor(@Req() req): Promise<PostEntity[]> {
-    const currentUser: User = req.user as User;
+  async getPostsByAuthor(@Request() req: any): Promise<PostEntity[]> {
+    return await this.postService.getPostsByAuthor(req.user.id);
+  }
 
-    return await this.postService.getPostsByAuthor(currentUser);
+  @ApiOperation({ summary: 'Get user`s posts' })
+  @ApiResponse({ status: 200, description: 'OK', type: [PostEntity] })
+  @Get('by-user/:userId')
+  @UseGuards(AuthGuard('jwt'))
+  async getUsersPosts(@Param('userId') userId: number): Promise<PostEntity[]> {
+    return await this.postService.getUsersPosts(userId);
   }
 
   @ApiOperation({ summary: 'get users who liked post' })
