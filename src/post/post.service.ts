@@ -40,13 +40,16 @@ export class PostService {
   }
 
   async updatePost(
+    userId: number,
     postId: number,
     updatePostDto: UpdatePostDto,
   ): Promise<void> {
-    const post = await this.postRepository.findOne({ where: { id: postId } });
+    const post = await this.postRepository.findOne({
+      where: { id: postId, author: { id: userId } },
+    });
 
     if (!post) {
-      throw new NotFoundException(`Post with ID ${postId} not found`);
+      throw new NotFoundException(`Post not found`);
     }
 
     post.imgUrl = updatePostDto.imageUrl ?? post.imgUrl;
@@ -57,8 +60,10 @@ export class PostService {
     await this.postRepository.save(post);
   }
 
-  async deletePost(postId: number): Promise<void> {
-    const post = await this.postRepository.findOne({ where: { id: postId } });
+  async deletePost(userId: number, postId: number): Promise<void> {
+    const post = await this.postRepository.findOne({
+      where: { id: postId, author: { id: userId } },
+    });
 
     if (!post) {
       throw createResponse(HttpStatus.NOT_FOUND, 'Post not found.');
