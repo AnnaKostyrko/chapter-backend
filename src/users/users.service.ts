@@ -200,7 +200,9 @@ export class UsersService {
       : [...currentUser.subscribers, targetUser];
 
     await currentUser.save();
+
     this.myGateway.sendNotificationToUser(currentUserId, targetUserId);
+
     return currentUser;
   }
 

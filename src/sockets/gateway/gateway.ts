@@ -41,9 +41,7 @@ export class MyGateway implements OnModuleInit {
 
           const userId = decodedToken.id;
           this.clients.set(userId, socket);
-          console.log(Array.from(this.clients.keys()));
         } catch (error) {
-          console.log('error', error);
           this.server.emit('error', { message: error.message });
           socket.disconnect(true);
         }
@@ -53,7 +51,7 @@ export class MyGateway implements OnModuleInit {
 
   sendNotificationToUser(currentUserId: number, targetUserId: number) {
     const targetSocket = this.clients.get(targetUserId);
-    // console.log('targetSocket', targetSocket);
+
     if (targetSocket) {
       targetSocket.emit(
         'notification',
@@ -62,9 +60,6 @@ export class MyGateway implements OnModuleInit {
     } else {
       console.log(`Сокет для користувача з id:${targetUserId} не знайдений`);
     }
-    // console.log(
-    //   `a user with id:${currentUserId} has subscribed to you(${targetUserId})`,
-    // );
   }
 
   @SubscribeMessage('newMessage')
