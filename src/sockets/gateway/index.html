@@ -1,0 +1,36 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Socket.IO Test</title>
+  </head>
+  <body>
+    <h1>Socket.IO Test</h1>
+    <div id="notifications"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"></script>
+    <script>
+      const socket = io('http://localhost:3000');
+
+      socket.on('connect', () => {
+        console.log('Connected to server');
+      });
+
+      socket.on('disconnect', () => {
+        console.log('Disconnected from server');
+      });
+
+      socket.on('error', (error) => {
+        console.error('Server error:', error.message);
+      });
+
+      socket.on('notification', (message) => {
+        const notificationsDiv = document.getElementById('notifications');
+        const newNotification = document.createElement('div');
+        newNotification.textContent = message;
+        notificationsDiv.appendChild(newNotification);
+      });
+    </script>
+  </body>
+</html> -->

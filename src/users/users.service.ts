@@ -21,6 +21,7 @@ import { UpdatePasswordDto } from './dto/update-password.dto';
 import bcrypt from 'bcryptjs';
 import { createResponse } from 'src/helpers/response-helpers';
 import { UpdateBookDto } from './dto/update-book.dto';
+import { MyGateway } from 'src/sockets/gateway/gateway';
 
 @Injectable()
 export class UsersService {
@@ -29,6 +30,7 @@ export class UsersService {
     private usersRepository: Repository<User>,
     @InjectRepository(Book)
     private bookRepository: Repository<Book>,
+    private readonly myGateway: MyGateway,
   ) {}
 
   async searchUsers(query: string): Promise<User[]> {
@@ -198,6 +200,8 @@ export class UsersService {
       : [...currentUser.subscribers, targetUser];
 
     await currentUser.save();
+
+    this.myGateway.sendNotificationToUser(currentUserId, targetUserId);
 
     return currentUser;
   }

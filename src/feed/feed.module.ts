@@ -15,6 +15,7 @@ import { CommentService } from 'src/comment/comment.service';
 import { UsersService } from 'src/users/users.service';
 import { Session } from 'src/session/entities/session.entity';
 import { Forgot } from 'src/forgot/entities/forgot.entity';
+import { GatewayModule } from 'src/sockets/gateway/gateway.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { Forgot } from 'src/forgot/entities/forgot.entity';
       Session,
       Forgot,
     ]),
+    GatewayModule,
   ],
   providers: [
     FeedService,

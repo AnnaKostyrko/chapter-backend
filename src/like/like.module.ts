@@ -11,6 +11,7 @@ import { Book } from 'src/users/entities/book.entity';
 import { Session } from 'src/session/entities/session.entity';
 import { Forgot } from 'src/forgot/entities/forgot.entity';
 import { CommentEntity } from '../comment/entity/comment.entity';
+import { GatewayModule } from 'src/sockets/gateway/gateway.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { CommentEntity } from '../comment/entity/comment.entity';
       Forgot,
       CommentEntity,
     ]),
+    GatewayModule,
   ],
   controllers: [LikeController],
   providers: [LikeService, UsersService],
