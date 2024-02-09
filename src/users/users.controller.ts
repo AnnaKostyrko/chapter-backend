@@ -167,7 +167,6 @@ export class UsersController {
 
   @Get(':id/books/:bookId')
   async getBookInfoByUser(
-
     @Param('id') userId: number,
     @Param('bookId') bookId: number,
   ): Promise<BookInfoDto> {

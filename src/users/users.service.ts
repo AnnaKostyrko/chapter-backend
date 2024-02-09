@@ -255,7 +255,10 @@ export class UsersService {
     };
   }
 
-  async getGuestsUserInfo(userId: number, guestId:number): Promise<Partial<object>> {
+  async getGuestsUserInfo(
+    userId: number,
+    guestId: number,
+  ): Promise<Partial<object>> {
     const user = await this.findOne({ id: userId }, ['subscribers', 'books']);
 
     if (!user) {
@@ -267,8 +270,9 @@ export class UsersService {
       .where('subscriber.id=:userId', { userId })
       .getMany();
 
-      const isSubscribed = user.subscribers.some(subscriber => subscriber.id === guestId)
-
+    const isSubscribed = user.subscribers.some(
+      (subscriber) => subscriber.id === guestId,
+    );
 
     return {
       avatarUrl: user.avatarUrl,
@@ -280,10 +284,10 @@ export class UsersService {
       myFollowersCount: subscribers.length ?? null,
       myFollowingCount: user.subscribers.length ?? null,
       userBooks: user.books,
-      isSubscribed:isSubscribed
+      isSubscribed: isSubscribed,
     };
   }
-  
+
   async getBookInfoByUser(
     userId: number,
     bookId: number,
