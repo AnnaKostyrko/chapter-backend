@@ -160,12 +160,14 @@ export class UsersController {
     type: GuestUserInfoResponse,
   })
   @Get('profile/:userId')
-  async getGuestUserInfo(@Param('userId') userId: number) {
-    return await this.usersService.getGuestsUserInfo(userId);
+  async getGuestUserInfo(@Param('userId') userId: number, @Request() req) {
+    const guestId = req.user.id;
+    return await this.usersService.getGuestsUserInfo(userId, guestId);
   }
 
   @Get(':id/books/:bookId')
   async getBookInfoByUser(
+
     @Param('id') userId: number,
     @Param('bookId') bookId: number,
   ): Promise<BookInfoDto> {

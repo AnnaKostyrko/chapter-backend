@@ -21,6 +21,7 @@ import { UpdatePasswordDto } from './dto/update-password.dto';
 import bcrypt from 'bcryptjs';
 import { createResponse } from 'src/helpers/response-helpers';
 import { UpdateBookDto } from './dto/update-book.dto';
+import { subscribe } from 'diagnostics_channel';
 
 @Injectable()
 export class UsersService {
@@ -243,7 +244,7 @@ export class UsersService {
     };
   }
 
-  async getGuestsUserInfo(userId: number): Promise<Partial<object>> {
+  async getGuestsUserInfo(userId: number, guestId:number): Promise<Partial<object>> {
     const user = await this.findOne({ id: userId }, ['subscribers', 'books']);
 
     if (!user) {
@@ -255,6 +256,9 @@ export class UsersService {
       .where('subscriber.id=:userId', { userId })
       .getMany();
 
+      const isSubscribed = user.subscribers.some(subscriber => subscriber.id === guestId)
+
+
     return {
       avatarUrl: user.avatarUrl,
       firstName: user.firstName,
@@ -265,9 +269,10 @@ export class UsersService {
       myFollowersCount: subscribers.length ?? null,
       myFollowingCount: user.subscribers.length ?? null,
       userBooks: user.books,
+      isSubscribed:isSubscribed
     };
   }
-
+  
   async getBookInfoByUser(
     userId: number,
     bookId: number,
