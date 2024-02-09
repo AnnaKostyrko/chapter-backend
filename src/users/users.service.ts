@@ -21,7 +21,7 @@ import { UpdatePasswordDto } from './dto/update-password.dto';
 import bcrypt from 'bcryptjs';
 import { createResponse } from 'src/helpers/response-helpers';
 import { UpdateBookDto } from './dto/update-book.dto';
-import { subscribe } from 'diagnostics_channel';
+import { MyGateway } from 'src/sockets/gateway/gateway';
 
 @Injectable()
 export class UsersService {
@@ -30,6 +30,7 @@ export class UsersService {
     private usersRepository: Repository<User>,
     @InjectRepository(Book)
     private bookRepository: Repository<Book>,
+    private readonly myGateway: MyGateway,
   ) {}
 
   async searchUsers(query: string): Promise<User[]> {
@@ -199,6 +200,16 @@ export class UsersService {
       : [...currentUser.subscribers, targetUser];
 
     await currentUser.save();
+
+    const notificationMessage = isSubscribed
+      ? `Від вас відписався юзер з id:${currentUserId}`
+      : `На вас підписався юзер з id:${currentUserId}`;
+
+    this.myGateway.sendNotificationToUser(
+      currentUserId,
+      targetUserId,
+      notificationMessage,
+    );
 
     return currentUser;
   }

@@ -40,13 +40,16 @@ export class PostService {
   }
 
   async updatePost(
+    userId: number,
     postId: number,
     updatePostDto: UpdatePostDto,
   ): Promise<void> {
-    const post = await this.postRepository.findOne({ where: { id: postId } });
+    const post = await this.postRepository.findOne({
+      where: { id: postId, author: { id: userId } },
+    });
 
     if (!post) {
-      throw new NotFoundException(`Post with ID ${postId} not found`);
+      throw new NotFoundException(`Post not found`);
     }
 
     post.imgUrl = updatePostDto.imageUrl ?? post.imgUrl;
@@ -57,8 +60,10 @@ export class PostService {
     await this.postRepository.save(post);
   }
 
-  async deletePost(postId: number): Promise<void> {
-    const post = await this.postRepository.findOne({ where: { id: postId } });
+  async deletePost(userId: number, postId: number): Promise<void> {
+    const post = await this.postRepository.findOne({
+      where: { id: postId, author: { id: userId } },
+    });
 
     if (!post) {
       throw createResponse(HttpStatus.NOT_FOUND, 'Post not found.');
@@ -67,9 +72,16 @@ export class PostService {
     await this.postRepository.remove(post);
   }
 
-  async getPostsByAuthor(author: User): Promise<PostEntity[]> {
+  async getPostsByAuthor(authorId: number): Promise<PostEntity[]> {
     return await this.postRepository.find({
-      where: { author: { id: author.id } },
+      where: { author: { id: authorId } },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async getUsersPosts(userId: number): Promise<PostEntity[]> {
+    return await this.postRepository.find({
+      where: { author: { id: userId } },
       order: { createdAt: 'DESC' },
     });
   }
@@ -150,6 +162,7 @@ export class PostService {
       );
       return {
         postId: post.id,
+        title: post.title,
         caption: post.caption,
         createdDate: post.createdAt,
         likesCount: likeCount ? likeCount.likecount : 0,

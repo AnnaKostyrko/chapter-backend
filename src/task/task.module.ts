@@ -9,10 +9,12 @@ import { Forgot } from '../forgot/entities/forgot.entity';
 import { Session } from 'src/session/entities/session.entity';
 import { PostEntity } from 'src/post/entities/post.entity';
 import { Like } from 'src/like/entity/like.entity';
+import { GatewayModule } from 'src/sockets/gateway/gateway.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Book, Session, Forgot, PostEntity, Like]),
+    GatewayModule,
   ],
   controllers: [TaskController],
   providers: [TaskService, UsersService],

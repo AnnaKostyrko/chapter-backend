@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, Length } from 'class-validator';
+import { IsNotEmpty, Length, Matches } from 'class-validator';
 
 export class CreateCommentDto {
   @ApiProperty({
@@ -7,6 +7,9 @@ export class CreateCommentDto {
     example: 'Great post!',
     minLength: 1,
     maxLength: 500,
+  })
+  @Matches(/^[a-zA-Zа-яА-ЯіІїЇєЄґҐ\s!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~\d]+$/, {
+    message: 'incorrect format',
   })
   @IsNotEmpty({ message: 'Comment text should not be empty' })
   @Length(1, 500, {
@@ -21,6 +24,9 @@ export class UpdateCommentDto {
     example: 'This is an updated comment text.',
   })
   @IsNotEmpty()
+  @Matches(/^[a-zA-Zа-яА-ЯіІїЇєЄґҐ\s!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~\d]+$/, {
+    message: 'incorrect format',
+  })
   @Length(1, 500)
   text: string;
 }

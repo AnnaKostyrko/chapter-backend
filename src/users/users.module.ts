@@ -9,8 +9,14 @@ import { JwtStrategy } from 'src/auth/strategies/jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { Book } from './entities/book.entity';
 
+import { GatewayModule } from 'src/sockets/gateway/gateway.module';
+
 @Module({
-  imports: [JwtModule.register({}), TypeOrmModule.forFeature([User, Book])],
+  imports: [
+    JwtModule.register({}),
+    TypeOrmModule.forFeature([User, Book]),
+    GatewayModule,
+  ],
   controllers: [UsersController],
   providers: [IsExist, IsNotExist, UsersService, JwtStrategy],
   exports: [UsersService],
