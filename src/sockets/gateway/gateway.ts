@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import {
@@ -49,16 +49,26 @@ export class MyGateway implements OnModuleInit {
     });
   }
 
-  sendNotificationToUser(currentUserId: number, targetUserId: number) {
+  sendNotificationToUser(
+    currentUserId: number,
+    targetUserId: number,
+    notificationMessage: string,
+  ) {
     const targetSocket = this.clients.get(targetUserId);
+    const currentUser = this.clients.get(currentUserId);
+
+    if (!currentUser) {
+      throw new NotFoundException(
+        `Сокет для користувача з id:${currentUserId} не знайдений`,
+      );
+    }
 
     if (targetSocket) {
-      targetSocket.emit(
-        'notification',
-        `На вас підписався юзер з id:${currentUserId}`,
-      );
+      targetSocket.emit('subscribeNotification', notificationMessage);
     } else {
-      console.log(`Сокет для користувача з id:${targetUserId} не знайдений`);
+      throw new NotFoundException(
+        `Сокет для користувача з id:${targetUserId} не знайдений`,
+      );
     }
   }
 

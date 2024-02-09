@@ -201,7 +201,15 @@ export class UsersService {
 
     await currentUser.save();
 
-    this.myGateway.sendNotificationToUser(currentUserId, targetUserId);
+    const notificationMessage = isSubscribed
+      ? `Від вас відписався юзер з id:${currentUserId}`
+      : `На вас підписався юзер з id:${currentUserId}`;
+
+    this.myGateway.sendNotificationToUser(
+      currentUserId,
+      targetUserId,
+      notificationMessage,
+    );
 
     return currentUser;
   }
