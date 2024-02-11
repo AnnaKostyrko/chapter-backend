@@ -1,12 +1,7 @@
 import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import {
-  MessageBody,
-  SubscribeMessage,
-  WebSocketGateway,
-  WebSocketServer,
-} from '@nestjs/websockets';
+import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
 @Injectable()
@@ -72,8 +67,14 @@ export class MyGateway implements OnModuleInit {
     }
   }
 
-  @SubscribeMessage('newMessage')
-  onMessage(@MessageBody() body: any) {
-    console.log('body', body);
+  sendNotificationToAllUsers(
+    currentUserId: number,
+    notificationMessage: string,
+  ) {
+    this.clients.forEach((socket, userId) => {
+      if (userId !== currentUserId) {
+        socket.emit('postNotification', notificationMessage);
+      }
+    });
   }
 }

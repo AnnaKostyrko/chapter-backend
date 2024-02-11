@@ -13,6 +13,7 @@ import { UpdatePostDto } from './dto/updatePost.dto';
 import { createResponse } from 'src/helpers/response-helpers';
 import { Like } from 'src/like/entity/like.entity';
 import { CommentEntity } from 'src/comment/entity/comment.entity';
+import { MyGateway } from 'src/sockets/gateway/gateway';
 
 @Injectable()
 export class PostService {
@@ -25,6 +26,7 @@ export class PostService {
     private likeRepository: Repository<Like>,
     @InjectRepository(CommentEntity)
     private commentRepository: Repository<CommentEntity>,
+    private readonly myGateway: MyGateway,
   ) {}
 
   async create(author: User, createPostDto: PostDto) {
@@ -36,6 +38,7 @@ export class PostService {
     post.caption = createPostDto.caption ?? post.caption;
     post.title = createPostDto.title ?? post.title;
 
+    this.myGateway.sendNotificationToAllUsers(user.id, 'New post');
     return await this.postRepository.save(post);
   }
 
