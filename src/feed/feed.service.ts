@@ -35,11 +35,8 @@ export class FeedService {
     const subscribersIds = user.subscribers.map((sub) => sub.id);
 
     const feedItems = await this.postRepository.find({
-      order: { createdAt: 'DESC' },
-      relations: {
-        author: true,
-        comments: true,
-      },
+      order: { createdAt: 'ASC' },
+      relations: ['author', 'comments'],
     });
 
     // method whitch reflects the past tense
@@ -106,11 +103,6 @@ export class FeedService {
             .andWhere('like.comment IS NULL')
             .getRawMany();
 
-          // this.server.emit('likeCountUpdated', {
-          //   postId: item.id,
-          //   likeCount: postLikes,
-          // });
-
           return {
             title: item.title,
             postId: item.id,
@@ -173,7 +165,7 @@ export class FeedService {
     );
 
     const posts = formattedFeedItems;
-    //  this.server.emit('GetPosts', posts);
+
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
     const paginatedFeedItems = posts.slice(startIndex, endIndex);

@@ -32,7 +32,6 @@ import { GatewayModule } from 'src/sockets/gateway/gateway.module';
   ],
   providers: [
     FeedService,
-    // FeedGateway,
     Server,
     PostService,
     LikeService,
