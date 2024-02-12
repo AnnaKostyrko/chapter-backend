@@ -160,8 +160,9 @@ export class UsersController {
     type: GuestUserInfoResponse,
   })
   @Get('profile/:userId')
-  async getGuestUserInfo(@Param('userId') userId: number) {
-    return await this.usersService.getGuestsUserInfo(userId);
+  async getGuestUserInfo(@Param('userId') userId: number, @Request() req) {
+    const guestId = req.user.id;
+    return await this.usersService.getGuestsUserInfo(userId, guestId);
   }
 
   @Get(':id/books/:bookId')
@@ -191,15 +192,24 @@ export class UsersController {
   @Patch(':bookId')
   @ApiOperation({ summary: 'Update book' })
   async updateBook(
+    @Request() request,
     @Param('bookId') bookId: number,
     @Body() updateData: UpdateBookDto,
   ): Promise<Book> {
-    return await this.usersService.updateBook(bookId, updateData);
+    return await this.usersService.updateBook(
+      request.user.id,
+      bookId,
+      updateData,
+    );
   }
 
   @Delete(':bookId')
-  async deleteBook(@Param('bookId') bookId: number): Promise<void> {
-    return await this.usersService.deleteBook(bookId);
+  @ApiOperation({ summary: 'delete book' })
+  async deleteBook(
+    @Request() request,
+    @Param('bookId') bookId: number,
+  ): Promise<void> {
+    return await this.usersService.deleteBook(request.user.id, bookId);
   }
 
   @Get(':FavoriteBooks')

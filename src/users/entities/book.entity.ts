@@ -22,14 +22,14 @@ export class Book extends EntityHelper {
   nameOfBook: string;
 
   @ApiProperty({ example: 'J.K. Rowling' })
-  @Column()
+  @Column({ nullable: true })
   author: string;
 
   @ApiProperty({
     example:
       'Harry Potter is a series of fantasy novels by J. K. Rowling about a young wizard and his friends at Hogwarts School.',
   })
-  @Column()
+  @Column({ nullable: true })
   annotation: string;
 
   @ApiProperty({

@@ -11,10 +11,11 @@ import {
   Request,
   UseGuards,
   Delete,
+  Patch,
 } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { CommentEntity } from './entity/comment.entity';
-import { CreateCommentDto } from './dto/comment.dto';
+import { CreateCommentDto, UpdateCommentDto } from './dto/comment.dto';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -26,7 +27,10 @@ import { CommentResponse } from './interfaces';
 
 @ApiTags('Comment')
 @ApiBearerAuth()
-@Controller('comment')
+@Controller({
+  path: 'comments',
+  version: '1',
+})
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 
@@ -58,6 +62,17 @@ export class CommentController {
     @Request() req,
   ): Promise<CommentEntity> {
     return await this.commentService.create(commentData, postId, req.user.id);
+  }
+
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'edit a comment on a post ' })
+  @UseGuards(AuthGuard('jwt'))
+  @Patch(':id')
+  async update(
+    @Param('id') id: number,
+    @Body() updateCommentDto: UpdateCommentDto,
+  ): Promise<CommentEntity> {
+    return await this.commentService.update(id, updateCommentDto);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -94,7 +109,7 @@ export class CommentController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('comments/:postId')
+  @Get('comments/:postId')
   @ApiOperation({ summary: 'get comments of the post ' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -149,13 +164,15 @@ export class CommentController {
     return await this.commentService.getCommentToComment(commentToCommentId);
   }
 
-  @ApiOperation({ summary: 'delete a post' })
+  @ApiOperation({ summary: 'delete a comment' })
+  @UseGuards(AuthGuard('jwt'))
   @ApiResponse({ status: 201, description: 'delete.' })
   @Delete('delete/:id')
   async deletePost(
     @Param('id') commentId: number,
-    parentId: number,
+    @Request() req,
   ): Promise<void> {
-    return await this.commentService.deleteComment(commentId, parentId);
+    console.log(req.user);
+    return await this.commentService.deleteComment(commentId, req.user.id);
   }
 }

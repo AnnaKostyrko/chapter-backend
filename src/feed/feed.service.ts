@@ -2,7 +2,6 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PostEntity } from 'src/post/entities/post.entity';
-import { Server } from 'socket.io';
 
 import { CommentService } from 'src/comment/comment.service';
 import { UsersService } from 'src/users/users.service';
@@ -17,7 +16,6 @@ export class FeedService {
     private readonly postRepository: Repository<PostEntity>,
     @InjectRepository(Like)
     private readonly likeRepository: Repository<Like>,
-    private readonly server: Server,
 
     private readonly commentService: CommentService,
     private readonly postService: PostService,
@@ -25,14 +23,7 @@ export class FeedService {
   ) {}
 
   //searching feed items
-  async getFeed(
-    currentUserId: number,
-    page: number,
-    limit: number,
-    ) {
-
- 
-
+  async getFeed(currentUserId: number, page: number, limit: number) {
     const user = await this.usersService.findOne({ id: currentUserId }, [
       'subscribers',
     ]);
@@ -42,11 +33,8 @@ export class FeedService {
     const subscribersIds = user.subscribers.map((sub) => sub.id);
 
     const feedItems = await this.postRepository.find({
-      order: { createdAt: 'DESC' },
-      relations: {
-        author: true,
-        comments: true,
-      },
+      order: { createdAt: 'ASC' },
+      relations: ['author', 'comments'],
     });
 
     // method whitch reflects the past tense
@@ -89,13 +77,12 @@ export class FeedService {
             item.id,
           );
 
-          const commentsCount = comments.length;
+          const commentsToPostCount = comments.length;
+
           //comments directly to the post  with likes
           const parrentComments = comments.filter(
             (comment) => comment.parentId === null,
           );
-
-          console.log('parrentComments', parrentComments);
 
           const repliesToComments = parrentComments
             .map((parentComment) => {
@@ -106,12 +93,13 @@ export class FeedService {
             })
             .flat();
 
-          // console.log('repliesToComment', repliesToComments);
-          //post likes count
-          const likeCountPost = await this.likeRepository
+          //post likes
+          const postLikes = await this.likeRepository
             .createQueryBuilder('like')
+            .select('like.userId')
             .where('like.postId = :postId', { postId: item.id })
-            .getCount();
+            .andWhere('like.comment IS NULL')
+            .getRawMany();
 
           //   this.server.emit('likeCountUpdated', { postId: item.id, likeCount: likeCountPost });
           // console.log('likeCountPost', likeCountPost);
@@ -119,11 +107,12 @@ export class FeedService {
 
         
           return {
+            title: item.title,
             postId: item.id,
             caption: item.caption,
             imgUrl: item.imgUrl,
-            commentsCount,
-            likeCount: likeCountPost,
+            commentsCount: commentsToPostCount,
+            userIds: postLikes.map((like) => like['like_userId']),
             createAt: item.createdAt,
             updatedAt: item.updatedAt,
             author: {
@@ -131,6 +120,7 @@ export class FeedService {
               avatar: item.author.avatarUrl,
               firstName: item.author.firstName,
               lastName: item.author.lastName,
+              nickName: item.author.nickName,
               relativeDate: timeDifference(
                 new Date(),
                 new Date(item.createdAt),
@@ -141,8 +131,17 @@ export class FeedService {
               id: com.id,
               text: com.text,
               postId: com.postId,
-              userId: com.userId,
-              likeCount: com.likeCount,
+              commentCount: repliesToComments.filter(
+                (reply) => reply.parentId === com.id,
+              ).length,
+              author: {
+                id: com.user.id,
+                avatar: com.user.avatarUrl,
+                firstName: com.user.firstName,
+                lastName: com.user.lastName,
+                nickName: com.user.nickName,
+              },
+              usersId: com.likeIds,
               createdAt: com.createdAt,
               updatedAt: com.updatedAt,
               comments: repliesToComments
@@ -152,8 +151,14 @@ export class FeedService {
                   text: filterReply.text,
                   parrentId: filterReply.parentId,
                   postId: filterReply.postId,
-                  userId: filterReply.userId,
-                  likeCount: filterReply.likeCount,
+                  author: {
+                    id: filterReply.user.id,
+                    avatar: filterReply.user.avatarUrl,
+                    firstName: filterReply.user.firstName,
+                    lastName: filterReply.user.lastName,
+                    nickName: filterReply.user.nickName,
+                  },
+                  usersId: filterReply.likeIds,
                   createdAt: filterReply.createdAt,
                   updatedAt: filterReply.updatedAt,
                 })),
@@ -163,11 +168,11 @@ export class FeedService {
     );
 
     const posts = formattedFeedItems;
-    
+
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
     const paginatedFeedItems = posts.slice(startIndex, endIndex);
-    //  this.server.emit('GetPosts', posts);
-    return {paginatedFeedItems};
+
+    return { paginatedFeedItems };
   }
 }

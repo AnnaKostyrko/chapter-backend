@@ -20,6 +20,8 @@ import { CreateBookDto } from './dto/create-book.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import bcrypt from 'bcryptjs';
 import { createResponse } from 'src/helpers/response-helpers';
+import { UpdateBookDto } from './dto/update-book.dto';
+import { MyGateway } from 'src/sockets/gateway/gateway';
 
 @Injectable()
 export class UsersService {
@@ -28,6 +30,7 @@ export class UsersService {
     private usersRepository: Repository<User>,
     @InjectRepository(Book)
     private bookRepository: Repository<Book>,
+    private readonly myGateway: MyGateway,
   ) {}
 
   async searchUsers(query: string): Promise<User[]> {
@@ -198,6 +201,16 @@ export class UsersService {
 
     await currentUser.save();
 
+    const notificationMessage = isSubscribed
+      ? `Від вас відписався юзер з id:${currentUserId}`
+      : `На вас підписався юзер з id:${currentUserId}`;
+
+    this.myGateway.sendNotificationToUser(
+      currentUserId,
+      targetUserId,
+      notificationMessage,
+    );
+
     return currentUser;
   }
 
@@ -242,7 +255,10 @@ export class UsersService {
     };
   }
 
-  async getGuestsUserInfo(userId: number): Promise<Partial<object>> {
+  async getGuestsUserInfo(
+    userId: number,
+    guestId: number,
+  ): Promise<Partial<object>> {
     const user = await this.findOne({ id: userId }, ['subscribers', 'books']);
 
     if (!user) {
@@ -254,6 +270,10 @@ export class UsersService {
       .where('subscriber.id=:userId', { userId })
       .getMany();
 
+    const isSubscribed = user.subscribers.some(
+      (subscriber) => subscriber.id === guestId,
+    );
+
     return {
       avatarUrl: user.avatarUrl,
       firstName: user.firstName,
@@ -264,6 +284,7 @@ export class UsersService {
       myFollowersCount: subscribers.length ?? null,
       myFollowingCount: user.subscribers.length ?? null,
       userBooks: user.books,
+      isSubscribed: isSubscribed,
     };
   }
 
@@ -303,6 +324,16 @@ export class UsersService {
       );
     }
 
+    const favoriteCount = await this.bookRepository
+      .createQueryBuilder('book')
+      .where('book.userId = :userId', { userId })
+      .andWhere('book.favorite_book_status = :status', { status: true })
+      .getCount();
+
+    if (favoriteCount >= 7 && book.favorite_book_status === false) {
+      throw new BadRequestException('The number of favorites cannot exceed 7');
+    }
+
     book.favorite_book_status = !book.favorite_book_status;
 
     const updatedBook: Book = await this.bookRepository.save(book);
@@ -327,16 +358,6 @@ export class UsersService {
       relations: ['books'],
     });
 
-    const favoriteCount = await this.bookRepository
-      .createQueryBuilder('book')
-      .where('book.userId = :userId', { userId })
-      .andWhere('book.favorite_book_status = :status', { status: true })
-      .getCount();
-
-    if (favoriteCount >= 7) {
-      throw new BadRequestException('The number of favorites cannot exceed 7');
-    }
-
     const book = this.bookRepository.create(createBookDto);
     book.user = user;
 
@@ -346,21 +367,46 @@ export class UsersService {
     return book;
   }
 
-  async updateBook(id: number, updateData): Promise<Book> {
-    await this.bookRepository.update(id, updateData);
+  async updateBook(
+    userId: number,
+    bookId: number,
+    updateData: UpdateBookDto,
+  ): Promise<Book> {
+    const updatedBook = await this.bookRepository.findOne({
+      where: { id: bookId },
+      relations: ['user'],
+    });
 
-    const updatedBook = await this.bookRepository.findOne({ where: { id } });
     if (!updatedBook) {
       throw new NotFoundException('Book not found');
     }
+
+    if (updatedBook.user.id !== userId) {
+      throw new ForbiddenException(
+        'You do not have permission to update this book',
+      );
+    }
+    await this.bookRepository.update(bookId, updateData);
+    await this.bookRepository.findOne({ where: { id: bookId } });
+
     return updatedBook;
   }
 
-  async deleteBook(id: number): Promise<void> {
-    const result = await this.bookRepository.delete(id);
-    if (result.affected === 0) {
+  async deleteBook(userId: number, bookId: number): Promise<void> {
+    const book = await this.bookRepository.findOne({
+      where: { id: bookId },
+      relations: ['user'],
+    });
+    if (!book) {
       throw new NotFoundException('Book not found');
     }
+
+    if (book.user.id !== userId) {
+      throw new ForbiddenException(
+        'You do not have permission to delete a book that does not belong to you',
+      );
+    }
+    await this.bookRepository.delete(bookId);
   }
 
   async updatePassword(userId: number, updtePasswordDto: UpdatePasswordDto) {

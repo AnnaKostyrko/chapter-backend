@@ -6,6 +6,7 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import ms from 'ms';
 import { JwtService } from '@nestjs/jwt';
@@ -83,6 +84,16 @@ export class AuthService {
       ['subscribers', 'books'],
     );
 
+    if (user && user.status?.id === 2) {
+      throw new UnprocessableEntityException('Email not confirmed');
+    }
+
+    if (user && user.password === null) {
+      throw new UnprocessableEntityException(
+        'User registrtion is not completed',
+      );
+    }
+
     if (
       !user ||
       (user?.role &&
@@ -98,6 +109,16 @@ export class AuthService {
           },
         },
         HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+
+    if (user.status?.id === 2) {
+      throw new UnprocessableEntityException('Email not confirmed');
+    }
+
+    if (user.password === null) {
+      throw new UnprocessableEntityException(
+        'User registrtion is not completed',
       );
     }
 
@@ -199,9 +220,12 @@ export class AuthService {
       );
     }
 
-    const userByEmail = await this.usersService.findOne({
-      email: socialEmail,
-    });
+    const userByEmail = await this.usersService.findOne(
+      {
+        email: socialEmail,
+      },
+      ['books', 'subscribers'],
+    );
 
     user = await this.usersService.findOne(
       {
@@ -259,7 +283,7 @@ export class AuthService {
     const session = await this.sessionService.create({
       user,
     });
-    console.log('user', user);
+
     const {
       token: jwtToken,
       refreshToken,
@@ -291,9 +315,9 @@ export class AuthService {
       socialId: user.socialId,
       IsAccessCookie: user.IsAccessCookie,
       photo: user.photo,
-      books: user.books,
-      followersCount: subscribers?.length || null,
-      followingCount: user.subscribers?.length || null,
+      userBooks: user.books,
+      myFollowersCount: subscribers?.length || null,
+      myFollowingCount: user.subscribers?.length || null,
     };
     return {
       refreshToken,
@@ -718,7 +742,7 @@ export class AuthService {
     }
 
     let hashCount = deletedUser.hashCount;
-    console.log('hashCount', hashCount);
+
     if (hashCount > 2) {
       throw new HttpException(
         {

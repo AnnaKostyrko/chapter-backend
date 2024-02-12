@@ -12,6 +12,7 @@ import { User } from '../../users/entities/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { CommentEntity } from '../../comment/entity/comment.entity';
 import { Like } from '../../like/entity/like.entity';
+import { PostDto } from '../dto/post.dto';
 
 @Entity()
 export class PostEntity {
@@ -48,4 +49,11 @@ export class PostEntity {
 
   @OneToMany(() => Like, (like) => like.post)
   likes: Like[];
+
+  constructor(payload?: PostDto) {
+    if (!payload) return;
+    this.imgUrl = payload.imgUrl || null;
+    this.title = payload.title || null;
+    this.caption = payload.caption || null;
+  }
 }
