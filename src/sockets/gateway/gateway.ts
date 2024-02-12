@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
@@ -52,18 +52,12 @@ export class MyGateway implements OnModuleInit {
     const targetSocket = this.clients.get(targetUserId);
     const currentUser = this.clients.get(currentUserId);
 
-    if (!currentUser) {
-      throw new NotFoundException(
-        `Сокет для користувача з id:${currentUserId} не знайдений`,
-      );
-    }
-
     if (targetSocket) {
       targetSocket.emit('subscribeNotification', notificationMessage);
-    } else {
-      throw new NotFoundException(
-        `Сокет для користувача з id:${targetUserId} не знайдений`,
-      );
+    }
+
+    if (!currentUser) {
+      return;
     }
   }
 
