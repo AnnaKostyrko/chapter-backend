@@ -88,75 +88,6 @@ export class PostService {
     return allUsers;
   }
 
-  // async getLikedAndComentedPosts(userId: number) {
-  //   const user = await this.usersRepository.findOneOrFail({
-  //     where: { id: userId },
-  //   });
-
-  //   const commentedPostIds = await this.commentRepository
-  //     .createQueryBuilder('comment_entity')
-  //     .select('comment_entity.postId')
-  //     .where('comment_entity.userId=:userId', { userId })
-  //     .getMany();
-
-  //   const likedPostIds = await this.likeRepository
-  //     .createQueryBuilder('like')
-  //     .select('like.postId')
-  //     .where(`like.userId =${userId}`)
-  //     .getMany();
-
-  //   const allPostsIds = [...commentedPostIds, ...likedPostIds];
-
-  //   const postIds = allPostsIds.map((post) => post.postId);
-
-  //   const allPosts = await this.postRepository.find({
-  //     where: { id: In(postIds) },
-  //     relations: ['author'],
-  //   });
-
-  //   const likes = await this.likeRepository
-  //     .createQueryBuilder('like')
-  //     .select(['COUNT(like.postId) as likeCount', 'like.postId'])
-  //     .groupBy('like.postId')
-  //     .where('like.postId = ANY(:postIds)', { postIds })
-  //     .getRawMany();
-
-  //   const comments = await this.commentRepository
-  //     .createQueryBuilder('comment_entity')
-  //     .select([
-  //       'COUNT(comment_entity.postId) as commentCount',
-  //       'comment_entity.postId',
-  //     ])
-  //     .groupBy('comment_entity.postId')
-  //     .where('comment_entity.postId = ANY(:postIds)', {
-  //       postIds,
-  //     })
-  //     .getRawMany();
-
-  //   const likedAndCommentedPosts = allPosts.map((post) => {
-  //     const likeCount = likes.find((like) => like.like_postId === post.id);
-  //     const commentCount = comments.find(
-  //       (comment) => comment.comment_entity_postId === post.id,
-  //     );
-  //     return {
-  //       postId: post.id,
-  //       title: post.title,
-  //       caption: post.caption,
-  //       createdDate: post.createdAt,
-  //       likesCount: likeCount ? likeCount.likecount : 0,
-  //       commentCount: commentCount ? commentCount.commentcount : 0,
-  //       postimage: post.imgUrl,
-  //       author: {
-  //         authorId: post.author.id,
-  //         authorNickName: post.author.nickName,
-  //         authorAvatar: post.author.avatarUrl,
-  //       },
-  //     };
-  //   });
-
-  //   return likedAndCommentedPosts;
-  // }
-
   async getLikedAndComentedPosts(userId: number) {
     const user = await this.usersRepository.findOneOrFail({
       where: { id: userId },
@@ -164,20 +95,25 @@ export class PostService {
     const posts = await this.postRepository
       .createQueryBuilder('post_entity')
       .select([
-        'post_entity.id AS postId',
-        'post_entity.imgUrl',
-        'post_entity.title',
-        'post_entity.caption',
-        'COUNT(DISTINCT comment_entity.id) AS commentCount',
-        'COUNT(DISTINCT like_entity.id) AS likeCount',
+        'post_entity.id AS id',
+        'post_entity.imgUrl AS img',
+        'post_entity.title AS title',
+        'post_entity.caption AS caption',
+        'post_entity.createdAt AS created',
+        'CAST(COUNT(DISTINCT comment_entity.id) AS INTEGER) AS commentCount',
+        'CAST(COUNT(DISTINCT like_entity.id) AS INTEGER) AS likeCount',
+        'post_entity.author AS "authorId"',
+        'user.nickName AS "authorNickname"',
+        'user.avatarUrl AS "authorAvatar"',
       ])
       .leftJoin('post_entity.comments', 'comment_entity')
       .leftJoin('post_entity.likes', 'like_entity')
+      .leftJoin('post_entity.author', 'user')
       .where(
         'like_entity.userId = :userId OR comment_entity.userId = :userId',
         { userId: user.id },
       )
-      .groupBy('post_entity.id')
+      .groupBy('post_entity.id, user.nickName, user.avatarUrl')
       .getRawMany();
 
     return posts;

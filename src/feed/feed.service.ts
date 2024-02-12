@@ -2,7 +2,6 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PostEntity } from 'src/post/entities/post.entity';
-import { Server } from 'socket.io';
 
 import { CommentService } from 'src/comment/comment.service';
 import { UsersService } from 'src/users/users.service';
@@ -17,7 +16,6 @@ export class FeedService {
     private readonly postRepository: Repository<PostEntity>,
     @InjectRepository(Like)
     private readonly likeRepository: Repository<Like>,
-    private readonly server: Server,
 
     private readonly commentService: CommentService,
     private readonly postService: PostService,
