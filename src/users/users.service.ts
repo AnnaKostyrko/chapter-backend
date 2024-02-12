@@ -170,17 +170,14 @@ export class UsersService {
     currentUserId: number,
     targetUserId: number,
   ): Promise<User> {
-    const targetUser = await this.findOne({ id: targetUserId });
-    const currentUser = await this.findOne({ id: currentUserId }, [
-      'subscribers',
-    ]);
+    const targetUser = await this.usersRepository.findOneByOrFail({
+      id: targetUserId,
+    });
 
-    if (!targetUser || !currentUser) {
-      throw new NotFoundException({
-        error: 'User not found',
-        status: HttpStatus.UNPROCESSABLE_ENTITY,
-      });
-    }
+    const currentUser = await this.usersRepository.findOneOrFail({
+      where: { id: currentUserId },
+      relations: ['subscribers'],
+    });
 
     if (currentUserId === targetUserId) {
       throw new ConflictException({
@@ -259,19 +256,20 @@ export class UsersService {
     userId: number,
     guestId: number,
   ): Promise<Partial<object>> {
-    const user = await this.findOne({ id: userId }, ['subscribers', 'books']);
+    const guest = await this.usersRepository.findOneByOrFail({ id: guestId });
+    const user = await this.usersRepository.findOneOrFail({
+      where: { id: userId },
+      relations: ['subscribers', 'books'],
+    });
 
-    if (!user) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
     const subscribers = await this.usersRepository
       .createQueryBuilder('user')
       .leftJoinAndSelect('user.subscribers', 'subscriber')
       .where('subscriber.id=:userId', { userId })
       .getMany();
 
-    const isSubscribed = user.subscribers.some(
-      (subscriber) => subscriber.id === guestId,
+    const isSubscribed = subscribers.some(
+      (subscriber) => subscriber.id === guest.id,
     );
 
     return {
