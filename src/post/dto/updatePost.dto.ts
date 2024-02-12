@@ -1,20 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { PartialType } from '@nestjs/swagger';
 
-import { IsOptional, IsString } from 'class-validator';
+import { PostDto } from './post.dto';
 
-export class UpdatePostDto {
-  @IsString()
-  @IsOptional()
-  @ApiProperty()
-  readonly imageUrl?: string;
-
-  @IsString()
-  @IsOptional()
-  @ApiProperty()
-  readonly caption?: string;
-
-  @IsString()
-  @IsOptional()
-  @ApiProperty()
-  readonly title?: string;
-}
+export class UpdatePostDto extends PartialType(PostDto) {}

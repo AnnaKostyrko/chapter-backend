@@ -12,7 +12,7 @@ export class PostDto {
   @IsOptional()
   @IsNotEmpty()
   @ApiProperty()
-  readonly imageUrl?: string;
+  readonly imgUrl?: string;
 
   @IsString()
   @IsOptional()
