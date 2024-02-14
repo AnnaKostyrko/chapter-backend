@@ -33,10 +33,14 @@ export class UsersService {
     private readonly myGateway: MyGateway,
   ) {}
 
-  async searchUsers(query: string): Promise<User[]> {
+  async searchUsers(
+    userId: number,
+    query: string,
+  ): Promise<User[] | { message: string }> {
     const matchingUsers = await this.usersRepository
       .createQueryBuilder('user')
       .where('user.nickName LIKE :part', { part: `%${query}%` })
+      .andWhere('user.id != :userId', { userId: userId })
       .select([
         'user.avatarUrl',
         'user.nickName',
@@ -47,11 +51,9 @@ export class UsersService {
       .getMany();
 
     if (matchingUsers.length === 0) {
-      throw new NotFoundException({
-        error: 'Users not found',
-        status: HttpStatus.UNPROCESSABLE_ENTITY,
-      });
+      return { message: 'Users not found' };
     }
+
     return matchingUsers;
   }
 
