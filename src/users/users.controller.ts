@@ -51,14 +51,16 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('search')
-  async searchUsers(@Query('query') query: string): Promise<User[]> {
-    const users = await this.usersService.searchUsers(query);
-    return users.slice(0, 5);
+  async searchUsers(
+    @Request() request,
+    @Query('query') query: string,
+  ): Promise<User[] | { message: string }> {
+    return this.usersService.searchUsers(request.user.id, query);
   }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() createProfileDto: CreateUserDto): Promise<User> {
+  async create(@Body() createProfileDto: CreateUserDto): Promise<User> {
     return this.usersService.create(createProfileDto);
   }
 
