@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { UserSeedService } from './user-seed.service';
-import { Book } from 'src/users/entities/book.entity';
+import { Book } from 'src/book/entities/book.entity';
 import { BookSeedService } from '../book/book-seed.service';
 import { PostSeedService } from '../post/post-seed.service';
 import { PostEntity } from 'src/post/entities/post.entity';

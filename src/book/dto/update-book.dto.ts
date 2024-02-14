@@ -1,3 +1,5 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { bookRegExp, bookMessage } from 'src/helpers/regex/book.regexp';
 import {
   IsNotEmpty,
   IsNumber,
@@ -5,9 +7,6 @@ import {
   Matches,
   MaxLength,
 } from 'class-validator';
-
-import { ApiProperty } from '@nestjs/swagger';
-import { bookRegExp, bookMessage } from 'src/helpers/regex/book.regexp';
 
 export class UpdateBookDto {
   @ApiProperty({ example: 'Harry Potter' })

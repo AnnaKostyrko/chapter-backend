@@ -35,6 +35,7 @@ import { FeedModule } from './feed/feed.module';
 import { GatewayModule } from './sockets/gateway/gateway.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { NotFoundInterceptor } from './helpers/interceptors/find-one-or-fail';
+import { BookModule } from './book/book.module';
 
 @Module({
   imports: [
@@ -99,6 +100,7 @@ import { NotFoundInterceptor } from './helpers/interceptors/find-one-or-fail';
     CommentModule,
     FeedModule,
     GatewayModule,
+    BookModule,
   ],
   providers: [
     {
