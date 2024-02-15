@@ -20,7 +20,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 import {
   ApiBearerAuth,
-  ApiOperation,
+  // ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -30,15 +30,11 @@ import { infinityPagination } from 'src/utils/infinity-pagination';
 import { User } from './entities/user.entity';
 import { InfinityPaginationResultType } from '../utils/types/infinity-pagination-result.type';
 
-import { BookInfoDto } from './dto/book-info.dto';
-import { CreateBookDto } from './dto/create-book.dto';
-import { Book } from './entities/book.entity';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { GuestUserInfoResponse } from 'src/response-example/GuestUserInfoResponse';
 import { Roles } from 'src/roles/roles.decorator';
 import { RoleEnum } from 'src/roles/roles.enum';
 import { RolesGuard } from 'src/roles/roles.guard';
-import { UpdateBookDto } from './dto/update-book.dto';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
@@ -167,68 +163,6 @@ export class UsersController {
     return await this.usersService.getGuestsUserInfo(userId, guestId);
   }
 
-  @Get(':id/books/:bookId')
-  async getBookInfoByUser(
-    @Param('id') userId: number,
-    @Param('bookId') bookId: number,
-  ): Promise<BookInfoDto> {
-    return await this.usersService.getBookInfoByUser(userId, bookId);
-  }
-
-  @Post('books')
-  @ApiOperation({ summary: 'Post new book' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    type: Book,
-  })
-  async addBookToUser(
-    @Request() request: Express.Request & { user: User },
-    @Body() createBookDto: CreateBookDto,
-  ) {
-    return await this.usersService.addBookToUser(
-      request.user.id,
-      createBookDto,
-    );
-  }
-
-  @Patch(':bookId')
-  @ApiOperation({ summary: 'Update book' })
-  async updateBook(
-    @Request() request,
-    @Param('bookId') bookId: number,
-    @Body() updateData: UpdateBookDto,
-  ): Promise<Book> {
-    return await this.usersService.updateBook(
-      request.user.id,
-      bookId,
-      updateData,
-    );
-  }
-
-  @Delete(':bookId')
-  @ApiOperation({ summary: 'delete book' })
-  async deleteBook(
-    @Request() request,
-    @Param('bookId') bookId: number,
-  ): Promise<void> {
-    return await this.usersService.deleteBook(request.user.id, bookId);
-  }
-
-  @Get(':FavoriteBooks')
-  async getFavoriteBooks() {
-    return await this.usersService.getBooksOrderedByFavorite();
-  }
-
-  @Patch('/toggle-favorite-status/:bookId')
-  async toggleFavoriteStatus(
-    @Param('bookId') bookId: number,
-    @Request() request,
-  ): Promise<Book> {
-    return await this.usersService.toggleFavoriteStatus(
-      bookId,
-      request.user.id,
-    );
-  }
   @Post('update-password')
   @ApiResponse({
     status: HttpStatus.OK,

@@ -7,7 +7,7 @@ import { IsExist } from 'src/utils/validators/is-exists.validator';
 import { IsNotExist } from 'src/utils/validators/is-not-exists.validator';
 import { JwtStrategy } from 'src/auth/strategies/jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
-import { Book } from './entities/book.entity';
+import { Book } from '../book/entities/book.entity';
 
 import { GatewayModule } from 'src/sockets/gateway/gateway.module';
 
