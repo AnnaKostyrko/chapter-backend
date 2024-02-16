@@ -9,6 +9,7 @@ import {
   Param,
   Get,
   Request,
+  Query,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import {
@@ -110,8 +111,16 @@ export class PostController {
   @ApiOperation({ summary: 'get posts of user that he liked or comment' })
   @Get('posts')
   @UseGuards(AuthGuard('jwt'))
-  async getLikedAndComentedPosts(@Request() req: any) {
-    const returnValue = this.postService.getLikedAndComentedPosts(req.user.id);
+  async getLikedAndComentedPosts(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Request() req: any,
+  ) {
+    const returnValue = this.postService.getLikedAndComentedPosts(
+      req.user.id,
+      page,
+      limit,
+    );
     return returnValue;
   }
 }

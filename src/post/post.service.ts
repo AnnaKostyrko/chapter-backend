@@ -107,34 +107,91 @@ export class PostService {
     return response;
   }
 
-  async getLikedAndComentedPosts(userId: number) {
+  async getLikedAndComentedPosts(
+    currentUserId: number,
+    page: number,
+    limit: number,
+  ) {
     const user = await this.usersRepository.findOneOrFail({
-      where: { id: userId },
+      where: { id: currentUserId },
+      relations: ['subscribers'],
     });
-    const posts = await this.postRepository
-      .createQueryBuilder('post_entity')
-      .select([
-        'post_entity.id AS id',
-        'post_entity.imgUrl AS img',
-        'post_entity.title AS title',
-        'post_entity.caption AS caption',
-        'post_entity.createdAt AS created',
-        'CAST(COUNT(DISTINCT comment_entity.id) AS INTEGER) AS commentCount',
-        'CAST(COUNT(DISTINCT like_entity.id) AS INTEGER) AS likeCount',
-        'post_entity.author AS "authorId"',
-        'user.nickName AS "authorNickname"',
-        'user.avatarUrl AS "authorAvatar"',
-      ])
-      .leftJoin('post_entity.comments', 'comment_entity')
-      .leftJoin('post_entity.likes', 'like_entity')
-      .leftJoin('post_entity.author', 'user')
-      .where(
-        'like_entity.userId = :userId OR comment_entity.userId = :userId',
-        { userId: user.id },
-      )
-      .groupBy('post_entity.id, user.nickName, user.avatarUrl')
-      .getRawMany();
 
-    return posts;
+    const postInfo = await this.postRepository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.author', 'author')
+      .leftJoinAndSelect('post.likes', 'like')
+      .leftJoinAndSelect('post.comments', 'comment')
+      .leftJoinAndSelect('comment.user', 'commentAuthor')
+      .leftJoinAndSelect('comment.likes', 'likes')
+      .where('like.userId = :userId OR comment.userId = :userId', {
+        userId: user.id,
+      })
+      .orderBy('post.createdAt', 'DESC')
+      .getMany();
+
+    const response = postInfo.map((post) => ({
+      postId: post.id,
+      title: post.title,
+      caption: post.caption,
+      imgUrl: post.imgUrl,
+      createAt: post.createdAt,
+      updatedAt: post.updatedAt,
+      commentsCount: post.comments.length,
+      userIds: post.likes.map((like) => like.userId),
+      author: {
+        id: post.author.id,
+        avatar: post.author.avatarUrl,
+        firstName: post.author.firstName,
+        lastName: post.author.lastName,
+        nickName: post.author.nickName,
+      },
+      isSubscribeToAuthor: user.subscribers.some(
+        (sub) => sub.id === post.author.id,
+      ),
+      comments: post.comments
+        .filter((com) => com.parentId === null)
+        .map((com) => ({
+          id: com.id,
+          text: com.text,
+          postId: com.postId,
+          commentCount: post.comments.filter((c) => c.parentId === com.id)
+            .length,
+          author: {
+            id: com.user.id,
+            avatar: com.user.avatarUrl,
+            firstName: com.user.firstName,
+            lastName: com.user.lastName,
+            nickName: com.user.nickName,
+          },
+          usersId: com.likes.map((like) => like.userId),
+          createdAt: com.createdAt,
+          updatedAt: com.updatedAt,
+          comments: post.comments
+            .filter((c) => c.parentId === com.id)
+            .map((reply) => ({
+              id: reply.id,
+              text: reply.text,
+              parrentId: reply.parentId,
+              postId: reply.postId,
+              author: {
+                id: reply.user.id,
+                avatar: reply.user.avatarUrl,
+                firstName: reply.user.firstName,
+                lastName: reply.user.lastName,
+                nickName: reply.user.nickName,
+              },
+              userIds: reply.likes.map((like) => like.userId),
+              createdAt: reply.createdAt,
+              updatedAt: reply.updatedAt,
+            })),
+        })),
+    }));
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const paginatedPosts = response.slice(startIndex, endIndex);
+
+    return paginatedPosts;
   }
 }
