@@ -24,20 +24,13 @@ export class CommentService {
     postId: number,
     userId: number,
   ): Promise<CommentEntity> {
-    const user = await this.userRepository.findOne({
+    const user = await this.userRepository.findOneOrFail({
       where: { id: userId },
     });
-    const post = await this.postRepository.findOne({
+    const post = await this.postRepository.findOneOrFail({
       where: { id: postId },
     });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    if (!post) {
-      throw new NotFoundException('Post not found');
-    }
     const comment = this.commentRepository.create({
       ...commentData,
       user,

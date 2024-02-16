@@ -23,6 +23,7 @@ import { PostEntity } from './entities/post.entity';
 import { User } from '../users/entities/user.entity';
 import { UpdatePostDto } from './dto/updatePost.dto';
 import { Server } from 'socket.io';
+import { DeepPartial } from 'typeorm';
 
 // import { FeedGateway } from 'src/feed/gateway/feet.gateway';
 
@@ -97,18 +98,20 @@ export class PostController {
   }
 
   @ApiOperation({ summary: 'get users who liked post' })
-  @Post('users-who-liked-post/:id')
+  @Get('users-who-liked-post/:id')
   @UseGuards(AuthGuard('jwt'))
-  async getUsersWhoLikedPost(@Param('id') postId: number): Promise<object> {
-    return await this.postService.getUsersWhoLikedPost(postId);
+  async getUsersWhoLikedPost(
+    @Request() req: any,
+    @Param('id') postId: number,
+  ): Promise<DeepPartial<User[]>> {
+    return await this.postService.getUsersWhoLikedPost(req.user.id, postId);
   }
 
   @ApiOperation({ summary: 'get posts of user that he liked or comment' })
   @Get('posts')
   @UseGuards(AuthGuard('jwt'))
-  async getLikedAndComentedPosts(@Req() req) {
-    const user: User = req.user as User;
-    const returnValue = this.postService.getLikedAndComentedPosts(user.id);
+  async getLikedAndComentedPosts(@Request() req: any) {
+    const returnValue = this.postService.getLikedAndComentedPosts(req.user.id);
     return returnValue;
   }
 }

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DeepPartial } from 'typeorm';
 import { PostEntity } from './entities/post.entity';
 import { PostDto } from './dto/post.dto';
 import { User } from '../users/entities/user.entity';
@@ -74,7 +74,15 @@ export class PostService {
     });
   }
 
-  async getUsersWhoLikedPost(postId: number): Promise<User[]> {
+  async getUsersWhoLikedPost(
+    userId: number,
+    postId: number,
+  ): Promise<DeepPartial<User[]>> {
+    const currentUser = await this.usersRepository.findOneOrFail({
+      where: { id: userId },
+      relations: ['subscribers'],
+    });
+
     const post = await this.postRepository.findOneOrFail({
       where: { id: postId },
     });
@@ -83,9 +91,20 @@ export class PostService {
       .createQueryBuilder('user')
       .innerJoin(Like, 'like', 'like.userId=user.id')
       .where('like.postId=:postId', { postId: post.id })
+      .andWhere('user.id != :userId', { userId: userId })
       .getMany();
 
-    return allUsers;
+    const response = allUsers.map((user) => ({
+      userId: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      nickName: user.nickName,
+      userStatus: user.userStatus,
+      location: user.location,
+      avatarUrl: user.avatarUrl,
+      isSubscribed: currentUser.subscribers.some((sub) => sub.id === user.id),
+    }));
+    return response;
   }
 
   async getLikedAndComentedPosts(userId: number) {

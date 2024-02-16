@@ -35,6 +35,7 @@ import { GuestUserInfoResponse } from 'src/response-example/GuestUserInfoRespons
 import { Roles } from 'src/roles/roles.decorator';
 import { RoleEnum } from 'src/roles/roles.enum';
 import { RolesGuard } from 'src/roles/roles.guard';
+import { DeepPartial } from 'typeorm';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
@@ -50,7 +51,7 @@ export class UsersController {
   async searchUsers(
     @Request() request,
     @Query('query') query: string,
-  ): Promise<User[] | { message: string }> {
+  ): Promise<DeepPartial<User[]> | { message: string }> {
     return this.usersService.searchUsers(request.user.id, query);
   }
 
