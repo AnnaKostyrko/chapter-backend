@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, Length, Matches } from 'class-validator';
+import { commentRegexp } from 'src/helpers/regex/comment.regexp';
 
 export class CreateCommentDto {
   @ApiProperty({
@@ -8,7 +9,7 @@ export class CreateCommentDto {
     minLength: 1,
     maxLength: 500,
   })
-  @Matches(/^[a-zA-Zа-яА-ЯіІїЇєЄґҐ\s!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~\d]+$/, {
+  @Matches(commentRegexp, {
     message: 'incorrect format',
   })
   @IsNotEmpty({ message: 'Comment text should not be empty' })
@@ -24,7 +25,7 @@ export class UpdateCommentDto {
     example: 'This is an updated comment text.',
   })
   @IsNotEmpty()
-  @Matches(/^[a-zA-Zа-яА-ЯіІїЇєЄґҐ\s!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~\d]+$/, {
+  @Matches(commentRegexp, {
     message: 'incorrect format',
   })
   @Length(1, 500)

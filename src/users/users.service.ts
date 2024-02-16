@@ -3,7 +3,6 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
-  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityCondition } from 'src/utils/types/entity-condition.type';
@@ -28,25 +27,32 @@ export class UsersService {
   async searchUsers(
     userId: number,
     query: string,
-  ): Promise<User[] | { message: string }> {
+  ): Promise<DeepPartial<User[]> | { message: string }> {
+    const currentUser = await this.usersRepository.findOneOrFail({
+      where: { id: userId },
+      relations: ['subscribers'],
+    });
+
     const matchingUsers = await this.usersRepository
       .createQueryBuilder('user')
       .where('user.nickName LIKE :part', { part: `%${query}%` })
       .andWhere('user.id != :userId', { userId: userId })
-      .select([
-        'user.avatarUrl',
-        'user.nickName',
-        'user.firstName',
-        'user.lastName',
-        'user.id',
-      ])
       .getMany();
 
     if (matchingUsers.length === 0) {
       return { message: 'Users not found' };
     }
 
-    return matchingUsers;
+    const usersWithSubscriptionInfo = matchingUsers.map((user) => ({
+      userId: user.id,
+      avatarUrl: user.avatarUrl,
+      nickName: user.nickName,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      isSubscribed: currentUser.subscribers.some((sub) => sub.id === user.id),
+    }));
+
+    return usersWithSubscriptionInfo;
   }
 
   create(createProfileDto: CreateUserDto): Promise<User> {
