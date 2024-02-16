@@ -28,7 +28,7 @@ import { AuthGuard } from '@nestjs/passport';
 @UseGuards(AuthGuard('jwt'))
 @ApiTags('Books')
 @Controller({
-  path: 'Books',
+  path: 'books',
   version: '1',
 })
 export class BookController {
