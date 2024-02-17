@@ -35,6 +35,13 @@ export class UsersService {
 
     const matchingUsers = await this.usersRepository
       .createQueryBuilder('user')
+      .select([
+        'user.id',
+        'user.avatarUrl',
+        'user.nickName',
+        'user.firstName',
+        'user.lastName',
+      ])
       .where('user.nickName LIKE :part', { part: `%${query}%` })
       .andWhere('user.id != :userId', { userId: userId })
       .getMany();
@@ -44,11 +51,7 @@ export class UsersService {
     }
 
     const usersWithSubscriptionInfo = matchingUsers.map((user) => ({
-      userId: user.id,
-      avatarUrl: user.avatarUrl,
-      nickName: user.nickName,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      ...user,
       isSubscribed: currentUser.subscribers.some((sub) => sub.id === user.id),
     }));
 
@@ -74,7 +77,7 @@ export class UsersService {
     fields: EntityCondition<User>,
     relations: string[] = [],
   ): Promise<NullableType<User>> {
-    return this.usersRepository.findOne({
+    return this.usersRepository.findOneOrFail({
       where: fields,
       relations,
     });

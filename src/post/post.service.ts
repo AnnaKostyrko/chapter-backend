@@ -119,7 +119,14 @@ export class PostService {
 
     const postInfo = await this.postRepository
       .createQueryBuilder('post')
-      .leftJoinAndSelect('post.author', 'author')
+      .leftJoin('post.author', 'author')
+      .addSelect([
+        'author.id',
+        'author.avatarUrl',
+        'author.firstName',
+        'author.lastName',
+        'author.nickName',
+      ])
       .leftJoinAndSelect('post.likes', 'like')
       .leftJoinAndSelect('post.comments', 'comment')
       .leftJoinAndSelect('comment.user', 'commentAuthor')
