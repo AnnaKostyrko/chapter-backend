@@ -8,6 +8,7 @@ import { UpdatePostDto } from './dto/updatePost.dto';
 import { Like } from 'src/like/entity/like.entity';
 import { CommentEntity } from 'src/comment/entity/comment.entity';
 import { MyGateway } from 'src/sockets/gateway/gateway';
+import { transformPostInfo } from './ helpers/post.transform';
 
 @Injectable()
 export class PostService {
@@ -117,9 +118,16 @@ export class PostService {
       relations: ['subscribers'],
     });
 
-    const postInfo = await this.postRepository
+    const postInfo: PostEntity[] = await this.postRepository
       .createQueryBuilder('post')
-      .leftJoinAndSelect('post.author', 'author')
+      .leftJoin('post.author', 'author')
+      .addSelect([
+        'author.id',
+        'author.avatarUrl',
+        'author.firstName',
+        'author.lastName',
+        'author.nickName',
+      ])
       .leftJoinAndSelect('post.likes', 'like')
       .leftJoinAndSelect('post.comments', 'comment')
       .leftJoinAndSelect('comment.user', 'commentAuthor')
@@ -130,67 +138,70 @@ export class PostService {
       .orderBy('post.createdAt', 'DESC')
       .getMany();
 
-    const response = postInfo.map((post) => ({
-      postId: post.id,
-      title: post.title,
-      caption: post.caption,
-      imgUrl: post.imgUrl,
-      createAt: post.createdAt,
-      updatedAt: post.updatedAt,
-      commentsCount: post.comments.length,
-      userIds: post.likes.map((like) => like.userId),
-      author: {
-        id: post.author.id,
-        avatar: post.author.avatarUrl,
-        firstName: post.author.firstName,
-        lastName: post.author.lastName,
-        nickName: post.author.nickName,
-      },
-      isSubscribeToAuthor: user.subscribers.some(
-        (sub) => sub.id === post.author.id,
-      ),
-      comments: post.comments
-        .filter((com) => com.parentId === null)
-        .map((com) => ({
-          id: com.id,
-          text: com.text,
-          postId: com.postId,
-          commentCount: post.comments.filter((c) => c.parentId === com.id)
-            .length,
-          author: {
-            id: com.user.id,
-            avatar: com.user.avatarUrl,
-            firstName: com.user.firstName,
-            lastName: com.user.lastName,
-            nickName: com.user.nickName,
-          },
-          usersId: com.likes.map((like) => like.userId),
-          createdAt: com.createdAt,
-          updatedAt: com.updatedAt,
-          comments: post.comments
-            .filter((c) => c.parentId === com.id)
-            .map((reply) => ({
-              id: reply.id,
-              text: reply.text,
-              parrentId: reply.parentId,
-              postId: reply.postId,
-              author: {
-                id: reply.user.id,
-                avatar: reply.user.avatarUrl,
-                firstName: reply.user.firstName,
-                lastName: reply.user.lastName,
-                nickName: reply.user.nickName,
-              },
-              userIds: reply.likes.map((like) => like.userId),
-              createdAt: reply.createdAt,
-              updatedAt: reply.updatedAt,
-            })),
-        })),
-    }));
+    // const response = postInfo.map((post) => ({
+    //   postId: post.id,
+    //   title: post.title,
+    //   caption: post.caption,
+    //   imgUrl: post.imgUrl,
+    //   createAt: post.createdAt,
+    //   updatedAt: post.updatedAt,
+    //   commentsCount: post.comments.length,
+    //   userIds: post.likes.map((like) => like.userId),
+    //   author: {
+    //     id: post.author.id,
+    //     avatar: post.author.avatarUrl,
+    //     firstName: post.author.firstName,
+    //     lastName: post.author.lastName,
+    //     nickName: post.author.nickName,
+    //   },
+    //   isSubscribeToAuthor: user.subscribers.some(
+    //     (sub) => sub.id === post.author.id,
+    //   ),
+    //   comments: post.comments
+    //     .filter((com) => com.parentId === null)
+    //     .map((com) => ({
+    //       id: com.id,
+    //       text: com.text,
+    //       postId: com.postId,
+    //       commentCount: post.comments.filter((c) => c.parentId === com.id)
+    //         .length,
+    //       author: {
+    //         id: com.user.id,
+    //         avatar: com.user.avatarUrl,
+    //         firstName: com.user.firstName,
+    //         lastName: com.user.lastName,
+    //         nickName: com.user.nickName,
+    //       },
+    //       usersId: com.likes.map((like) => like.userId),
+    //       createdAt: com.createdAt,
+    //       updatedAt: com.updatedAt,
+    //       comments: post.comments
+    //         .filter((c) => c.parentId === com.id)
+    //         .map((reply) => ({
+    //           id: reply.id,
+    //           text: reply.text,
+    //           parrentId: reply.parentId,
+    //           postId: reply.postId,
+    //           author: {
+    //             id: reply.user.id,
+    //             avatar: reply.user.avatarUrl,
+    //             firstName: reply.user.firstName,
+    //             lastName: reply.user.lastName,
+    //             nickName: reply.user.nickName,
+    //           },
+    //           userIds: reply.likes.map((like) => like.userId),
+    //           createdAt: reply.createdAt,
+    //           updatedAt: reply.updatedAt,
+    //         })),
+    //     })),
+    // }));
+
+    const transformedResponse = transformPostInfo(postInfo, user);
 
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
-    const paginatedPosts = response.slice(startIndex, endIndex);
+
+    const paginatedPosts = transformedResponse.slice(startIndex, endIndex);
 
     return paginatedPosts;
   }

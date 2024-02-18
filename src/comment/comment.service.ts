@@ -1,12 +1,13 @@
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { CommentEntity } from './entity/comment.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DeepPartial } from 'typeorm';
 import { CreateCommentDto, UpdateCommentDto } from './dto/comment.dto';
 import { User } from '../users/entities/user.entity';
 import { PostEntity } from '../post/entities/post.entity';
 import { CommentResponse } from './interfaces';
 import { createResponse } from 'src/helpers/response-helpers';
+import { transformPostInfo } from 'src/post/ helpers/post.transform';
 
 @Injectable()
 export class CommentService {
@@ -23,21 +24,28 @@ export class CommentService {
     commentData: CreateCommentDto,
     postId: number,
     userId: number,
-  ): Promise<CommentEntity> {
+  ): Promise<DeepPartial<PostEntity>> {
     const user = await this.userRepository.findOneOrFail({
       where: { id: userId },
     });
     const post = await this.postRepository.findOneOrFail({
       where: { id: postId },
+      relations: ['comments'],
     });
-
+    console.log('post', post);
     const comment = this.commentRepository.create({
       ...commentData,
       user,
       post,
     });
 
-    return this.commentRepository.save(comment);
+    await this.commentRepository.save(comment);
+
+    const updatedPost = await this.deepGetPostById(postId);
+
+    const transUpdatedPost = transformPostInfo([updatedPost], user);
+
+    return transUpdatedPost[0];
   }
 
   async update(
@@ -63,22 +71,14 @@ export class CommentService {
     userId: number,
     commentId: number,
     commentData: CreateCommentDto,
-  ): Promise<CommentEntity> {
-    const user = await this.userRepository.findOne({
+  ): Promise<DeepPartial<PostEntity>> {
+    const user = await this.userRepository.findOneOrFail({
       where: { id: userId },
     });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    const comment = await this.commentRepository.findOne({
+    const comment = await this.commentRepository.findOneOrFail({
       where: { id: commentId },
     });
-
-    if (!comment) {
-      throw new NotFoundException('Comment not found');
-    }
 
     const commentToComment = this.commentRepository.create({
       ...commentData,
@@ -86,30 +86,14 @@ export class CommentService {
       postId: comment.postId,
       user,
     });
-    return this.commentRepository.save(commentToComment);
+    await this.commentRepository.save(commentToComment);
+
+    const updatedPost = await this.deepGetPostById(comment.postId);
+
+    const transUpdatedPost = transformPostInfo([updatedPost], user);
+
+    return transUpdatedPost[0];
   }
-
-  // async getRepliesToComment(
-  //   commentId: number,
-  //   commentData: CreateCommentDto,
-  // )  {
-
-  //   const comment = await this.commentRepository.findOne({
-  //     where: { id: commentId },
-  //   });
-
-  //   if (!comment) {
-  //     throw new NotFoundException('Comment not found');
-  //   }
-
-  //   const replies = await this.commentRepository.findOne({
-  //     where: {
-  //         ...commentData,
-  //     parentId: comment?.id,
-  //     },
-  //   });
-  //   return { comment , replies };
-  // }
 
   async getCommentsByPost(
     postId: number,
@@ -135,7 +119,6 @@ export class CommentService {
     return { comments: paginatedComments, totalComments: totalCount };
   }
 
-  //15
   async getCommentToComment(commentToCommentId: number) {
     const commentsToComment = await this.commentRepository
       .createQueryBuilder('comment')
@@ -199,20 +182,36 @@ export class CommentService {
   }
 
   async deleteComment(commentId: number, userId: number): Promise<void> {
-    const comment = await this.commentRepository.findOne({
+    const comment = await this.commentRepository.findOneOrFail({
       where: {
         id: commentId,
       },
     });
-
-    if (!comment) {
-      throw createResponse(HttpStatus.NOT_FOUND, 'Comment not found.');
-    }
 
     if (comment.userId !== userId) {
       throw createResponse(HttpStatus.FORBIDDEN, 'Insufficient permissions.');
     }
 
     await this.commentRepository.remove(comment);
+  }
+
+  private async deepGetPostById(postId: number): Promise<PostEntity> {
+    return await this.postRepository
+      .createQueryBuilder('post')
+      .leftJoin('post.author', 'author')
+      .addSelect([
+        'author.id',
+        'author.avatarUrl',
+        'author.firstName',
+        'author.lastName',
+        'author.nickName',
+      ])
+      .leftJoinAndSelect('post.likes', 'like')
+      .leftJoinAndSelect('post.comments', 'comment')
+      .leftJoinAndSelect('comment.user', 'commentAuthor')
+      .leftJoinAndSelect('comment.likes', 'likes')
+      .where('post.id = :postId', { postId })
+      .orderBy('post.createdAt', 'DESC')
+      .getOneOrFail();
   }
 }
