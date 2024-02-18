@@ -24,6 +24,8 @@ import {
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { CommentResponse } from './interfaces';
+import { PostEntity } from 'src/post/entities/post.entity';
+import { DeepPartial } from 'typeorm';
 
 @ApiTags('Comment')
 @ApiBearerAuth()
@@ -60,7 +62,7 @@ export class CommentController {
     @Param('postId') postId: number,
     @Body() commentData: CreateCommentDto,
     @Request() req,
-  ): Promise<CommentEntity> {
+  ): Promise<DeepPartial<PostEntity>> {
     return await this.commentService.create(commentData, postId, req.user.id);
   }
 
@@ -100,7 +102,7 @@ export class CommentController {
     @Request() req,
     @Param('commentId') commentId: number,
     @Body() commentData: CreateCommentDto,
-  ): Promise<CommentEntity> {
+  ): Promise<DeepPartial<PostEntity>> {
     return await this.commentService.commentToComment(
       req.user.id,
       commentId,
