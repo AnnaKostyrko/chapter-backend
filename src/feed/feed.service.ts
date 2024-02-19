@@ -168,6 +168,6 @@ export class FeedService {
     const endIndex = page * limit;
     const paginatedFeedItems = posts.slice(startIndex, endIndex);
 
-    return paginatedFeedItems;
+    return { paginatedFeedItems };
   }
 }
