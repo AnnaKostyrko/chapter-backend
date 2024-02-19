@@ -71,10 +71,11 @@ export class CommentController {
   @UseGuards(AuthGuard('jwt'))
   @Patch(':id')
   async update(
+    @Request() req: any,
     @Param('id') id: number,
     @Body() updateCommentDto: UpdateCommentDto,
   ): Promise<CommentEntity> {
-    return await this.commentService.update(id, updateCommentDto);
+    return await this.commentService.update(req.user.id, id, updateCommentDto);
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -143,17 +144,6 @@ export class CommentController {
   ): Promise<CommentResponse> {
     return await this.commentService.getCommentsByPost(postId, page, limit);
   }
-
-  // @ApiBearerAuth()
-  // @UseGuards(AuthGuard('jwt'))
-  // @ApiOperation({ summary: 'Get comments for a post' })
-  // @Get('GetCommentByPost/:id')
-  // async GetComments(
-  //   @Param('id') postId: number,
-  //   @Query() commentData: GetCommentsDto,
-  // ) {
-  //   return await this.commentService.GetComments(postId, commentData);
-  // }
 
   @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))

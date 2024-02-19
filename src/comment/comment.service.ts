@@ -49,15 +49,19 @@ export class CommentService {
   }
 
   async update(
+    currentUserId: number,
     commentId: number,
     updateData: UpdateCommentDto,
   ): Promise<CommentEntity> {
+    console.log('currentUserId', currentUserId);
     const comment = await this.commentRepository.findOne({
-      where: { id: commentId },
+      where: { id: commentId, user: { id: currentUserId } },
     });
 
     if (!comment) {
-      throw new NotFoundException(`Comment with ID ${commentId} not found`);
+      throw new NotFoundException(
+        'You don`t have permission to update this comment',
+      );
     }
 
     comment.text = updateData.text;

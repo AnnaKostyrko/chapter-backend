@@ -18,14 +18,18 @@ export class PostDto {
   @IsOptional()
   @IsNotEmpty()
   @ApiProperty()
-  @Matches(/^[a-zA-Zа-яА-ЯіІїЇєЄґҐ\s]+$/)
+  @Matches(
+    /^[a-zA-Zа-яА-ЯіІїЇєЄґҐ\s!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~\d\p{Emoji}]+$/u,
+  )
   readonly caption?: string;
 
   @IsString()
   @IsOptional()
   @IsNotEmpty()
   @ApiProperty()
-  @Matches(/^[a-zA-Zа-яА-ЯіІїЇєЄґҐ\s]+$/)
+  @Matches(
+    /^[a-zA-Zа-яА-ЯіІїЇєЄґҐ\s!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~\d\p{Emoji}]+$/u,
+  )
   readonly title?: string;
 
   @ValidateIf((value) => !value.imageUrl && !value.caption && !value.title)
