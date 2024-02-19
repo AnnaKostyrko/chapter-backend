@@ -2,6 +2,30 @@ import { CommentEntity } from 'src/comment/entity/comment.entity';
 import { Like } from 'src/like/entity/like.entity';
 import { User } from 'src/users/entities/user.entity';
 
+const timeDifference = (current: Date, previous: Date): string => {
+  const msPerMinute = 60 * 1000;
+  const msPerHour = msPerMinute * 60;
+  const msPerDay = msPerHour * 24;
+  const msPerMonth = msPerDay * 30;
+  const msPerYear = msPerDay * 365;
+
+  const elapsed = current.getTime() - previous.getTime();
+
+  if (elapsed < msPerMinute) {
+    return Math.round(elapsed / 1000) + ' seconds ago';
+  } else if (elapsed < msPerHour) {
+    return Math.round(elapsed / msPerMinute) + ' minutes ago';
+  } else if (elapsed < msPerDay) {
+    return Math.round(elapsed / msPerHour) + ' hours ago';
+  } else if (elapsed < msPerMonth) {
+    return 'approximately ' + Math.round(elapsed / msPerDay) + ' days ago';
+  } else if (elapsed < msPerYear) {
+    return 'approximately ' + Math.round(elapsed / msPerMonth) + ' months ago';
+  } else {
+    return 'approximately ' + Math.round(elapsed / msPerYear) + ' years ago';
+  }
+};
+
 interface PostEntity {
   id: number;
   imgUrl: string | null;
@@ -51,7 +75,11 @@ const transformComments = (comments: CommentEntity[]) =>
       comments: transformReplies(com.id, comments),
     }));
 
-export const transformPostInfo = (postInfo: PostEntity[], user: User) =>
+export const transformPostInfo = (
+  postInfo: PostEntity[],
+  user: User,
+  isRelativeDate: boolean = false,
+) =>
   postInfo.map((post) => ({
     postId: post.id,
     title: post.title,
@@ -62,6 +90,9 @@ export const transformPostInfo = (postInfo: PostEntity[], user: User) =>
     commentsCount: post.comments.length,
     userIds: [...new Set(post.likes.map((like) => like.userId))],
     author: transformAuthor(post.author),
+    ...(isRelativeDate && {
+      relativeDate: timeDifference(new Date(), new Date(post.createdAt)),
+    }),
     isSubscribeToAuthor: user.subscribers?.some(
       (sub?) => sub?.id === post.author.id,
     ),
