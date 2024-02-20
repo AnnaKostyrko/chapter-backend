@@ -3,10 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PostEntity } from 'src/post/entities/post.entity';
 
-import { CommentService } from 'src/comment/comment.service';
 import { UsersService } from 'src/users/users.service';
-import { PostService } from 'src/post/post.service';
-import { Like } from 'src/like/entity/like.entity';
+
 import { transformPostInfo } from 'src/post/ helpers/post.transform';
 
 @Injectable()
@@ -15,11 +13,7 @@ export class FeedService {
   constructor(
     @InjectRepository(PostEntity)
     private readonly postRepository: Repository<PostEntity>,
-    @InjectRepository(Like)
-    private readonly likeRepository: Repository<Like>,
 
-    private readonly commentService: CommentService,
-    private readonly postService: PostService,
     private readonly usersService: UsersService,
   ) {}
 
@@ -45,6 +39,7 @@ export class FeedService {
       .leftJoinAndSelect('comment.user', 'commentAuthor')
       .leftJoinAndSelect('comment.likes', 'likes')
       .where('author.id != :currentUserId', { currentUserId })
+      .andWhere('like.comment IS NULL')
       .orderBy('post.createdAt', 'DESC')
       .getMany();
 
