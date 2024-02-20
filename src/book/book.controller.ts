@@ -34,12 +34,12 @@ import { AuthGuard } from '@nestjs/passport';
 export class BookController {
   constructor(private readonly bookService: BookService) {}
 
-  @Get(':id/books/:bookId')
+  @Get(':bookId')
   async getBookInfoByUser(
-    @Param('id') userId: number,
+    @Request() request: any,
     @Param('bookId') bookId: number,
   ): Promise<BookInfoDto> {
-    return await this.bookService.getBookInfoByUser(userId, bookId);
+    return await this.bookService.getBookInfoByUser(bookId);
   }
 
   @Post('books')
