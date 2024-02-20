@@ -27,6 +27,7 @@ export class CommentService {
   ): Promise<DeepPartial<PostEntity>> {
     const user = await this.userRepository.findOneOrFail({
       where: { id: userId },
+      relations: ['subscribers'],
     });
     const post = await this.postRepository.findOneOrFail({
       where: { id: postId },
@@ -78,6 +79,7 @@ export class CommentService {
   ): Promise<DeepPartial<PostEntity>> {
     const user = await this.userRepository.findOneOrFail({
       where: { id: userId },
+      relations: ['subscribers'],
     });
 
     const comment = await this.commentRepository.findOneOrFail({

@@ -366,11 +366,10 @@ export class UsersService {
     page: number,
     limit: number,
   ): Promise<object> {
-    const user = await this.usersRepository.findOne({ where: { id: userId } });
-
-    if (!user) {
-      throw createResponse(HttpStatus.NOT_FOUND, 'User not found.');
-    }
+    const user = await this.usersRepository.findOneOrFail({
+      where: { id: userId },
+      relations: ['subscribers'],
+    });
 
     if (page <= 0 || limit <= 0) {
       throw createResponse(HttpStatus.BAD_REQUEST, 'Invalid page or limit.');
@@ -378,15 +377,30 @@ export class UsersService {
 
     const myFollowers = await this.usersRepository
       .createQueryBuilder('user')
-      .leftJoinAndSelect('user.subscribers', 'subscriber')
-      .where('subscriber.id=:userId', { userId })
+      .select([
+        'user.id',
+        'user.firstName',
+        'user.lastName',
+        'user.nickName',
+        'user.location',
+        'user.avatarUrl',
+      ])
+      .leftJoin('user.subscribers', 'subscriber')
+      .where('subscriber.id=:userId', { userId: user.id })
       .getMany();
 
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
     const paginatedFollowers = myFollowers.slice(startIndex, endIndex);
 
-    return { myFollowers: paginatedFollowers };
+    return {
+      myFollowers: paginatedFollowers.map((fol) => {
+        return {
+          ...fol,
+          isSubscribed: user.subscribers.some((sub) => sub.id === fol.id),
+        };
+      }),
+    };
   }
 
   async deleteUser(id: number): Promise<void> {

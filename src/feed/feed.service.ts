@@ -19,7 +19,10 @@ export class FeedService {
 
   //searching feed items
   async getFeed(currentUserId: number, page: number, limit: number) {
-    const user = await this.usersService.findOne({ id: currentUserId });
+    const user = await this.usersService.findOne({ id: currentUserId }, [
+      'subscribers',
+    ]);
+
     if (!user) {
       throw new UnauthorizedException('You must be autorized');
     }
