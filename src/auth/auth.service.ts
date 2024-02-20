@@ -342,7 +342,11 @@ export class AuthService {
       );
     }
 
-    const existingUser = await this.usersService.findOne({ email: dto.email });
+    const existingUser = await this.userRepository.findOne({
+      where: {
+        email: dto.email,
+      },
+    });
     if (existingUser) {
       if (existingUser.status?.name === 'Inactive') {
         throw new ConflictException({
@@ -472,8 +476,11 @@ export class AuthService {
     completeDto: UpdateUserRegisterDto,
   ): Promise<void> {
     /// Find a user by their id, with a filter based on registration status
-    const user = await this.usersService.findOne({
-      id: userId,
+
+    const user = await this.userRepository.findOne({
+      where: {
+        id: userId,
+      },
     });
 
     if (!user || user.status?.id === 2) {
@@ -498,8 +505,10 @@ export class AuthService {
       throw new BadRequestException('Passwords do not match');
     }
 
-    const userNickName = await this.usersService.findOne({
-      nickName: completeDto.nickName,
+    const userNickName = await this.userRepository.findOne({
+      where: {
+        nickName: completeDto.nickName,
+      },
     });
 
     if (userNickName) {
