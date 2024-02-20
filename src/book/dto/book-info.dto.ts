@@ -8,5 +8,5 @@ export class BookInfoDto {
   annotation: string;
 
   @ApiProperty({ example: 'string' })
-  statusName: string;
+  statusName: string | null;
 }
