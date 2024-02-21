@@ -60,7 +60,6 @@ export class CommentService {
     commentId: number,
     updateData: UpdateCommentDto,
   ): Promise<CommentEntity> {
-    console.log('currentUserId', currentUserId);
     const comment = await this.commentRepository.findOne({
       where: { id: commentId, user: { id: currentUserId } },
     });
@@ -71,11 +70,25 @@ export class CommentService {
       );
     }
 
-    comment.text = updateData.text;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { text, ...rest } = updateData;
 
-    await this.commentRepository.save(comment);
+    if (Object.keys(rest).length === 2) {
+      const recepient = await this.userRepository.findOne({
+        where: {
+          id: updateData.recipientId,
+          nickName: updateData.recipientNickName,
+        },
+      });
 
-    return comment;
+      if (!recepient) {
+        throw new ConflictException("you can't tag a user that doesn't exist");
+      }
+    }
+
+    Object.assign(comment, updateData);
+
+    return await this.commentRepository.save(comment);
   }
 
   async commentToComment(
@@ -92,15 +105,20 @@ export class CommentService {
       where: { id: commentId },
     });
 
-    const recepient = await this.userRepository.findOne({
-      where: {
-        id: commentData.recipientId,
-        nickName: commentData.recipientNickName,
-      },
-    });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { text, ...rest } = commentData;
 
-    if (!recepient) {
-      throw new ConflictException("you can't tag a user that doesn't exist");
+    if (Object.keys(rest).length === 2) {
+      const recepient = await this.userRepository.findOne({
+        where: {
+          id: commentData.recipientId,
+          nickName: commentData.recipientNickName,
+        },
+      });
+
+      if (!recepient) {
+        throw new ConflictException("you can't tag a user that doesn't exist");
+      }
     }
 
     const commentToComment = this.commentRepository.create({
