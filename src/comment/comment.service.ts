@@ -7,7 +7,11 @@ import {
 import { CommentEntity } from './entity/comment.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeepPartial } from 'typeorm';
-import { CreateCommentDto, UpdateCommentDto } from './dto/comment.dto';
+import {
+  CommentToCommentDto,
+  PostCommentDto,
+  UpdateCommentDto,
+} from './dto/comment.dto';
 import { User } from '../users/entities/user.entity';
 import { PostEntity } from '../post/entities/post.entity';
 import { CommentResponse } from './interfaces';
@@ -26,7 +30,7 @@ export class CommentService {
   ) {}
 
   async create(
-    commentData: CreateCommentDto,
+    commentData: PostCommentDto,
     postId: number,
     userId: number,
   ): Promise<DeepPartial<PostEntity>> {
@@ -60,7 +64,6 @@ export class CommentService {
     commentId: number,
     updateData: UpdateCommentDto,
   ): Promise<CommentEntity> {
-    console.log('currentUserId', currentUserId);
     const comment = await this.commentRepository.findOne({
       where: { id: commentId, user: { id: currentUserId } },
     });
@@ -71,17 +74,31 @@ export class CommentService {
       );
     }
 
-    comment.text = updateData.text;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { text, ...rest } = updateData;
 
-    await this.commentRepository.save(comment);
+    if (Object.keys(rest).length === 2) {
+      const recepient = await this.userRepository.findOne({
+        where: {
+          id: updateData.recipientId,
+          nickName: updateData.recipientNickName,
+        },
+      });
 
-    return comment;
+      if (!recepient) {
+        throw new ConflictException("you can't tag a user that doesn't exist");
+      }
+    }
+
+    Object.assign(comment, updateData);
+
+    return await this.commentRepository.save(comment);
   }
 
   async commentToComment(
     userId: number,
     commentId: number,
-    commentData: CreateCommentDto,
+    commentData: CommentToCommentDto,
   ): Promise<DeepPartial<PostEntity>> {
     const user = await this.userRepository.findOneOrFail({
       where: { id: userId },
@@ -92,15 +109,20 @@ export class CommentService {
       where: { id: commentId },
     });
 
-    const recepient = await this.userRepository.findOne({
-      where: {
-        id: commentData.recipientId,
-        nickName: commentData.recipientNickName,
-      },
-    });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { text, ...rest } = commentData;
 
-    if (!recepient) {
-      throw new ConflictException("you can't tag a user that doesn't exist");
+    if (Object.keys(rest).length === 2) {
+      const recepient = await this.userRepository.findOne({
+        where: {
+          id: commentData.recipientId,
+          nickName: commentData.recipientNickName,
+        },
+      });
+
+      if (!recepient) {
+        throw new ConflictException("you can't tag a user that doesn't exist");
+      }
     }
 
     const commentToComment = this.commentRepository.create({

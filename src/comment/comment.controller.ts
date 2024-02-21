@@ -15,7 +15,11 @@ import {
 } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { CommentEntity } from './entity/comment.entity';
-import { CreateCommentDto, UpdateCommentDto } from './dto/comment.dto';
+import {
+  CommentToCommentDto,
+  PostCommentDto,
+  UpdateCommentDto,
+} from './dto/comment.dto';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -60,7 +64,7 @@ export class CommentController {
   })
   async create(
     @Param('postId') postId: number,
-    @Body() commentData: CreateCommentDto,
+    @Body() commentData: PostCommentDto,
     @Request() req,
   ): Promise<DeepPartial<PostEntity>> {
     return await this.commentService.create(commentData, postId, req.user.id);
@@ -102,7 +106,7 @@ export class CommentController {
   async commentToComment(
     @Request() req,
     @Param('commentId') commentId: number,
-    @Body() commentData: CreateCommentDto,
+    @Body() commentData: CommentToCommentDto,
   ): Promise<DeepPartial<PostEntity>> {
     return await this.commentService.commentToComment(
       req.user.id,
