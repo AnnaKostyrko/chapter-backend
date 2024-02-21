@@ -1,4 +1,9 @@
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CommentEntity } from './entity/comment.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeepPartial } from 'typeorm';
@@ -29,11 +34,12 @@ export class CommentService {
       where: { id: userId },
       relations: ['subscribers'],
     });
+
     const post = await this.postRepository.findOneOrFail({
       where: { id: postId },
       relations: ['comments'],
     });
-    console.log('post', post);
+
     const comment = this.commentRepository.create({
       ...commentData,
       user,
@@ -85,6 +91,17 @@ export class CommentService {
     const comment = await this.commentRepository.findOneOrFail({
       where: { id: commentId },
     });
+
+    const recepient = await this.userRepository.findOne({
+      where: {
+        id: commentData.recipientId,
+        nickName: commentData.recipientNickName,
+      },
+    });
+
+    if (!recepient) {
+      throw new ConflictException("you can't tag a user that doesn't exist");
+    }
 
     const commentToComment = this.commentRepository.create({
       ...commentData,

@@ -1,11 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, Length, Matches } from 'class-validator';
+import { IsNotEmpty, IsOptional, Length, Matches } from 'class-validator';
 import { commentRegexp } from 'src/helpers/regex/comment.regexp';
 
 export class CreateCommentDto {
   @ApiProperty({
     description: 'Text of the comment',
-    example: 'Great post!',
+    example: 'Great post/comment!',
     minLength: 1,
     maxLength: 500,
   })
@@ -17,6 +17,16 @@ export class CreateCommentDto {
     message: 'Comment text should be between 1 and 500 characters',
   })
   text: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsNotEmpty()
+  recipientId?: number;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsNotEmpty()
+  recipientNickName?: string;
 }
 
 export class UpdateCommentDto {

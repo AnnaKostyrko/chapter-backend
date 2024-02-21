@@ -28,6 +28,14 @@ export class CommentEntity extends EntityHelper {
   @ApiProperty()
   text: string;
 
+  @Column({ nullable: true })
+  @ApiProperty()
+  recipientId: number;
+
+  @Column({ nullable: true })
+  @ApiProperty()
+  recipientNickName: string;
+
   @ManyToOne(() => PostEntity, (post) => post.comments, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'postId' })
   post: PostEntity;

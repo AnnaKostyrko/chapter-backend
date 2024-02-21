@@ -55,6 +55,12 @@ const transformReplies = (parentId: number, comments: CommentEntity[]) =>
       parrentId: reply.parentId,
       postId: reply.postId,
       author: transformAuthor(reply.user),
+      ...(reply.recipientId && {
+        replyTo: {
+          id: reply.recipientId,
+          nickName: reply.recipientNickName,
+        },
+      }),
       userIds: reply.likes.map((like) => like.userId),
       createdAt: reply.createdAt,
       updatedAt: reply.updatedAt,
