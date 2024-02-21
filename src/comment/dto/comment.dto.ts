@@ -2,7 +2,24 @@ import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { IsNotEmpty, Length, Matches, ValidateIf } from 'class-validator';
 import { commentRegexp } from 'src/helpers/regex/comment.regexp';
 
-export class CreateCommentDto {
+export class PostCommentDto {
+  @ApiProperty({
+    description: 'Text of the comment',
+    example: 'Great post!',
+    minLength: 1,
+    maxLength: 500,
+  })
+  @Matches(commentRegexp, {
+    message: 'incorrect format',
+  })
+  @IsNotEmpty({ message: 'Comment text should not be empty' })
+  @Length(1, 500, {
+    message: 'Comment text should be between 1 and 500 characters',
+  })
+  text: string;
+}
+
+export class CommentToCommentDto extends PartialType(PostCommentDto) {
   @ApiProperty({
     description: 'Text of the comment',
     example: 'Great post/comment!',
@@ -35,7 +52,7 @@ export class CreateCommentDto {
   recipientNickName?: string;
 }
 
-export class UpdateCommentDto extends PartialType(CreateCommentDto) {}
+export class UpdateCommentDto extends PartialType(CommentToCommentDto) {}
 
 export class GetCommentsDto {
   @IsNotEmpty({ message: 'Comment text should not be empty' })

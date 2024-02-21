@@ -7,7 +7,11 @@ import {
 import { CommentEntity } from './entity/comment.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeepPartial } from 'typeorm';
-import { CreateCommentDto, UpdateCommentDto } from './dto/comment.dto';
+import {
+  CommentToCommentDto,
+  PostCommentDto,
+  UpdateCommentDto,
+} from './dto/comment.dto';
 import { User } from '../users/entities/user.entity';
 import { PostEntity } from '../post/entities/post.entity';
 import { CommentResponse } from './interfaces';
@@ -26,7 +30,7 @@ export class CommentService {
   ) {}
 
   async create(
-    commentData: CreateCommentDto,
+    commentData: PostCommentDto,
     postId: number,
     userId: number,
   ): Promise<DeepPartial<PostEntity>> {
@@ -94,7 +98,7 @@ export class CommentService {
   async commentToComment(
     userId: number,
     commentId: number,
-    commentData: CreateCommentDto,
+    commentData: CommentToCommentDto,
   ): Promise<DeepPartial<PostEntity>> {
     const user = await this.userRepository.findOneOrFail({
       where: { id: userId },
