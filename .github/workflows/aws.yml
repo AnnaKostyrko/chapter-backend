@@ -1,0 +1,48 @@
+name: build-and-deploy-aws
+
+on:
+  push:
+    branches: [ develop ]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: eu-central-1
+  ECR_NAME: chapter-dev-api
+  IMAGE_MAJOR_VERSION: 1
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name }}
+    name: build
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: define-image-version
+        id: define-image-version
+        env:
+          IMAGE_MINOR_VERSION: ${{ vars.IMAGE_MINOR_VERSION }}
+        run: |
+          next_image_version="$((IMAGE_MINOR_VERSION + 1))"
+          image_version="${IMAGE_MAJOR_VERSION}.$((IMAGE_MINOR_VERSION + 1))"
+          echo "next-image-version=$next_image_version" >> "$GITHUB_OUTPUT"
+          echo "image-version=$image-version" >> "$GITHUB_OUTPUT"
+
+      - name: build-and-push
+        uses: docker://ghcr.io/kciter/aws-ecr-action:latest
+        with:
+          access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+          repo: ${{ env.ECR_NAME }}
+          region: ${{ env.AWS_REGION }}
+          dockerfile: Dockerfile
+          tags: latest, ${{ steps.define-image-version.outputs.image-version }}
+
+      - name: update-image-version-var
+        uses: action-pack/set-variable@v1
+        with:
+          name: IMAGE_MINOR_VERSION
+          value: ${{ steps.define-image-version.outputs.next-image-version }}
+          token: ${{ secrets.REPO_ACCESS_TOKEN }}
