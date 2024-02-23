@@ -19,30 +19,38 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: define-image-version
-        id: define-image-version
-        env:
-          IMAGE_MINOR_VERSION: ${{ vars.IMAGE_MINOR_VERSION }}
-        run: |
-          next_image_version="$((IMAGE_MINOR_VERSION + 1))"
-          image_version="${IMAGE_MAJOR_VERSION}.$((IMAGE_MINOR_VERSION + 1))"
-          echo "next-image-version=$next_image_version" >> "$GITHUB_OUTPUT"
-          echo "image-version=$image-version" >> "$GITHUB_OUTPUT"
+      - name: configure-aws-credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: build-and-push
-        uses: docker://ghcr.io/kciter/aws-ecr-action:latest
-        with:
-          access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          account_id: ${{ secrets.AWS_ACCOUNT_ID }}
-          repo: ${{ env.ECR_NAME }}
-          region: ${{ env.AWS_REGION }}
-          dockerfile: Dockerfile
-          tags: latest
+        id: build-and-push
+        env:
+          AWS_REGION: ${{ env.AWS_REGION }}
+          IMAGE_MINOR_VERSION: ${{ vars.IMAGE_MINOR_VERSION }}
+        run: |
+          #define-image-version
+          next_image_version="$((IMAGE_MINOR_VERSION + 1))"
+          image_version="${IMAGE_MAJOR_VERSION}.$next_image_version"
+          echo "next-image-version=$next_image_version" >> "$GITHUB_OUTPUT"
+
+          aws_repo="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com"
+          repository="$aws_repo/$ECR_NAME"
+
+          aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$aws_repo"
+
+          docker image build -t "${repository}:latest" .
+          docker tag "${repository}:latest" "${repository}:${image_version}"
+
+          docker push "${repository}:latest"
+          docker push "${repository}:${image_version}"
 
       - name: update-image-version-var
         uses: action-pack/set-variable@v1
         with:
           name: IMAGE_MINOR_VERSION
-          value: ${{ steps.define-image-version.outputs.next-image-version }}
+          value: ${{ steps.build-and-push.outputs.next-image-version }}
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
