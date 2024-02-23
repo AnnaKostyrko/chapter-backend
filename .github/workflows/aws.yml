@@ -38,7 +38,7 @@ jobs:
           repo: ${{ env.ECR_NAME }}
           region: ${{ env.AWS_REGION }}
           dockerfile: Dockerfile
-          tags: latest, '${{ steps.define-image-version.outputs.image-version }}'
+          tags: latest
 
       - name: update-image-version-var
         uses: action-pack/set-variable@v1
