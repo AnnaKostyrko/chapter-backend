@@ -6,7 +6,7 @@ import { PostDto } from './dto/post.dto';
 import { User } from '../users/entities/user.entity';
 import { UpdatePostDto } from './dto/updatePost.dto';
 import { Like } from 'src/like/entity/like.entity';
-import { CommentEntity } from 'src/comment/entity/comment.entity';
+
 import { MyGateway } from 'src/sockets/gateway/gateway';
 import { transformPostInfo } from './ helpers/post.transform';
 
@@ -17,10 +17,7 @@ export class PostService {
     private readonly postRepository: Repository<PostEntity>,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-    @InjectRepository(Like)
-    private likeRepository: Repository<Like>,
-    @InjectRepository(CommentEntity)
-    private commentRepository: Repository<CommentEntity>,
+
     private readonly myGateway: MyGateway,
   ) {}
 
@@ -32,7 +29,18 @@ export class PostService {
 
     post.author = user;
 
-    this.myGateway.sendNotificationToAllUsers(author.id, 'New post');
+    const notificationMessage = 'New post';
+
+    this.myGateway.sendNotificationToAllUsers(
+      {
+        id: post.author.id,
+        avatarUrl: post.author.avatarUrl,
+        nickName: post.author.nickName,
+        firstName: post.author.firstName,
+        lastName: post.author.lastName,
+      },
+      notificationMessage,
+    );
 
     return await this.postRepository.save(post);
   }

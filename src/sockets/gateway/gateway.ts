@@ -64,13 +64,15 @@ export class MyGateway implements OnModuleInit {
   }
 
   sendNotificationToAllUsers(
-    currentUserId: number,
+    currentUser: DeepPartial<User>,
     notificationMessage: string,
   ) {
     this.clients.forEach((socket, userId) => {
-      if (userId !== currentUserId) {
-        socket.emit('postNotification', notificationMessage);
-      }
+      userId !== currentUser.id &&
+        socket.emit('postNotification', {
+          message: notificationMessage,
+          user: { ...currentUser },
+        });
     });
   }
 }
