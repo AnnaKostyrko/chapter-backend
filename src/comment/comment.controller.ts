@@ -123,20 +123,29 @@ export class CommentController {
           comments: [
             {
               id: 1,
-              parentId: 1,
-              text: 'Great post!',
+              parentId: null,
+              text: "Great post!",
               postId: 1,
-              userId: 3,
-              createdAt: '2023-10-18T08:58:10.879Z',
-              updatedAt: '2023-10-18T08:58:10.879Z',
-              __entity: 'CommentEntity',
-            },
+              userId: 1,
+              createdAt: "2024-02-28T11:39:17.180Z",
+              updatedAt: "2024-02-28T11:39:17.180Z",
+                post: {
+                  id: 1,
+                  imgUrl: "https://res.cloudinary.com/de2bdafop/image/upload/c_auto,g_auto/d_chapter:placeholders:post.webp/v1709127169/chapter/posts/4/LlNj4FLvgTOPCAflNxqLj.webp",
+                  caption: null,
+                  title: "1",
+                  createdAt: "2024-02-28T11:32:54.002Z",
+                  updatedAt: "2024-02-28T11:32:54.002Z"
+                },
+              __entity: "CommentEntity"
+            }
           ],
           totalComments: 7,
         },
       },
     },
   })
+  
   async getCommentsByPost(
     @Param('postId') postId: number,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,

@@ -99,28 +99,31 @@ export class CommentService {
     return transUpdatedPost[0];
   }
 
-  async getCommentsByPost(
-    postId: number,
-    page: number,
-    limit: number,
-  ): Promise<CommentResponse> {
-    const post = await this.postRepository.findOne({
-      where: { id: postId },
-      relations: ['comments'],
-    });
+    async getCommentsByPost(
+      postId: number,
+      page: number,
+      limit: number,
+    ): Promise<CommentResponse> {
+      const post = await this.postRepository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.comments', 'comment')
+      .where('post.id = :postId', {postId})
+      .getOne();
+      
+      if (!post) {
+        throw new NotFoundException('Post not found');
+      }
 
-    if (!post) {
-      throw new NotFoundException('Post not found');
-    }
+      const query = this.commentRepository
+      .createQueryBuilder('comment')
+      .leftJoinAndSelect('comment.post', 'post')
+      .where('post.id = :postId', { postId })
+      .take(limit)
+      .skip((page - 1) * limit);
 
-    const comments = post.comments;
-    const totalCount = comments.length;
+    const [comments, totalCount] = await query.getManyAndCount()
 
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
-    const paginatedComments = comments.slice(startIndex, endIndex);
-
-    return { comments: paginatedComments, totalComments: totalCount };
+    return { comments, totalComments: totalCount };
   }
 
   async getCommentToComment(commentToCommentId: number) {
