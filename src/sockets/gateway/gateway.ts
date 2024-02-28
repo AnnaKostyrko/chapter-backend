@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { User } from 'src/users/entities/user.entity';
+import { DeepPartial } from 'typeorm';
 
 @Injectable()
 @WebSocketGateway({
@@ -45,19 +47,19 @@ export class MyGateway implements OnModuleInit {
   }
 
   sendNotificationToUser(
-    currentUserId: number,
+    user: DeepPartial<User>,
     targetUserId: number,
     notificationMessage: string,
   ) {
     const targetSocket = this.clients.get(targetUserId);
-    const currentUser = this.clients.get(currentUserId);
+
+    const messageObject = {
+      message: notificationMessage,
+      user: { ...user },
+    };
 
     if (targetSocket) {
-      targetSocket.emit('subscribeNotification', notificationMessage);
-    }
-
-    if (!currentUser) {
-      return;
+      targetSocket.emit('subscribeNotification', messageObject);
     }
   }
 
