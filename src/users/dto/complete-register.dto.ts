@@ -6,6 +6,7 @@ import {
   IsEmail,
   IsNotEmpty,
   Matches,
+  MaxLength,
   MinLength,
   Validate,
 } from 'class-validator';
@@ -47,11 +48,13 @@ export class UpdateUserRegisterDto {
   })
   @ApiProperty({ example: 'string' })
   @MinLength(8)
+  @MaxLength(30)
   password: string;
 
   @IsNotEmpty()
   @ApiProperty()
   @MinLength(8)
+  @MaxLength(30)
   confirmPassword: string;
 
   @ApiProperty({ example: false })
