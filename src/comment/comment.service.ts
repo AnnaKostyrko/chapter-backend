@@ -5,9 +5,11 @@ import { Repository, DeepPartial } from 'typeorm';
 import { CreateCommentDto, UpdateCommentDto } from './dto/comment.dto';
 import { User } from '../users/entities/user.entity';
 import { PostEntity } from '../post/entities/post.entity';
-import { CommentResponse } from './interfaces';
 import { createResponse } from 'src/helpers/response-helpers';
-import { transformPostInfo } from 'src/post/ helpers/post.transform';
+import {
+  transformComments,
+  transformPostInfo,
+} from 'src/post/ helpers/post.transform';
 
 @Injectable()
 export class CommentService {
@@ -99,39 +101,42 @@ export class CommentService {
     return transUpdatedPost[0];
   }
 
-    async getCommentsByPost(
-      postId: number,
-      page: number,
-      limit: number,
-    ): Promise<CommentResponse> {
-      const post = await this.postRepository
-      .createQueryBuilder('post')
-      .leftJoinAndSelect('post.comments', 'comment')
-      .where('post.id = :postId', {postId})
-      .getOne();
-      
-      if (!post) {
-        throw new NotFoundException('Post not found');
-      }
 
-      const query = this.commentRepository
+  
+  async getCommentsByPost(postId: number, page: number, limit: number) {
+    const post = await this.postRepository.findOne({
+      where: { id: postId },
+      relations: ['comments'],
+    });
+
+    const comments = await this.commentRepository
       .createQueryBuilder('comment')
-      .leftJoinAndSelect('comment.post', 'post')
-      .where('post.id = :postId', { postId })
-      .take(limit)
-      .skip((page - 1) * limit);
+      .leftJoinAndSelect('comment.user', 'commentAuthor')
+      .leftJoinAndSelect('comment.likes', 'likes')
+      .where('comment.postId=:postId', { postId })
+      .getMany();
 
-    const [comments, totalCount] = await query.getManyAndCount()
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
 
-    return { comments, totalComments: totalCount };
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const paginatedComments = comments.slice(startIndex, endIndex);
+
+    const formatedComment = transformComments(comments);
+
+    return {formatedComment, paginatedComments}; 
   }
+
+
 
   async getCommentToComment(commentToCommentId: number) {
     const commentsToComment = await this.commentRepository
       .createQueryBuilder('comment')
       .select('comment.id')
       .where(`comment.parentId=${commentToCommentId}`)
-      .getRawMany();
+      .getMany();
 
     if (!commentsToComment) {
       throw new NotFoundException('Comment-to-comment not found');
