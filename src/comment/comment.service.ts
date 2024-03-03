@@ -14,9 +14,11 @@ import {
 } from './dto/comment.dto';
 import { User } from '../users/entities/user.entity';
 import { PostEntity } from '../post/entities/post.entity';
-import { CommentResponse } from './interfaces';
 import { createResponse } from 'src/helpers/response-helpers';
-import { transformPostInfo } from 'src/post/ helpers/post.transform';
+import {
+  transformComments,
+  transformPostInfo,
+} from 'src/post/ helpers/post.transform';
 
 @Injectable()
 export class CommentService {
@@ -140,36 +142,42 @@ export class CommentService {
     return transUpdatedPost[0];
   }
 
-  async getCommentsByPost(
-    postId: number,
-    page: number,
-    limit: number,
-  ): Promise<CommentResponse> {
+
+  
+  async getCommentsByPost(postId: number, page: number, limit: number) {
     const post = await this.postRepository.findOne({
       where: { id: postId },
       relations: ['comments'],
     });
 
+    const comments = await this.commentRepository
+      .createQueryBuilder('comment')
+      .leftJoinAndSelect('comment.user', 'commentAuthor')
+      .leftJoinAndSelect('comment.likes', 'likes')
+      .where('comment.postId=:postId', { postId })
+      .getMany();
+
     if (!post) {
       throw new NotFoundException('Post not found');
     }
-
-    const comments = post.comments;
-    const totalCount = comments.length;
 
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
     const paginatedComments = comments.slice(startIndex, endIndex);
 
-    return { comments: paginatedComments, totalComments: totalCount };
+    const formatedComment = transformComments(comments);
+
+    return {formatedComment, paginatedComments}; 
   }
+
+
 
   async getCommentToComment(commentToCommentId: number) {
     const commentsToComment = await this.commentRepository
       .createQueryBuilder('comment')
       .select('comment.id')
       .where(`comment.parentId=${commentToCommentId}`)
-      .getRawMany();
+      .getMany();
 
     if (!commentsToComment) {
       throw new NotFoundException('Comment-to-comment not found');

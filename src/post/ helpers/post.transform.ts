@@ -66,7 +66,7 @@ const transformReplies = (parentId: number, comments: CommentEntity[]) =>
       updatedAt: reply.updatedAt,
     }));
 
-const transformComments = (comments: CommentEntity[]) =>
+export const transformComments = (comments: CommentEntity[]) =>
   comments
     .filter((com) => com.parentId === null)
     .map((com) => ({
