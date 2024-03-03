@@ -142,8 +142,6 @@ export class CommentService {
     return transUpdatedPost[0];
   }
 
-
-  
   async getCommentsByPost(postId: number, page: number, limit: number) {
     const post = await this.postRepository.findOne({
       where: { id: postId },
@@ -161,16 +159,14 @@ export class CommentService {
       throw new NotFoundException('Post not found');
     }
 
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
-    const paginatedComments = comments.slice(startIndex, endIndex);
-
     const formatedComment = transformComments(comments);
 
-    return {formatedComment, paginatedComments}; 
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const paginatedComments = formatedComment.slice(startIndex, endIndex);
+
+    return paginatedComments;
   }
-
-
 
   async getCommentToComment(commentToCommentId: number) {
     const commentsToComment = await this.commentRepository
