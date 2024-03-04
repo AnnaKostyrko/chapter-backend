@@ -44,7 +44,7 @@ export class FeedService {
       .where('author.id != :currentUserId', { currentUserId })
       .andWhere('like.comment IS NULL')
       .orderBy('post.createdAt', 'DESC')
-      .addOrderBy('comment.createdAt', 'ASC')
+      .addOrderBy('comment.createdAt', 'DESC')
       .getMany();
 
     const transformedResponse = transformPostInfo(postsInfo, user);
