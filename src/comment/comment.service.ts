@@ -153,6 +153,7 @@ export class CommentService {
       .leftJoinAndSelect('comment.user', 'commentAuthor')
       .leftJoinAndSelect('comment.likes', 'likes')
       .where('comment.postId=:postId', { postId })
+      .orderBy('comment.createdAt', 'ASC')
       .getMany();
 
     if (!post) {
