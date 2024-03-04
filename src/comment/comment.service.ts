@@ -261,7 +261,7 @@ export class CommentService {
       .leftJoinAndSelect('comment.user', 'commentAuthor')
       .leftJoinAndSelect('comment.likes', 'likes')
       .where('post.id = :postId', { postId })
-      .orderBy('post.createdAt', 'DESC')
+      .orderBy('comment.createdAt', 'DESC')
       .getOneOrFail();
   }
 }
