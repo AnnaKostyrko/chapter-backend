@@ -15,13 +15,19 @@ import { UpdatePasswordDto } from './dto/update-password.dto';
 import bcrypt from 'bcryptjs';
 import { createResponse } from 'src/helpers/response-helpers';
 import { MyGateway } from 'src/sockets/gateway/gateway';
+import { Session } from 'src/session/entities/session.entity';
+import { NotaService } from 'src/nota/nota.service';
+import { notaUser } from 'src/nota/helpers/nota.user';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(Session)
+    private sessionRepository: Repository<Session>,
     private readonly myGateway: MyGateway,
+    private readonly notaService: NotaService,
   ) {}
 
   async searchUsers(
@@ -177,6 +183,10 @@ export class UsersService {
       id: targetUserId,
     });
 
+    const liveSession = await this.sessionRepository.findOne({
+      where: { user: { id: targetUser.id } },
+    });
+
     const currentUser = await this.usersRepository.findOneOrFail({
       where: { id: currentUserId },
       relations: ['subscribers'],
@@ -205,17 +215,25 @@ export class UsersService {
       ? 'Unsubscribed from you'
       : 'Subscribed to you';
 
-    this.myGateway.sendNotificationToUser(
-      {
-        id: currentUser.id,
-        avatarUrl: currentUser.avatarUrl,
-        nickName: currentUser.nickName,
-        firstName: currentUser.firstName,
-        lastName: currentUser.lastName,
-      },
-      targetUserId,
-      notificationMessage,
-    );
+    if (liveSession) {
+      this.myGateway.sendNotificationToUser(
+        {
+          ...notaUser(currentUser),
+        },
+        targetUserId,
+        notificationMessage,
+      );
+    } else {
+      await this.notaService.create(
+        {
+          message: notificationMessage,
+          user: {
+            ...notaUser(currentUser),
+          },
+        },
+        targetUser,
+      );
+    }
 
     return currentUser;
   }

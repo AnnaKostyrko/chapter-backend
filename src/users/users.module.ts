@@ -10,15 +10,18 @@ import { JwtModule } from '@nestjs/jwt';
 import { Book } from '../book/entities/book.entity';
 
 import { GatewayModule } from 'src/sockets/gateway/gateway.module';
+import { Session } from 'src/session/entities/session.entity';
+import { NotaService } from 'src/nota/nota.service';
+import { Nota } from 'src/nota/entities/nota.entity';
 
 @Module({
   imports: [
     JwtModule.register({}),
-    TypeOrmModule.forFeature([User, Book]),
+    TypeOrmModule.forFeature([User, Book, Session, Nota]),
     GatewayModule,
   ],
   controllers: [UsersController],
-  providers: [IsExist, IsNotExist, UsersService, JwtStrategy],
+  providers: [IsExist, IsNotExist, UsersService, JwtStrategy, NotaService],
   exports: [UsersService],
 })
 export class UsersModule {}

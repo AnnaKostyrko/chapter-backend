@@ -16,6 +16,8 @@ import { UsersService } from 'src/users/users.service';
 import { Session } from 'src/session/entities/session.entity';
 import { Forgot } from 'src/forgot/entities/forgot.entity';
 import { GatewayModule } from 'src/sockets/gateway/gateway.module';
+import { NotaService } from 'src/nota/nota.service';
+import { Nota } from 'src/nota/entities/nota.entity';
 
 @Module({
   imports: [
@@ -27,6 +29,7 @@ import { GatewayModule } from 'src/sockets/gateway/gateway.module';
       CommentEntity,
       Session,
       Forgot,
+      Nota,
     ]),
     GatewayModule,
   ],
@@ -37,6 +40,7 @@ import { GatewayModule } from 'src/sockets/gateway/gateway.module';
     LikeService,
     CommentService,
     UsersService,
+    NotaService,
   ],
   controllers: [FeedController],
 })
