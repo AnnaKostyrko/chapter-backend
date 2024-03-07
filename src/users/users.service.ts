@@ -77,7 +77,7 @@ export class UsersService {
     fields: EntityCondition<User>,
     relations: string[] = [],
   ): Promise<NullableType<User>> {
-    return this.usersRepository.findOneOrFail({
+    return this.usersRepository.findOne({
       where: fields,
       relations,
     });
