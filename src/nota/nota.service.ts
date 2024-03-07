@@ -29,7 +29,10 @@ export class NotaService {
     return `This action returns a #${id} nota`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} nota`;
+  async remove(userId: number, id: number) {
+    const nota = await this.notaRepository.findOneOrFail({
+      where: { user: { id: userId }, id },
+    });
+    await this.notaRepository.delete(nota.id);
   }
 }

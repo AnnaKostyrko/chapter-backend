@@ -109,7 +109,7 @@ export class AuthController {
 
   @Patch('email/register/finaly/:id')
   async completeRegistration(
-    @Param('id') userId: number, // Отримуємо id з параметра маршруту
+    @Param('id') userId: number,
     @Body() completeDto: UpdateUserRegisterDto,
   ): Promise<void> {
     return await this.service.completeRegistration(userId, completeDto);
