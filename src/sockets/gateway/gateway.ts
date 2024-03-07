@@ -53,14 +53,14 @@ export class MyGateway implements OnModuleInit {
   ) {
     const targetSocket = this.clients.get(targetUserId);
 
+    if (!targetSocket) return;
+
     const messageObject = {
       message: notificationMessage,
       user: { ...user },
     };
 
-    if (targetSocket) {
-      targetSocket.emit('subscribeNotification', messageObject);
-    }
+    targetSocket.emit('subscribeNotification', messageObject);
   }
 
   sendNotificationToAllUsers(
