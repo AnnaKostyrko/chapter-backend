@@ -11,7 +11,7 @@ import { NotaService } from './nota.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('nota')
+@Controller({ path: 'nota', version: '1' })
 @ApiBearerAuth()
 @ApiTags('nota')
 export class NotaController {
