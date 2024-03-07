@@ -65,15 +65,9 @@ export class CommentService {
     commentId: number,
     updateData: UpdateCommentDto,
   ): Promise<CommentEntity> {
-    const comment = await this.commentRepository.findOne({
+    const comment = await this.commentRepository.findOneOrFail({
       where: { id: commentId, user: { id: currentUserId } },
     });
-
-    if (!comment) {
-      throw new NotFoundException(
-        'You don`t have permission to update this comment',
-      );
-    }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { text, ...rest } = updateData;
