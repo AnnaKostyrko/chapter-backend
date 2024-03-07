@@ -25,7 +25,9 @@ export class NotaController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.notaService.remove(+id);
+  @ApiOperation({ summary: 'delete notification' })
+  @UseGuards(AuthGuard('jwt'))
+  async remove(@Request() req: any, @Param('id') id: number) {
+    return this.notaService.remove(req.user.id, id);
   }
 }
