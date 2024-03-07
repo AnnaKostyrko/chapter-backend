@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DeepPartial } from 'typeorm';
+import { Repository, DeepPartial, Not } from 'typeorm';
 import { PostEntity } from './entities/post.entity';
 import { PostDto } from './dto/post.dto';
 import { User } from '../users/entities/user.entity';
@@ -9,6 +9,8 @@ import { Like } from 'src/like/entity/like.entity';
 
 import { MyGateway } from 'src/sockets/gateway/gateway';
 import { transformPostInfo } from './ helpers/post.transform';
+import { notaUser } from 'src/nota/helpers/nota.user';
+import { NotaService } from 'src/nota/nota.service';
 
 @Injectable()
 export class PostService {
@@ -19,6 +21,7 @@ export class PostService {
     private usersRepository: Repository<User>,
 
     private readonly myGateway: MyGateway,
+    private readonly notaService: NotaService,
   ) {}
 
   async create(author: User, createPostDto: PostDto) {
@@ -31,13 +34,25 @@ export class PostService {
 
     const notificationMessage = 'New post';
 
+    const users = await this.usersRepository.find({
+      where: { id: Not(author.id) },
+    });
+
+    for (const user of users) {
+      await this.notaService.create(
+        {
+          message: notificationMessage,
+          user: {
+            ...notaUser(post.author),
+          },
+        },
+        user,
+      );
+    }
+
     this.myGateway.sendNotificationToAllUsers(
       {
-        id: post.author.id,
-        avatarUrl: post.author.avatarUrl,
-        nickName: post.author.nickName,
-        firstName: post.author.firstName,
-        lastName: post.author.lastName,
+        ...notaUser(post.author),
       },
       notificationMessage,
     );

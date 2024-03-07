@@ -10,13 +10,23 @@ import { Session } from 'src/session/entities/session.entity';
 import { PostEntity } from 'src/post/entities/post.entity';
 import { Like } from 'src/like/entity/like.entity';
 import { GatewayModule } from 'src/sockets/gateway/gateway.module';
+import { NotaService } from 'src/nota/nota.service';
+import { Nota } from 'src/nota/entities/nota.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Book, Session, Forgot, PostEntity, Like]),
+    TypeOrmModule.forFeature([
+      User,
+      Book,
+      Session,
+      Forgot,
+      PostEntity,
+      Like,
+      Nota,
+    ]),
     GatewayModule,
   ],
   controllers: [TaskController],
-  providers: [TaskService, UsersService],
+  providers: [TaskService, UsersService, NotaService],
 })
 export class TaskModule {}

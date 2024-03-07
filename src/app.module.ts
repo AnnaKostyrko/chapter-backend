@@ -36,6 +36,7 @@ import { GatewayModule } from './sockets/gateway/gateway.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { NotFoundInterceptor } from './helpers/interceptors/find-one-or-fail';
 import { BookModule } from './book/book.module';
+import { NotaModule } from './nota/nota.module';
 
 @Module({
   imports: [
@@ -101,6 +102,7 @@ import { BookModule } from './book/book.module';
     FeedModule,
     GatewayModule,
     BookModule,
+    NotaModule,
   ],
   providers: [
     {
