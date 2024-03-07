@@ -17,7 +17,7 @@ export class NotaService {
   async create(payload: Record<string, any>, user: User) {
     const newNota = new Nota(payload);
     newNota.user = user;
-    console.log('newNota', newNota);
+
     return await this.notaRepository.save(newNota);
   }
 

@@ -175,8 +175,7 @@ export class CommentController {
   async deletePost(
     @Param('id') commentId: number,
     @Request() req,
-  ): Promise<void> {
-    console.log(req.user);
+  ): Promise<DeepPartial<PostEntity>> {
     return await this.commentService.deleteComment(commentId, req.user.id);
   }
 }

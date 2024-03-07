@@ -66,10 +66,6 @@ export class PostController {
       postId,
       updatePostDto,
     );
-    // .then((caption) => {
-    //   console.log(caption);
-    //   this.Gateway.server.emit('UpdatePost', caption);
-    // });
   }
 
   @ApiOperation({ summary: 'delete a post' })
