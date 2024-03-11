@@ -35,4 +35,8 @@ export class NotaService {
     });
     await this.notaRepository.delete(nota.id);
   }
+
+  async removeAll(userId: number) {
+    await this.notaRepository.delete({ user: { id: userId } });
+  }
 }

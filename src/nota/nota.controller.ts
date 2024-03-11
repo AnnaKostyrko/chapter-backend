@@ -17,6 +17,13 @@ import { AuthGuard } from '@nestjs/passport';
 export class NotaController {
   constructor(private readonly notaService: NotaService) {}
 
+  @Delete(':id')
+  @ApiOperation({ summary: 'delete notification' })
+  @UseGuards(AuthGuard('jwt'))
+  async remove(@Request() req: any, @Param('id') id: number) {
+    return this.notaService.remove(req.user.id, id);
+  }
+
   @Get()
   @ApiOperation({ summary: 'Get all notification' })
   @UseGuards(AuthGuard('jwt'))
@@ -24,10 +31,10 @@ export class NotaController {
     return this.notaService.findAll(req.user.id);
   }
 
-  @Delete(':id')
-  @ApiOperation({ summary: 'delete notification' })
+  @Delete('all')
+  @ApiOperation({ summary: 'delete all notifications' })
   @UseGuards(AuthGuard('jwt'))
-  async remove(@Request() req: any, @Param('id') id: number) {
-    return this.notaService.remove(req.user.id, id);
+  async removeAll(@Request() req: any) {
+    return this.notaService.removeAll(req.user.id);
   }
 }
