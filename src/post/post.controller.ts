@@ -123,4 +123,15 @@ export class PostController {
     );
     return returnValue;
   }
+  @ApiOperation({ summary: 'get post'})
+  @Get('post/:id')
+  @UseGuards(AuthGuard('jwt'))
+  async getPost(
+    @Param('id') postId: number,
+  ) {
+    const returnValue = this.postService.getPost(
+      postId
+    );
+    return returnValue;
+  }
 }
