@@ -37,14 +37,13 @@ export class PostService {
     const users = await this.usersRepository.find({
       where: { id: Not(author.id) },
     });
-
+    const newPost = await this.postRepository.save(post);
     for (const user of users) {
       await this.notaService.create(
         {
           message: notificationMessage,
-          user: {
-            ...notaUser(post.author),
-          },
+
+          ...notaUser(post.author, newPost.id),
         },
         user,
       );
@@ -52,12 +51,12 @@ export class PostService {
 
     this.myGateway.sendNotificationToAllUsers(
       {
-        ...notaUser(post.author),
+        ...notaUser(post.author, newPost.id),
       },
       notificationMessage,
     );
 
-    return await this.postRepository.save(post);
+    return newPost;
   }
 
   async updatePost(
