@@ -38,16 +38,18 @@ export class PostService {
       where: { id: Not(author.id) },
     });
     const newPost = await this.postRepository.save(post);
-    for (const user of users) {
-      await this.notaService.create(
-        {
-          message: notificationMessage,
 
-          ...notaUser(post.author, newPost.id),
-        },
-        user,
-      );
-    }
+    await Promise.all(
+      users.map((user) =>
+        this.notaService.create(
+          {
+            message: notificationMessage,
+            ...notaUser(post.author, newPost.id),
+          },
+          user,
+        ),
+      ),
+    );
 
     this.myGateway.sendNotificationToAllUsers(
       {
