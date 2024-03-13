@@ -83,6 +83,13 @@ export class PostService {
     await this.postRepository.remove(post);
   }
 
+  async getPost(postId: number): Promise<PostEntity> {
+    const post = await this.postRepository.findOneOrFail({
+      where: { id: postId },
+    });
+    return post;
+  }
+
   async getPostsByAuthor(authorId: number): Promise<PostEntity[]> {
     return await this.postRepository.find({
       where: { author: { id: authorId } },
