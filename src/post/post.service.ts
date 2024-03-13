@@ -1,4 +1,7 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeepPartial } from 'typeorm';
 import { PostEntity } from './entities/post.entity';
@@ -61,13 +64,14 @@ export class PostService {
     await this.postRepository.remove(post);
   }
 
- async getPost(postId:number): Promise<PostEntity[]> {
-      return await this.postRepository.find({
-        where: {  id: postId  },
-        order: { createdAt: 'DESC' },
-      });
-    }
-
+  async getPost(postId: number): Promise<PostEntity> {
+    const post = await this.postRepository.findOneOrFail({
+      where: { id: postId },
+      order: { createdAt: 'DESC' },
+    });
+    return post;
+  }
+  
   async getPostsByAuthor(authorId: number): Promise<PostEntity[]> {
     return await this.postRepository.find({
       where: { author: { id: authorId } },
