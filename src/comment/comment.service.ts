@@ -240,7 +240,7 @@ export class CommentService {
     await this.commentRepository.remove(comment);
   }
 
-  private async deepGetPostById(postId: number): Promise<PostEntity> {
+  async deepGetPostById(postId: number): Promise<PostEntity> {
     return await this.postRepository
       .createQueryBuilder('post')
       .leftJoin('post.author', 'author')

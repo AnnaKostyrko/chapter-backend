@@ -1,4 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeepPartial } from 'typeorm';
 import { PostEntity } from './entities/post.entity';
@@ -9,6 +12,7 @@ import { Like } from 'src/like/entity/like.entity';
 import { CommentEntity } from 'src/comment/entity/comment.entity';
 import { MyGateway } from 'src/sockets/gateway/gateway';
 import { transformPostInfo } from './ helpers/post.transform';
+import { CommentService } from 'src/comment/comment.service';
 
 @Injectable()
 export class PostService {
@@ -21,6 +25,8 @@ export class PostService {
     private likeRepository: Repository<Like>,
     @InjectRepository(CommentEntity)
     private commentRepository: Repository<CommentEntity>,
+
+    private commentService: CommentService,
     private readonly myGateway: MyGateway,
   ) {}
 
@@ -61,11 +67,19 @@ export class PostService {
     await this.postRepository.remove(post);
   }
 
-  async getPost(postId: number): Promise<PostEntity> {
-    const post = await this.postRepository.findOneOrFail({
-      where: { id: postId },
+  async getPostById(postId: number, userId: number) {
+    const user = await this.usersRepository.findOneOrFail({
+      where: { id: userId },
+      relations: ['subscribers'],
     });
-    return post;
+    const postInfo = await this.commentService.deepGetPostById(postId);
+
+    if (!postInfo) {
+      throw new NotFoundException('Post not found');
+    }
+
+    const transformedResponse = transformPostInfo([postInfo], user); // Передбачається, що `user` доступний у цьому контексті
+    return transformedResponse;
   }
 
   async getPostsByAuthor(authorId: number): Promise<PostEntity[]> {
