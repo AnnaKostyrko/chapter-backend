@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  AWS_REGION: us-west-2
+  AWS_REGION: eu-central-1
   ECR_NAME: chapter-dev-api
   IMAGE_MAJOR_VERSION: 1
 
