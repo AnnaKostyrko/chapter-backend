@@ -27,7 +27,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
-import { CommentResponse } from './interfaces';
 import { PostEntity } from 'src/post/entities/post.entity';
 import { DeepPartial } from 'typeorm';
 
@@ -127,12 +126,21 @@ export class CommentController {
           comments: [
             {
               id: 1,
-              parentId: 1,
+              parentId: null,
               text: 'Great post!',
               postId: 1,
-              userId: 3,
-              createdAt: '2023-10-18T08:58:10.879Z',
-              updatedAt: '2023-10-18T08:58:10.879Z',
+              userId: 1,
+              createdAt: '2024-02-28T11:39:17.180Z',
+              updatedAt: '2024-02-28T11:39:17.180Z',
+              post: {
+                id: 1,
+                imgUrl:
+                  'https://res.cloudinary.com/de2bdafop/image/upload/c_auto,g_auto/d_chapter:placeholders:post.webp/v1709127169/chapter/posts/4/LlNj4FLvgTOPCAflNxqLj.webp',
+                caption: null,
+                title: '1',
+                createdAt: '2024-02-28T11:32:54.002Z',
+                updatedAt: '2024-02-28T11:32:54.002Z',
+              },
               __entity: 'CommentEntity',
             },
           ],
@@ -145,7 +153,7 @@ export class CommentController {
     @Param('postId') postId: number,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-  ): Promise<CommentResponse> {
+  ) {
     return await this.commentService.getCommentsByPost(postId, page, limit);
   }
 
@@ -167,8 +175,7 @@ export class CommentController {
   async deletePost(
     @Param('id') commentId: number,
     @Request() req,
-  ): Promise<void> {
-    console.log(req.user);
+  ): Promise<DeepPartial<PostEntity>> {
     return await this.commentService.deleteComment(commentId, req.user.id);
   }
 }

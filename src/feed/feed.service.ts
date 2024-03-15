@@ -44,9 +44,10 @@ export class FeedService {
       .where('author.id != :currentUserId', { currentUserId })
       .andWhere('like.comment IS NULL')
       .orderBy('post.createdAt', 'DESC')
+      .addOrderBy('comment.createdAt', 'DESC')
       .getMany();
 
-    const transformedResponse = transformPostInfo(postsInfo, user, true);
+    const transformedResponse = transformPostInfo(postsInfo, user);
 
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;

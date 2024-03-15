@@ -10,12 +10,14 @@ import { Server } from 'socket.io';
 import { GatewayModule } from 'src/sockets/gateway/gateway.module';
 import { CommentService } from 'src/comment/comment.service';
 
+import { NotaService } from 'src/nota/nota.service';
+import { Nota } from 'src/nota/entities/nota.entity';
 @Module({
   imports: [
-    TypeOrmModule.forFeature([PostEntity, User, Like, CommentEntity]),
+    TypeOrmModule.forFeature([PostEntity, User, Like, CommentEntity, Nota]),
     GatewayModule,
   ],
-  providers: [PostService, Server, CommentService],
+  providers: [PostService, Server, CommentService,NotaService],
   controllers: [PostController],
 })
 export class PostModule {}

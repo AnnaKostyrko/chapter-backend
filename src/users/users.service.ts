@@ -16,12 +16,17 @@ import bcrypt from 'bcryptjs';
 import { createResponse } from 'src/helpers/response-helpers';
 import { MyGateway } from 'src/sockets/gateway/gateway';
 
+import { NotaService } from 'src/nota/nota.service';
+import { notaUser } from 'src/nota/helpers/nota.user';
+
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+
     private readonly myGateway: MyGateway,
+    private readonly notaService: NotaService,
   ) {}
 
   async searchUsers(
@@ -77,7 +82,7 @@ export class UsersService {
     fields: EntityCondition<User>,
     relations: string[] = [],
   ): Promise<NullableType<User>> {
-    return this.usersRepository.findOneOrFail({
+    return this.usersRepository.findOne({
       where: fields,
       relations,
     });
@@ -202,11 +207,23 @@ export class UsersService {
     await currentUser.save();
 
     const notificationMessage = isSubscribed
-      ? `Від вас відписався юзер з id:${currentUserId}`
-      : `На вас підписався юзер з id:${currentUserId}`;
+      ? 'Unsubscribed from you'
+      : 'Subscribed to you';
+
+    await this.notaService.create(
+      {
+        message: notificationMessage,
+        user: {
+          ...notaUser(currentUser),
+        },
+      },
+      targetUser,
+    );
 
     this.myGateway.sendNotificationToUser(
-      currentUserId,
+      {
+        ...notaUser(currentUser),
+      },
       targetUserId,
       notificationMessage,
     );

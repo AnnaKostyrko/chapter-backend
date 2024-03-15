@@ -66,8 +66,11 @@ const transformReplies = (parentId: number, comments: CommentEntity[]) =>
       updatedAt: reply.updatedAt,
     }));
 
-const transformComments = (comments: CommentEntity[]) =>
-  comments
+export const transformComments = (
+  comments: CommentEntity[],
+  slice?: boolean,
+) => {
+  const transformedComments = comments
     .filter((com) => com.parentId === null)
     .map((com) => ({
       id: com.id,
@@ -80,6 +83,9 @@ const transformComments = (comments: CommentEntity[]) =>
       updatedAt: com.updatedAt,
       comments: transformReplies(com.id, comments),
     }));
+
+  return slice ? transformedComments.slice(0, 3) : transformedComments;
+};
 
 export const transformPostInfo = (
   postInfo: PostEntity[],
@@ -102,5 +108,5 @@ export const transformPostInfo = (
     isSubscribeToAuthor: user.subscribers?.some(
       (sub?) => sub?.id === post.author.id,
     ),
-    comments: transformComments(post.comments),
+    comments: transformComments(post.comments, true),
   }));

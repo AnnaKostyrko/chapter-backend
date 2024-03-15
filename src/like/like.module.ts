@@ -12,6 +12,8 @@ import { Session } from 'src/session/entities/session.entity';
 import { Forgot } from 'src/forgot/entities/forgot.entity';
 import { CommentEntity } from '../comment/entity/comment.entity';
 import { GatewayModule } from 'src/sockets/gateway/gateway.module';
+import { Nota } from 'src/nota/entities/nota.entity';
+import { NotaService } from 'src/nota/nota.service';
 
 @Module({
   imports: [
@@ -24,10 +26,11 @@ import { GatewayModule } from 'src/sockets/gateway/gateway.module';
       Session,
       Forgot,
       CommentEntity,
+      Nota,
     ]),
     GatewayModule,
   ],
   controllers: [LikeController],
-  providers: [LikeService, UsersService],
+  providers: [LikeService, UsersService, NotaService],
 })
 export class LikeModule {}

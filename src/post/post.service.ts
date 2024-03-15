@@ -3,16 +3,19 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DeepPartial } from 'typeorm';
+import { Repository, DeepPartial, Not } from 'typeorm';
 import { PostEntity } from './entities/post.entity';
 import { PostDto } from './dto/post.dto';
 import { User } from '../users/entities/user.entity';
 import { UpdatePostDto } from './dto/updatePost.dto';
 import { Like } from 'src/like/entity/like.entity';
-import { CommentEntity } from 'src/comment/entity/comment.entity';
+
 import { MyGateway } from 'src/sockets/gateway/gateway';
 import { transformPostInfo } from './ helpers/post.transform';
 import { CommentService } from 'src/comment/comment.service';
+import { notaUser } from 'src/nota/helpers/nota.user';
+import { NotaService } from 'src/nota/nota.service';
+import { CommentEntity } from 'src/comment/entity/comment.entity';
 
 @Injectable()
 export class PostService {
@@ -27,7 +30,9 @@ export class PostService {
     private commentRepository: Repository<CommentEntity>,
 
     private commentService: CommentService,
+
     private readonly myGateway: MyGateway,
+    private readonly notaService: NotaService,
   ) {}
 
   async create(author: User, createPostDto: PostDto) {
@@ -38,9 +43,33 @@ export class PostService {
 
     post.author = user;
 
-    this.myGateway.sendNotificationToAllUsers(author.id, 'New post');
+    const notificationMessage = 'New post';
 
-    return await this.postRepository.save(post);
+    const users = await this.usersRepository.find({
+      where: { id: Not(author.id) },
+    });
+    const newPost = await this.postRepository.save(post);
+
+    await Promise.all(
+      users.map((user) =>
+        this.notaService.create(
+          {
+            message: notificationMessage,
+            ...notaUser(post.author, newPost.id),
+          },
+          user,
+        ),
+      ),
+    );
+
+    this.myGateway.sendNotificationToAllUsers(
+      {
+        ...notaUser(post.author, newPost.id),
+      },
+      notificationMessage,
+    );
+
+    return newPost;
   }
 
   async updatePost(

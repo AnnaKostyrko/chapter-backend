@@ -1,6 +1,5 @@
 import {
   ConflictException,
-  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -14,9 +13,11 @@ import {
 } from './dto/comment.dto';
 import { User } from '../users/entities/user.entity';
 import { PostEntity } from '../post/entities/post.entity';
-import { CommentResponse } from './interfaces';
-import { createResponse } from 'src/helpers/response-helpers';
-import { transformPostInfo } from 'src/post/ helpers/post.transform';
+
+import {
+  transformComments,
+  transformPostInfo,
+} from 'src/post/ helpers/post.transform';
 
 @Injectable()
 export class CommentService {
@@ -64,15 +65,9 @@ export class CommentService {
     commentId: number,
     updateData: UpdateCommentDto,
   ): Promise<CommentEntity> {
-    const comment = await this.commentRepository.findOne({
+    const comment = await this.commentRepository.findOneOrFail({
       where: { id: commentId, user: { id: currentUserId } },
     });
-
-    if (!comment) {
-      throw new NotFoundException(
-        'You don`t have permission to update this comment',
-      );
-    }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { text, ...rest } = updateData;
@@ -140,28 +135,31 @@ export class CommentService {
     return transUpdatedPost[0];
   }
 
-  async getCommentsByPost(
-    postId: number,
-    page: number,
-    limit: number,
-  ): Promise<CommentResponse> {
+  async getCommentsByPost(postId: number, page: number, limit: number) {
     const post = await this.postRepository.findOne({
       where: { id: postId },
       relations: ['comments'],
     });
 
+    const comments = await this.commentRepository
+      .createQueryBuilder('comment')
+      .leftJoinAndSelect('comment.user', 'commentAuthor')
+      .leftJoinAndSelect('comment.likes', 'likes')
+      .where('comment.postId=:postId', { postId })
+      .orderBy('comment.createdAt', 'ASC')
+      .getMany();
+
     if (!post) {
       throw new NotFoundException('Post not found');
     }
 
-    const comments = post.comments;
-    const totalCount = comments.length;
+    const formatedComment = transformComments(comments);
 
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
-    const paginatedComments = comments.slice(startIndex, endIndex);
+    const paginatedComments = formatedComment.slice(startIndex, endIndex);
 
-    return { comments: paginatedComments, totalComments: totalCount };
+    return paginatedComments;
   }
 
   async getCommentToComment(commentToCommentId: number) {
@@ -169,7 +167,7 @@ export class CommentService {
       .createQueryBuilder('comment')
       .select('comment.id')
       .where(`comment.parentId=${commentToCommentId}`)
-      .getRawMany();
+      .getMany();
 
     if (!commentsToComment) {
       throw new NotFoundException('Comment-to-comment not found');
@@ -226,18 +224,34 @@ export class CommentService {
     return commentsWithUsers;
   }
 
-  async deleteComment(commentId: number, userId: number): Promise<void> {
+  async deleteComment(
+    commentId: number,
+    userId: number,
+  ): Promise<DeepPartial<PostEntity>> {
+    const user = await this.userRepository.findOneOrFail({
+      where: { id: userId },
+      relations: ['subscribers'],
+    });
+
     const comment = await this.commentRepository.findOneOrFail({
       where: {
         id: commentId,
+        user: { id: userId },
       },
     });
+    const replies = await this.commentRepository.find({
+      where: { parentId: commentId },
+    });
 
-    if (comment.userId !== userId) {
-      throw createResponse(HttpStatus.FORBIDDEN, 'Insufficient permissions.');
+    for (const replie of replies) {
+      await this.commentRepository.remove(replie);
     }
 
     await this.commentRepository.remove(comment);
+
+    const updatedPost = await this.deepGetPostById(comment.postId);
+    const transUpdatedPost = transformPostInfo([updatedPost], user);
+    return transUpdatedPost[0];
   }
 
   async deepGetPostById(postId: number): Promise<PostEntity> {
@@ -256,7 +270,7 @@ export class CommentService {
       .leftJoinAndSelect('comment.user', 'commentAuthor')
       .leftJoinAndSelect('comment.likes', 'likes')
       .where('post.id = :postId', { postId })
-      .orderBy('post.createdAt', 'DESC')
+      .orderBy('comment.createdAt', 'DESC')
       .getOneOrFail();
   }
 }

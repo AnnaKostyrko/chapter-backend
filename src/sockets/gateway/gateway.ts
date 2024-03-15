@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { User } from 'src/users/entities/user.entity';
+import { DeepPartial } from 'typeorm';
 
 @Injectable()
 @WebSocketGateway({
@@ -45,30 +47,29 @@ export class MyGateway implements OnModuleInit {
   }
 
   sendNotificationToUser(
-    currentUserId: number,
+    user: DeepPartial<User>,
     targetUserId: number,
     notificationMessage: string,
   ) {
     const targetSocket = this.clients.get(targetUserId);
-    const currentUser = this.clients.get(currentUserId);
 
-    if (targetSocket) {
-      targetSocket.emit('subscribeNotification', notificationMessage);
-    }
+    if (!targetSocket) return;
 
-    if (!currentUser) {
-      return;
-    }
+    const messageObject = {
+      message: notificationMessage,
+      user: { ...user },
+    };
+
+    targetSocket.emit('subscribeNotification', messageObject);
   }
 
-  sendNotificationToAllUsers(
-    currentUserId: number,
-    notificationMessage: string,
-  ) {
+  sendNotificationToAllUsers(currentUser: any, notificationMessage: string) {
     this.clients.forEach((socket, userId) => {
-      if (userId !== currentUserId) {
-        socket.emit('postNotification', notificationMessage);
-      }
+      userId !== currentUser.user.id &&
+        socket.emit('postNotification', {
+          message: notificationMessage,
+          user: { ...currentUser },
+        });
     });
   }
 }
