@@ -1,4 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeepPartial, Not } from 'typeorm';
 import { PostEntity } from './entities/post.entity';
@@ -9,8 +12,10 @@ import { Like } from 'src/like/entity/like.entity';
 
 import { MyGateway } from 'src/sockets/gateway/gateway';
 import { transformPostInfo } from './ helpers/post.transform';
+import { CommentService } from 'src/comment/comment.service';
 import { notaUser } from 'src/nota/helpers/nota.user';
 import { NotaService } from 'src/nota/nota.service';
+import { CommentEntity } from 'src/comment/entity/comment.entity';
 
 @Injectable()
 export class PostService {
@@ -19,6 +24,12 @@ export class PostService {
     private readonly postRepository: Repository<PostEntity>,
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(Like)
+    private likeRepository: Repository<Like>,
+    @InjectRepository(CommentEntity)
+    private commentRepository: Repository<CommentEntity>,
+
+    private commentService: CommentService,
 
     private readonly myGateway: MyGateway,
     private readonly notaService: NotaService,
@@ -85,11 +96,19 @@ export class PostService {
     await this.postRepository.remove(post);
   }
 
-  async getPost(postId: number): Promise<PostEntity> {
-    const post = await this.postRepository.findOneOrFail({
-      where: { id: postId },
+  async getPostById(postId: number, userId: number) {
+    const user = await this.usersRepository.findOneOrFail({
+      where: { id: userId },
+      relations: ['subscribers'],
     });
-    return post;
+    const postInfo = await this.commentService.deepGetPostById(postId);
+
+    if (!postInfo) {
+      throw new NotFoundException('Post not found');
+    }
+
+    const transformedResponse = transformPostInfo([postInfo], user); // Передбачається, що `user` доступний у цьому контексті
+    return transformedResponse;
   }
 
   async getPostsByAuthor(authorId: number): Promise<PostEntity[]> {

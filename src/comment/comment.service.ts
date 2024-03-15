@@ -254,7 +254,7 @@ export class CommentService {
     return transUpdatedPost[0];
   }
 
-  private async deepGetPostById(postId: number): Promise<PostEntity> {
+  async deepGetPostById(postId: number): Promise<PostEntity> {
     return await this.postRepository
       .createQueryBuilder('post')
       .leftJoin('post.author', 'author')

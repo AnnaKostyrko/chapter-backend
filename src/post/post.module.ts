@@ -8,6 +8,8 @@ import { Like } from 'src/like/entity/like.entity';
 import { CommentEntity } from 'src/comment/entity/comment.entity';
 import { Server } from 'socket.io';
 import { GatewayModule } from 'src/sockets/gateway/gateway.module';
+import { CommentService } from 'src/comment/comment.service';
+
 import { NotaService } from 'src/nota/nota.service';
 import { Nota } from 'src/nota/entities/nota.entity';
 @Module({
@@ -15,7 +17,7 @@ import { Nota } from 'src/nota/entities/nota.entity';
     TypeOrmModule.forFeature([PostEntity, User, Like, CommentEntity, Nota]),
     GatewayModule,
   ],
-  providers: [PostService, Server, NotaService],
+  providers: [PostService, Server, CommentService,NotaService],
   controllers: [PostController],
 })
 export class PostModule {}
