@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DeepPartial, Not } from 'typeorm';
 import { PostEntity } from './entities/post.entity';
@@ -107,8 +104,8 @@ export class PostService {
       throw new NotFoundException('Post not found');
     }
 
-    const transformedResponse = transformPostInfo([postInfo], user); // Передбачається, що `user` доступний у цьому контексті
-    return transformedResponse;
+    const transformedResponse = transformPostInfo([postInfo], user);
+    return transformedResponse[0];
   }
 
   async getPostsByAuthor(authorId: number): Promise<PostEntity[]> {
