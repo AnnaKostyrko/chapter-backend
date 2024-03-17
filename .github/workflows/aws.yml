@@ -8,6 +8,8 @@ on:
 env:
   AWS_REGION: eu-central-1
   ECR_NAME: chapter-dev-api
+  ECS_CLUSTER_NAME: chapter-dev-euc1
+  ECS_SERVICE_NAME: api-backend
   IMAGE_MAJOR_VERSION: 1
 
 jobs:
@@ -28,13 +30,12 @@ jobs:
 
       - name: build-and-push
         id: build-and-push
-        env:
-          AWS_REGION: ${{ env.AWS_REGION }}
-          IMAGE_MINOR_VERSION: ${{ vars.IMAGE_MINOR_VERSION }}
         run: |
           #define-image-version
-          next_image_version="$((IMAGE_MINOR_VERSION + 1))"
-          image_version="${IMAGE_MAJOR_VERSION}.$next_image_version"
+          next_image_version="$((${{ env.IMAGE_MINOR_VERSION }} + 1))"
+          image_version="${{ env.IMAGE_MAJOR_VERSION }}.$next_image_version"
+          echo "IMAGE VERSION: $image_version"
+          echo "NEXT IMAGE VERSION: $next_image_version"
           echo "next-image-version=$next_image_version" >> "$GITHUB_OUTPUT"
 
           aws_repo="${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_REGION.amazonaws.com"
@@ -54,3 +55,22 @@ jobs:
           name: IMAGE_MINOR_VERSION
           value: ${{ steps.build-and-push.outputs.next-image-version }}
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name }}
+    needs: build
+    name: deploy
+
+    steps:
+      - name: configure-aws-credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: deploy-to-aws
+        run: |
+          aws ecs update-service --cluster ${{ env.ECS_CLUSTER_NAME }} --service ${{ env.ECS_SERVICE_NAME }} --force-new-deployment > /dev/null
+          aws ecs wait services-stable --cluster ${{ env.ECS_CLUSTER_NAME }} --services ${{ env.ECS_SERVICE_NAME }}
