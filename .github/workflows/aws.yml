@@ -32,7 +32,7 @@ jobs:
         id: build-and-push
         run: |
           #define-image-version
-          image_version="${{ env.IMAGE_MAJOR_VERSION }}.${{ var.IMAGE_MINOR_VERSION }}"
+          image_version="${{ env.IMAGE_MAJOR_VERSION }}.${{ vars.IMAGE_MINOR_VERSION }}"
           echo "IMAGE VERSION: $image_version"
 
           next_image_version="$(($image_version + 1))"
