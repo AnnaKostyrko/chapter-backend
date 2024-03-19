@@ -82,16 +82,24 @@ export class PostController {
   @ApiResponse({ status: 200, description: 'OK', type: [PostEntity] })
   @Get('by-author')
   @UseGuards(AuthGuard('jwt'))
-  async getPostsByAuthor(@Request() req: any): Promise<PostEntity[]> {
-    return await this.postService.getPostsByAuthor(req.user.id);
+  async getPostsByAuthor(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Request() req: any,
+  ): Promise<DeepPartial<PostEntity[]>> {
+    return await this.postService.getPostsByAuthor(req.user.id, page, limit);
   }
 
   @ApiOperation({ summary: 'Get user`s posts' })
   @ApiResponse({ status: 200, description: 'OK', type: [PostEntity] })
   @Get('by-user/:userId')
   @UseGuards(AuthGuard('jwt'))
-  async getUsersPosts(@Param('userId') userId: number): Promise<PostEntity[]> {
-    return await this.postService.getUsersPosts(userId);
+  async getUsersPosts(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Param('userId') userId: number,
+  ): Promise<DeepPartial<PostEntity[]>> {
+    return await this.postService.getUsersPosts(userId, page, limit);
   }
 
   @ApiOperation({ summary: 'get users who liked post' })
