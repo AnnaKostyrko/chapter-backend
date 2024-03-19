@@ -108,18 +108,36 @@ export class PostService {
     return transformedResponse[0];
   }
 
-  async getPostsByAuthor(authorId: number): Promise<PostEntity[]> {
-    return await this.postRepository.find({
-      where: { author: { id: authorId } },
-      order: { createdAt: 'DESC' },
-    });
+  async getPostsByAuthor(
+    authorId: number,
+    page: number,
+    limit: number,
+  ): Promise<DeepPartial<PostEntity[]>> {
+    const user = await this.usersRepository.findOneByOrFail({ id: authorId });
+    const postsInfo = await this.getPostsByUserId(authorId);
+
+    const transformedResponse = transformPostInfo(postsInfo, user);
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const paginatedPosts = transformedResponse.slice(startIndex, endIndex);
+    return paginatedPosts;
   }
 
-  async getUsersPosts(userId: number): Promise<PostEntity[]> {
-    return await this.postRepository.find({
-      where: { author: { id: userId } },
-      order: { createdAt: 'DESC' },
-    });
+  async getUsersPosts(
+    userId: number,
+    page: number,
+    limit: number,
+  ): Promise<DeepPartial<PostEntity[]>> {
+    const user = await this.usersRepository.findOneByOrFail({ id: userId });
+    const postsInfo = await this.getPostsByUserId(userId);
+
+    const transformedResponse = transformPostInfo(postsInfo, user);
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const paginatedPosts = transformedResponse.slice(startIndex, endIndex);
+    return paginatedPosts;
   }
 
   async getUsersWhoLikedPost(
@@ -194,5 +212,28 @@ export class PostService {
     const paginatedPosts = transformedResponse.slice(startIndex, endIndex);
 
     return paginatedPosts;
+  }
+
+  private async getPostsByUserId(userId: number) {
+    const postsInfo: PostEntity[] = await this.postRepository
+      .createQueryBuilder('post')
+      .leftJoin('post.author', 'author')
+      .addSelect([
+        'author.id',
+        'author.avatarUrl',
+        'author.firstName',
+        'author.lastName',
+        'author.nickName',
+      ])
+      .leftJoinAndSelect('post.likes', 'like')
+      .leftJoinAndSelect('post.comments', 'comment')
+      .leftJoinAndSelect('comment.user', 'commentAuthor')
+      .leftJoinAndSelect('comment.likes', 'likes')
+      .where('author.id = :userId', { userId })
+      .andWhere('like.comment IS NULL')
+      .orderBy('post.createdAt', 'DESC')
+      .addOrderBy('comment.createdAt', 'DESC')
+      .getMany();
+    return postsInfo;
   }
 }
